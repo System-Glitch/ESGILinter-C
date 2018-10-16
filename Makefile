@@ -3,9 +3,9 @@ CFLAGS ?= -O3 -Wall -Wextra -fPIC -std=c11
 
 COM_COLOR   = \033[0;34m
 OBJ_COLOR   = \033[0;36m
-OK_COLOR    = \033[0;32m
-ERROR_COLOR = \033[0;31m
-WARN_COLOR  = \033[0;33m
+OK_COLOR    = \033[1;32m
+ERROR_COLOR = \033[1;31m
+WARN_COLOR  = \033[1;33m
 NO_COLOR    = \033[m
 
 OK_STRING    = "[OK]"

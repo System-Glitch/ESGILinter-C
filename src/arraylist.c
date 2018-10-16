@@ -34,7 +34,8 @@ void *arraylist_get(arraylist_t *list, unsigned int index) {
 
 void arraylist_free(arraylist_t *list) {
 	for(unsigned int i = 0 ; i < list->size ; i++) {
-		free(list->array[i]);
+		if(list->array[i] != NULL)
+			free(list->array[i]);
 	}
 	free(list->array);
 	free(list);
