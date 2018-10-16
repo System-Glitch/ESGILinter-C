@@ -59,6 +59,17 @@ field_t *get_field_from_string(char *field) {
 	return NULL;
 }
 
+static char *get_define_type(char *define) {
+	//Substring the value (after last space after name, until new line)
+	
+	//If empty, type void
+	//If not supported (macro, multiline), return NULL
+
+	//TODO
+	errno = ENOSYS;
+	return NULL;
+}
+
 define_t *get_define_from_string(char *define) {
 	//TODO
 	errno = ENOSYS;
@@ -77,7 +88,10 @@ scope_t *parse_scope(char *file, unsigned int start_line, scope_t *parent_scope)
 	return NULL;
 }
 
-char type_equals(type_t *type1, type_t *type2);
+char type_equals(type_t *type1, type_t *type2) {
+	//TODO handle synonyms such as unsigned char and uint8_t
+	return !strcmp(type1->name, type2->name) && type1->is_pointer == type2->is_pointer;
+}
 
 void define_free(define_t *define) {
 	free(define->name);
