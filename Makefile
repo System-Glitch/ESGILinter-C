@@ -1,5 +1,5 @@
 CC ?= gcc
-CFLAGS ?= -O3 -Wall -fPIC -std=c11
+CFLAGS ?= -O3 -Wall -Wextra -fPIC -std=c11
 
 COM_COLOR   = \033[0;34m
 OBJ_COLOR   = \033[0;36m
