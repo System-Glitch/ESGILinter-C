@@ -10,7 +10,7 @@ define_t *define_init(char *name, char *value) {
 		define->value = value;
 		//TODO get field type
 		define->type.name = "";
-		define->type.is_pointer = false;
+		define->type.is_pointer = 0;
 	}
 
 	return define;
@@ -112,14 +112,6 @@ void function_free(function_t *function) {
 	free(function);
 }
 
-static void scope_list_free(arraylist_t *list, void (*free_function)(void *value)) {
-	for(unsigned int i = 0 ; i < list->size; i++) {
-		free_function(list->array[i]);
-		list->array[i] = NULL;
-	}
-	arraylist_free(list);
-}
-
 void scope_free(scope_t *scope) {
 	node_t * current;
 
@@ -128,7 +120,7 @@ void scope_free(scope_t *scope) {
 	//Recursively free children
 	current = scope->child->head;
 	while (current != NULL) {
-		scope_free(current->value);
+		scope_free(current->val);
 		current = current->next;
 	}
 
@@ -148,7 +140,7 @@ void scope_free(scope_t *scope) {
 
 	//Free defines
 	for(unsigned int i = 0 ; i < scope->defines->size; i++) {
-		free_function(scope->defines->array[i]);
+		define_free(scope->defines->array[i]);
 		scope->defines->array[i] = NULL;
 	}
 	arraylist_free(scope->defines);

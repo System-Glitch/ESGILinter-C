@@ -12,12 +12,12 @@ void test() {
 		arraylist_add(list, value);
 	}
 
-	printf("%s--------------------%s\n", FORMAT_BOLD, FORMAT_RESET);
+	printf("--------------------%s\n", FORMAT_RESET);
 	printf("%sTESTING ARRAY LIST%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
 	for(size_t i = 0 ; i < list->size; i++)
 		printf("%s- %s%d\n", COLOR_D_GREY, FORMAT_RESET, *((int*)arraylist_get(list, i)));
 
-	printf("%sFreeing array list%s\n", COLOR_L_BLUE, FORMAT_RESET);
+	printf("%sFreeing array list%s\n", COLOR_CYAN, FORMAT_RESET);
 	arraylist_free(list);
-	printf("%s--------------------%s\n", FORMAT_BOLD, FORMAT_RESET);
+	printf("--------------------%s\n", FORMAT_RESET);
 }
