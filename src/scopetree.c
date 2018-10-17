@@ -94,18 +94,27 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, scope_t *parent
 field_t *get_variable_from_declaration(char *line) {
 	regex_t regex;
 	regmatch_t pmatch[5];
-	int len;
+	int star_count_name, star_count_type;
 	field_t *variable = NULL;
 	char *name;
+	char *tmp_name;
 	char *type;
 
 	if(exec_regex(&regex, REGEX_VARIABLE_DECLARATION, line, 5, &pmatch)) {
 
 		type = substr_regex_match(line, pmatch[2]);
-		name = substr_regex_match(line, pmatch[3]);
+		tmp_name = substr_regex_match(line, pmatch[3]);
+
+		star_count_type =  strcountuntil(type, '*', 1);
+		star_count_name += strcountuntil(tmp_name, '*', 0);
+
+		//Remove stars
+		type[strlen(type) - star_count_type] = '\0';
+		name = strsubstr(tmp_name, star_count_name, strlen(tmp_name) - star_count_name);
+		free(tmp_name);
 
 		if(type != NULL && name != NULL)		
-			variable = field_init(name, type, strindexof(type, '*') != -1 || strindexof(name, '*') != -1);
+			variable = field_init(name, type, star_count_name + star_count_type);
 	}
 
 	regfree(&regex);
