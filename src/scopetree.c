@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <regex.h>
 #include "scopetree.h"
 #include "stringutils.h"
 
@@ -34,8 +35,8 @@ field_t *field_init(char *name, char *type, unsigned char type_is_pointer) {
 
 	if(field != NULL) {
 		field->name                   = name;
-		field->return_type.name       = type;
-		field->return_type.is_pointer = type_is_pointer; 
+		field->type.name       = type;
+		field->type.is_pointer = type_is_pointer; 
 	}
 
 	return field;
@@ -90,6 +91,28 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, scope_t *parent
 	return NULL;
 }
 
+field_t *get_variable_from_declaration(char *line) {
+	regex_t regex;
+	regmatch_t pmatch[5];
+	int len;
+	field_t *variable = NULL;
+	char *name;
+	char *type;
+
+	if(exec_regex(&regex, REGEX_VARIABLE_DECLARATION, line, 5, &pmatch)) {
+
+		type = substr_regex_match(line, pmatch[2]);
+		name = substr_regex_match(line, pmatch[3]);
+
+		if(type != NULL && name != NULL)		
+			variable = field_init(name, type, strindexof(type, '*') != -1 || strindexof(name, '*') != -1);
+	}
+
+	regfree(&regex);
+
+	return variable;
+}
+
 char type_equals(type_t *type1, type_t *type2) {
 	//TODO handle synonyms such as unsigned char and uint8_t
 	return !strcmp(type1->name, type2->name) && type1->is_pointer == type2->is_pointer;
@@ -103,6 +126,7 @@ void define_free(define_t *define) {
 
 void field_free(field_t *field) {
 	free(field->name);
+	free(field->type.name);
 	free(field);
 }
 

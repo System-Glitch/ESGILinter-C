@@ -87,3 +87,24 @@ char *strjoin(char **strings, unsigned int count, char *join) {
 
 	return result;
 }
+
+char exec_regex(regex_t * regex, char* regexp, char * source, int max_groups, regmatch_t (*pmatch)[]) {
+	if (regcomp(regex, regexp, REG_EXTENDED)) {
+		fputs("Could not compile regular expression.\n", stderr);
+		return 0;
+	}
+
+	return regexec(regex, source, max_groups, *pmatch, 0) == 0;
+}
+
+char *substr_regex_match(char *source, regmatch_t match) {
+	int length = match.rm_eo - match.rm_so;
+	char *substr = malloc((length + 1) * sizeof(char));
+
+	if(substr != NULL) {
+		strncpy(substr, source + match.rm_so, length);
+		substr[length] = '\0';
+	}
+
+	return substr;
+}
