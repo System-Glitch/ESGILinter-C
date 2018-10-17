@@ -78,5 +78,32 @@ void test() {
 		COLOR_CYAN, FORMAT_RESET, variable->type.is_pointer);
 	field_free(variable);
 
+	printf("%sInput: %s\"%s\"%s\n", COLOR_BLUE, COLOR_YELLOW, "unsigned char c = 42;", FORMAT_RESET);
+	variable = get_variable_from_declaration("unsigned char c = 42;");
+	printf("%sOutput: %s\n\t%sName:       %s%s\n\t%sType:       %s%s\n\t%sIs pointer: %s%d\n", 
+		COLOR_BLUE, FORMAT_RESET,
+		COLOR_CYAN, FORMAT_RESET, variable->name,
+		COLOR_CYAN, FORMAT_RESET, variable->type.name,
+		COLOR_CYAN, FORMAT_RESET, variable->type.is_pointer);
+	field_free(variable);
+
+	printf("%sInput: %s\"%s\"%s\n", COLOR_BLUE, COLOR_YELLOW, "unsigned char* c = 42;", FORMAT_RESET);
+	variable = get_variable_from_declaration("unsigned char* c = 42;");
+	printf("%sOutput: %s\n\t%sName:       %s%s\n\t%sType:       %s%s\n\t%sIs pointer: %s%d\n", 
+		COLOR_BLUE, FORMAT_RESET,
+		COLOR_CYAN, FORMAT_RESET, variable->name,
+		COLOR_CYAN, FORMAT_RESET, variable->type.name,
+		COLOR_CYAN, FORMAT_RESET, variable->type.is_pointer);
+	field_free(variable);
+
+	printf("%sInput: %s\"%s\"%s\n", COLOR_BLUE, COLOR_YELLOW, "unsigned char c[42];", FORMAT_RESET);
+	variable = get_variable_from_declaration("unsigned char c[42];");
+	printf("%sOutput: %s\n\t%sName:       %s%s\n\t%sType:       %s%s\n\t%sIs pointer: %s%d\n", 
+		COLOR_BLUE, FORMAT_RESET,
+		COLOR_CYAN, FORMAT_RESET, variable->name,
+		COLOR_CYAN, FORMAT_RESET, variable->type.name,
+		COLOR_CYAN, FORMAT_RESET, variable->type.is_pointer);
+	field_free(variable);
+
 	printf("------------------------------%s\n", FORMAT_RESET);
 }

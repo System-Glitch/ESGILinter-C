@@ -4,7 +4,7 @@
 #include "linkedlist.h"
 #include "arraylist.h"
 
-#define REGEX_VARIABLE_DECLARATION "^ *(static[[:space:]]+)?([a-zA-Z0-9_*]+)[[:space:]]*([a-zA-Z0-9_*]+)[[:space:]]*((\\[[0-9]*\\])+)?[[:space:]]*(=[[:space:]]*[[:space:]]*([^[:space:]]+))?;$"
+#define REGEX_VARIABLE_DECLARATION "^ *(static[[:space:]]+)?(([[:alnum:]_]+[[:space:]]+)?[[:alnum:]_*]+)[[:space:]]+([[:alnum:]_*]+)[[:space:]]*((\\[[0-9]*\\])+)?[[:space:]]*(=[[:space:]]*[[:space:]]*([^[:space:]]+))?;$"
 
 typedef struct type {
 	char          *name;
