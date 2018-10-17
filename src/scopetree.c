@@ -153,7 +153,7 @@ void function_free(function_t *function) {
 	free(function->name);
 	for(unsigned int i = 0 ; i < function->params->size ; i++)
 		field_free(function->params->array[i]);
-	arraylist_free(function->params);
+	arraylist_free(function->params, 1);
 	free(function);
 }
 
@@ -174,21 +174,21 @@ void scope_free(scope_t *scope) {
 		function_free(scope->functions->array[i]);
 		scope->functions->array[i] = NULL;
 	}
-	arraylist_free(scope->functions);
+	arraylist_free(scope->functions, 1);
 
 	//Free variables
 	for(unsigned int i = 0 ; i < scope->variables->size; i++) {
 		field_free(scope->variables->array[i]);
 		scope->variables->array[i] = NULL;
 	}
-	arraylist_free(scope->variables);
+	arraylist_free(scope->variables, 1);
 
 	//Free defines
 	for(unsigned int i = 0 ; i < scope->defines->size; i++) {
 		define_free(scope->defines->array[i]);
 		scope->defines->array[i] = NULL;
 	}
-	arraylist_free(scope->defines);
+	arraylist_free(scope->defines, 1);
 
 	free(scope);
 }
