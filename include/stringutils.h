@@ -8,6 +8,9 @@
 
 char *strsubstr(char *str , int from, int count);
 
+unsigned int strcount(char *str, char chr);
+unsigned int strcountuntil(char *str, char chr, char reverse);
+
 int strindexof(char *str, char chr);
 int strlastindexof(char *str, char chr);
 

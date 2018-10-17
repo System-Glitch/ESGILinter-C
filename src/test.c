@@ -33,14 +33,14 @@ void test() {
 		COLOR_CYAN, FORMAT_RESET, variable->type.is_pointer);
 	field_free(variable);
 
-	/*printf("%sInput: %s\"%s\"%s\n", COLOR_BLUE, COLOR_YELLOW, "char* ets = \"sdf_\";", FORMAT_RESET);
-	variable = get_variable_from_declaration("char* ets = \"sdf_\";");
+	printf("%sInput: %s\"%s\"%s\n", COLOR_BLUE, COLOR_YELLOW, "char* *ets = \"sdf_\";", FORMAT_RESET);
+	variable = get_variable_from_declaration("char* *ets = \"sdf_\";");
 	printf("%sOutput: %s\n\t%sName:       %s%s\n\t%sType:       %s%s\n\t%sIs pointer: %s%d\n", 
 		COLOR_BLUE, FORMAT_RESET,
 		COLOR_CYAN, FORMAT_RESET, variable->name,
 		COLOR_CYAN, FORMAT_RESET, variable->type.name,
 		COLOR_CYAN, FORMAT_RESET, variable->type.is_pointer);
-	field_free(variable);*/
+	field_free(variable);
 
 	printf("%sInput: %s\"%s\"%s\n", COLOR_BLUE, COLOR_YELLOW, "char \nk\n\t =             'a';", FORMAT_RESET);
 	variable = get_variable_from_declaration("char \nk\n\t =             'a';");

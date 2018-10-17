@@ -13,6 +13,41 @@ char *strsubstr(char *str , int from, int count) {
 	return result;
 }
 
+unsigned int strcount(char *str, char chr) {
+
+	unsigned int length = strlen(str);
+	unsigned int count = 0;
+
+	for(unsigned int i = 0 ; i < length ; i++) {
+		if(str[i] == chr)
+			count++;
+	}
+	return count;
+}
+
+unsigned int strcountuntil(char *str, char chr, char reverse) {
+
+	unsigned int length = strlen(str);
+	unsigned int count = 0;
+
+	if(!reverse) {
+		for(unsigned int i = 0 ; i < length ; i++) {
+			if(str[i] == chr)
+				count++;
+			else
+				break;
+		}
+	} else {
+		for(int i = length - 1 ; i >= 0 ; i--) {
+			if(str[i] == chr)
+				count++;
+			else
+				break;
+		}
+	}
+	return count;
+}
+
 int strindexof(char *str, char chr) {
 
 	unsigned int length = strlen(str);
