@@ -32,6 +32,8 @@ typedef struct scope {
 	arraylist_t  *functions;
 	arraylist_t  *variables;
 	arraylist_t  *defines;
+	int from_line;
+	int to_line;
 } scope_t;
 
 
@@ -44,7 +46,7 @@ field_t     *get_field_from_string(char *field);
 define_t    *get_define_from_string(char *define);
 arraylist_t *get_function_params(char *function_head);
 
-scope_t *parse_scope(char *file, unsigned int start_line, scope_t *parent_scope);
+scope_t *parse_scope(arraylist_t *file, unsigned int start_line, scope_t *parent_scope);
 
 char type_equals(type_t *type1, type_t *type2);
 

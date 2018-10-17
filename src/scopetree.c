@@ -48,6 +48,8 @@ scope_t *scope_init(scope_t *parent) {
 		scope->child     = linkedlist_init();
 		scope->variables = arraylist_init(10);
 		scope->defines   = arraylist_init(10);
+		scope->from_line = -1;
+		scope->to_line   = -1;
 	}
 
 	return scope;
@@ -82,7 +84,7 @@ arraylist_t *get_function_params(char *function_head) {
 	return NULL;
 }
 
-scope_t *parse_scope(char *file, unsigned int start_line, scope_t *parent_scope) {
+scope_t *parse_scope(arraylist_t *file, unsigned int start_line, scope_t *parent_scope) {
 	//TODO
 	errno = ENOSYS;
 	return NULL;
