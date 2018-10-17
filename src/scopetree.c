@@ -93,29 +93,32 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, scope_t *parent
 
 field_t *get_variable_from_declaration(char *line) {
 	regex_t regex;
-	regmatch_t pmatch[9];
+	regmatch_t pmatch[10];
 	int star_count_name, star_count_type;
+	int name_sub_index, type_sub_index;
 	field_t *variable = NULL;
 	char *name;
 	char *tmp_name;
 	char *type;
 	char *array_def;
 
-	if(exec_regex(&regex, REGEX_VARIABLE_DECLARATION, line, 9, &pmatch)) {
+	if(exec_regex(&regex, REGEX_VARIABLE_DECLARATION, line, 10, &pmatch)) {
 
 		type     = substr_regex_match(line, pmatch[2]);
-		tmp_name = substr_regex_match(line, pmatch[4]);
+		tmp_name = substr_regex_match(line, pmatch[5]);
 
-		star_count_type = strcountuntil(type, '*', 1);
-		star_count_name = strcountuntil(tmp_name, '*', 0);
+		star_count_type = strcount(type, '*');
+		star_count_name = strcount(tmp_name, '*');
+		type_sub_index  = strcountuntil(type, '*', 1, 1);
+		name_sub_index  = strcountuntil(tmp_name, '*', 0, 1);
 
 		//Remove stars
-		type[strlen(type) - star_count_type] = '\0';
-		name = strsubstr(tmp_name, star_count_name, strlen(tmp_name) - star_count_name);
+		type[strlen(type) - type_sub_index] = '\0';
+		name = strsubstr(tmp_name, name_sub_index, strlen(tmp_name) - name_sub_index);
 		free(tmp_name);
 
-		if(pmatch[5].rm_eo != -1) { //Is array
-			array_def = substr_regex_match(line, pmatch[5]);
+		if(pmatch[6].rm_eo != -1) { //Is array
+			array_def = substr_regex_match(line, pmatch[6]);
 			star_count_type += strcount(array_def, '[');
 			free(array_def);
 		}
