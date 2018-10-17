@@ -4,6 +4,8 @@
 #include "linkedlist.h"
 #include "arraylist.h"
 
+#define REGEX_VARIABLE_DECLARATION "^ *(static[[:space:]]+)?([a-zA-Z0-9_*]+)[[:space:]]*([a-zA-Z0-9_*]+)[[:space:]]*(=[[:space:]]*[[:space:]]*([^[:space:]]+))?;$"
+
 typedef struct type {
 	char          *name;
 	unsigned char  is_pointer;
@@ -11,7 +13,7 @@ typedef struct type {
 
 typedef struct field {
 	char   *name;
-	type_t  return_type;
+	type_t  type;
 } field_t;
 
 typedef struct function {
@@ -47,6 +49,7 @@ define_t    *get_define_from_string(char *define);
 arraylist_t *get_function_params(char *function_head);
 
 scope_t *parse_scope(arraylist_t *file, unsigned int start_line, scope_t *parent_scope);
+field_t *get_variable_from_declaration(char *line);
 
 char type_equals(type_t *type1, type_t *type2);
 
