@@ -25,21 +25,21 @@ unsigned int strcount(char *str, char chr) {
 	return count;
 }
 
-unsigned int strcountuntil(char *str, char chr, char reverse) {
+unsigned int strcountuntil(char *str, char chr, char reverse, char ignore_whitespace) {
 
 	unsigned int length = strlen(str);
 	unsigned int count = 0;
 
 	if(!reverse) {
 		for(unsigned int i = 0 ; i < length ; i++) {
-			if(str[i] == chr)
+			if(str[i] == chr || (ignore_whitespace && is_whitespace(str[i])))
 				count++;
 			else
 				break;
 		}
 	} else {
 		for(int i = length - 1 ; i >= 0 ; i--) {
-			if(str[i] == chr)
+			if(str[i] == chr || (ignore_whitespace && is_whitespace(str[i])))
 				count++;
 			else
 				break;
@@ -142,4 +142,8 @@ char *substr_regex_match(char *source, regmatch_t match) {
 	}
 
 	return substr;
+}
+
+char is_whitespace(char c) {
+	return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\v' || c == '\f';
 }
