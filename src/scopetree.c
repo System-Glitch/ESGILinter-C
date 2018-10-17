@@ -93,7 +93,7 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, scope_t *parent
 
 field_t *get_variable_from_declaration(char *line) {
 	regex_t regex;
-	regmatch_t pmatch[8];
+	regmatch_t pmatch[9];
 	int star_count_name, star_count_type;
 	field_t *variable = NULL;
 	char *name;
@@ -101,10 +101,10 @@ field_t *get_variable_from_declaration(char *line) {
 	char *type;
 	char *array_def;
 
-	if(exec_regex(&regex, REGEX_VARIABLE_DECLARATION, line, 8, &pmatch)) {
+	if(exec_regex(&regex, REGEX_VARIABLE_DECLARATION, line, 9, &pmatch)) {
 
 		type     = substr_regex_match(line, pmatch[2]);
-		tmp_name = substr_regex_match(line, pmatch[3]);
+		tmp_name = substr_regex_match(line, pmatch[4]);
 
 		star_count_type = strcountuntil(type, '*', 1);
 		star_count_name = strcountuntil(tmp_name, '*', 0);
@@ -114,8 +114,8 @@ field_t *get_variable_from_declaration(char *line) {
 		name = strsubstr(tmp_name, star_count_name, strlen(tmp_name) - star_count_name);
 		free(tmp_name);
 
-		if(pmatch[4].rm_eo != -1) { //Is array
-			array_def = substr_regex_match(line, pmatch[4]);
+		if(pmatch[5].rm_eo != -1) { //Is array
+			array_def = substr_regex_match(line, pmatch[5]);
 			star_count_type += strcount(array_def, '[');
 			free(array_def);
 		}
