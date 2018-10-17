@@ -34,7 +34,7 @@ void test() {
 		printf("%d ", *((int*)arraylist_get(list, i)));
 
 	printf("\n%sFreeing array list%s\n", COLOR_CYAN, FORMAT_RESET);
-	arraylist_free(list);
+	arraylist_free(list, 1);
 	printf("------------------------------%s\n", FORMAT_RESET);
 	printf("%sTESTING PARSE VARIABLE DECLARATION%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
 	
