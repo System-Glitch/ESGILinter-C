@@ -15,7 +15,7 @@ void test() {
 	printf("--------------------%s\n", FORMAT_RESET);
 	printf("%sTESTING ARRAY LIST%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
 	for(size_t i = 0 ; i < list->size; i++)
-		printf("%s- %s%d\n", COLOR_D_GREY, FORMAT_RESET, *((int*)arraylist_get(list, i)));
+		printf("%s- %s%d\n", COLOR_GREY, FORMAT_RESET, *((int*)arraylist_get(list, i)));
 
 	printf("%sFreeing array list%s\n", COLOR_CYAN, FORMAT_RESET);
 	arraylist_free(list);
