@@ -91,45 +91,87 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, scope_t *parent
 	return NULL;
 }
 
-field_t *get_variable_from_declaration(char *line) {
+static field_t *get_variable_from_declaration(char *type, int star_count_type, char *declaration, int *names_index) {
 	regex_t regex;
 	regmatch_t pmatch[10];
-	int star_count_name, star_count_type;
-	int name_sub_index, type_sub_index;
 	field_t *variable = NULL;
+	int star_count, sub_index;
 	char *name;
-	char *tmp_name;
-	char *type;
+	char *tmp;
 	char *array_def;
 
-	if(exec_regex(&regex, REGEX_VARIABLE_DECLARATION, line, 10, &pmatch)) {
+	if(exec_regex(&regex, REGEX_VARIABLE_NAMES, declaration + *names_index, 10, &pmatch)) {
 
-		type     = substr_regex_match(line, pmatch[2]);
-		tmp_name = substr_regex_match(line, pmatch[5]);
+		tmp = substr_regex_match(declaration + *names_index, pmatch[1]);
 
-		star_count_type = strcount(type, '*');
-		star_count_name = strcount(tmp_name, '*');
-		type_sub_index  = strcountuntil(type, '*', 1, 1);
-		name_sub_index  = strcountuntil(tmp_name, '*', 0, 1);
+		star_count = strcount(tmp, '*');
+		sub_index  = strcountuntil(tmp, '*', 0, 1);
 
 		//Remove stars
-		type[strlen(type) - type_sub_index] = '\0';
-		name = strsubstr(tmp_name, name_sub_index, strlen(tmp_name) - name_sub_index);
-		free(tmp_name);
+		name = strsubstr(tmp, sub_index, strlen(tmp) - star_count);
+		free(tmp);
 
-		if(pmatch[6].rm_eo != -1) { //Is array
-			array_def = substr_regex_match(line, pmatch[6]);
+		if(pmatch[2].rm_so != -1) { //Is array
+			array_def = substr_regex_match(declaration + *names_index, pmatch[2]);
 			star_count_type += strcount(array_def, '[');
 			free(array_def);
+
+			*names_index += pmatch[2].rm_eo + 1;
+		} else {
+			*names_index += (pmatch[4].rm_eo != -1 ? pmatch[4].rm_eo : pmatch[1].rm_eo) + 1;
 		}
 
-		if(type != NULL && name != NULL)		
-			variable = field_init(name, type, star_count_name + star_count_type);
+		if(name != NULL)
+			variable = field_init(name, strduplicate(type), star_count + star_count_type);
+	}
+
+	return variable;
+}
+
+arraylist_t *get_variables_from_declaration(char *line) {
+	regex_t regex;
+	regmatch_t pmatch[16];
+	int star_count_type;
+	int type_sub_index;
+	int length;
+	int names_index = 0;
+	arraylist_t *list = NULL;
+	field_t *variable = NULL;
+	char *tmp_names;
+	char *tmp;
+	char *type;
+
+	if(exec_regex(&regex, REGEX_VARIABLE_DECLARATION, line, 16, &pmatch)) {
+
+		list      = arraylist_init(5);
+		type      = substr_regex_match(line, pmatch[2]);
+		tmp_names = substr_regex_match(line, pmatch[5]);
+		length    = strlen(tmp_names);
+
+		if(type != NULL) {
+
+			star_count_type = strcount(type, '*');
+			type_sub_index  = strcountuntil(type, '*', 1, 1);
+
+			//Remove stars
+			type[strlen(type) - type_sub_index] = '\0';
+
+			do {
+				variable = get_variable_from_declaration(type, star_count_type, tmp_names, &names_index);
+				if(variable != NULL)
+					arraylist_add(list, variable);
+			} while(variable != NULL && names_index < length);
+
+			free(type);
+		}
+
+		free(tmp_names);
+
 	}
 
 	regfree(&regex);
 
-	return variable;
+	return list;
 }
 
 char type_equals(type_t *type1, type_t *type2) {

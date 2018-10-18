@@ -1,5 +1,22 @@
 #include "stringutils.h"
 
+char *strduplicate(char *str) {
+	char *result = NULL;
+	int len;
+
+	if(str == NULL) return NULL;
+
+	len = strlen(str);
+	result = malloc((len + 1) * sizeof(char));
+
+	if(result == NULL) return NULL;
+
+	strcpy(result, str);
+	result[len] = '\0';
+
+	return result;
+}
+
 char *strsubstr(char *str , int from, int count) {
 	char *result;
 	if(str == NULL) return NULL;

@@ -6,6 +6,7 @@
 #include <string.h>
 #include <regex.h>
 
+char *strduplicate(char *str);
 char *strsubstr(char *str , int from, int count);
 
 unsigned int strcount(char *str, char chr);
