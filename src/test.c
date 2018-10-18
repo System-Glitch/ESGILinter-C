@@ -4,16 +4,24 @@
 #include "scopetree.h"
 
 static void test_variable_declaration_parsing(char *line) {
+	arraylist_t *list = NULL;
 	field_t *variable = NULL;
+	
+	list = get_variables_from_declaration(line);
+
 	printf("%sInput: %s\"%s\"%s\n", COLOR_BLUE, COLOR_YELLOW, line, FORMAT_RESET);
-	variable = get_variable_from_declaration(line);
-	if(variable != NULL) {
-		printf("%sOutput: %s\n\t%sName:       %s%s\n\t%sType:       %s%s\n\t%sIs pointer: %s%d\n", 
-			COLOR_BLUE, FORMAT_RESET,
-			COLOR_CYAN, FORMAT_RESET, variable->name,
-			COLOR_CYAN, FORMAT_RESET, variable->type.name,
-			COLOR_CYAN, FORMAT_RESET, variable->type.is_pointer);
-		field_free(variable);
+	if(list != NULL) {
+		printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
+		for(unsigned int i = 0 ; i < list->size ; i++) {
+			variable = arraylist_get(list, i);
+			printf(" %s%2d:  %sName:       %s%s\n      %sType:       %s%s\n      %sIs pointer: %s%d\n", 
+				COLOR_MAGENTA, i,
+				COLOR_CYAN, FORMAT_RESET, variable->name,
+				COLOR_CYAN, FORMAT_RESET, variable->type.name,
+				COLOR_CYAN, FORMAT_RESET, variable->type.is_pointer);
+			field_free(variable);
+		}
+		arraylist_free(list, 0);
 	} else
 		printf("%sOutput: %sNULL%s\n", COLOR_BLUE, COLOR_RED, FORMAT_RESET);
 }
@@ -52,6 +60,10 @@ void test() {
 	test_variable_declaration_parsing("unsigned long * spacing;");
 	test_variable_declaration_parsing("unsigned long ** spacing;");
 	test_variable_declaration_parsing("unsigned long * * spacing;");
+	test_variable_declaration_parsing("int i,k;");
+	test_variable_declaration_parsing("int i = 0,k, l = 25;");
+	test_variable_declaration_parsing("int *i, *k, **l, m;");
+	test_variable_declaration_parsing("int* one, *two;;");
 
 	printf("------------------------------%s\n", FORMAT_RESET);
 }
