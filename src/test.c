@@ -65,5 +65,7 @@ void test() {
 	test_variable_declaration_parsing("int *i, *k, **l, m;");
 	test_variable_declaration_parsing("int* one, *two;;");
 
+	test_variable_declaration_parsing("int i; int j;");
+
 	printf("------------------------------%s\n", FORMAT_RESET);
 }
