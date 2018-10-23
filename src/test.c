@@ -56,6 +56,8 @@ void test() {
 	test_variable_declaration_parsing("unsigned char* c = 42;");
 	test_variable_declaration_parsing("unsigned char c[42];");
 	test_variable_declaration_parsing("unsigned* char c[42];");
+	test_variable_declaration_parsing("unsigned** char c[42];");
+	test_variable_declaration_parsing("unsigned* char** c[42];");
 	test_variable_declaration_parsing("char * spacing;");
 	test_variable_declaration_parsing("unsigned long * spacing;");
 	test_variable_declaration_parsing("unsigned long ** spacing;");
@@ -66,6 +68,7 @@ void test() {
 	test_variable_declaration_parsing("int* one, *two;;");
 
 	test_variable_declaration_parsing("int i; int j;");
+	test_variable_declaration_parsing("unsigned long long int* one, *two;");
 
 	printf("------------------------------%s\n", FORMAT_RESET);
 }

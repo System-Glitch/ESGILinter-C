@@ -6,6 +6,11 @@
 #include <string.h>
 #include <regex.h>
 
+typedef struct match {
+	unsigned int index_start;
+	unsigned int index_end;
+} match_t;
+
 char *strduplicate(char *str);
 char *strsubstr(char *str , int from, int count);
 
@@ -20,7 +25,11 @@ char *strjoin(char **strings, unsigned int count, char *join);
 
 char  exec_regex(regex_t * regex, char* regexp, char * source, int max_groups, regmatch_t (*pmatch)[]);
 char *substr_regex_match(char *source, regmatch_t match);
+char *substr_match(char *source, match_t match);
 
 char is_whitespace(char c);
+char is_alphanumeric(char c);
+
+match_t *match_init();
 
 #endif /* STRINGUTILS_H_ */
