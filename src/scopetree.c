@@ -91,18 +91,21 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, scope_t *parent
 	return NULL;
 }
 
-static field_t *get_variable_from_declaration(char *type, int star_count_type, char *declaration, int *names_index) {
-	regex_t regex;
-	regmatch_t pmatch[10];
+static field_t *get_variable_from_declaration(char *type, int star_count_type, char *declaration, unsigned int *names_index) {
+
 	field_t *variable = NULL;
-	int star_count, sub_index;
-	char *name;
+	match_t *match = NULL;
+	unsigned int star_count, sub_index, tmp_index;
 	char *tmp;
-	char *array_def;
+	char *name;
+	unsigned int array_count = 0;
 
-	if(exec_regex(&regex, REGEX_VARIABLE_NAMES, declaration + *names_index, 10, &pmatch)) {
+	tmp_index = *names_index;
+	match = pvar_name(declaration, names_index, &array_count);
 
-		tmp = substr_regex_match(declaration + *names_index, pmatch[1]);
+	if(match != NULL) {
+		tmp = substr_match(declaration + tmp_index, *match);
+		free(match);
 
 		star_count = strcount(tmp, '*');
 		sub_index  = strcountuntil(tmp, '*', 0, 1);
@@ -111,18 +114,8 @@ static field_t *get_variable_from_declaration(char *type, int star_count_type, c
 		name = strsubstr(tmp, sub_index, strlen(tmp) - star_count);
 		free(tmp);
 
-		if(pmatch[2].rm_so != -1) { //Is array
-			array_def = substr_regex_match(declaration + *names_index, pmatch[2]);
-			star_count_type += strcount(array_def, '[');
-			free(array_def);
-
-			*names_index += pmatch[2].rm_eo + 1;
-		} else {
-			*names_index += (pmatch[4].rm_eo != -1 ? pmatch[4].rm_eo : pmatch[1].rm_eo) + 1;
-		}
-
 		if(name != NULL)
-			variable = field_init(name, strduplicate(type), star_count + star_count_type);
+			variable = field_init(name, strduplicate(type), star_count + array_count + star_count_type);
 	}
 
 	return variable;
@@ -133,8 +126,8 @@ arraylist_t *get_variables_from_declaration(char *line) {
 	regmatch_t pmatch[16];
 	int star_count_type;
 	int type_sub_index;
-	int length;
-	int names_index = 0;
+	unsigned int length;
+	unsigned int names_index = 0;
 	arraylist_t *list = NULL;
 	field_t *variable = NULL;
 	char *tmp_names;

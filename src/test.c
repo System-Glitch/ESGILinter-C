@@ -61,11 +61,13 @@ void test() {
 
 	test_variable_declaration_parsing("ch[ar var;");
 	test_variable_declaration_parsing("un*si()gned ch[ar var;");
+	test_variable_declaration_parsing("size_t length = 5;");
 
 	test_variable_declaration_parsing("char * spacing;");
 	test_variable_declaration_parsing("unsigned long * spacing;");
 	test_variable_declaration_parsing("unsigned long ** spacing;");
 	test_variable_declaration_parsing("unsigned long * * spacing;");
+
 	test_variable_declaration_parsing("int i,k;");
 	test_variable_declaration_parsing("int i = 0,k, l = 25;");
 	test_variable_declaration_parsing("int *i, *k, **l, m;");
