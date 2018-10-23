@@ -3,9 +3,9 @@
 
 #include "linkedlist.h"
 #include "arraylist.h"
+#include "parsing_variables.h"
 
-//#define REGEX_VARIABLE_DECLARATION "^ *(static[[:space:]]+)?(([[:alnum:]_]+[[:space:]]+)?[[:alnum:]_*]+([[:space:]]*\\*)*)[[:space:]]+([[:alnum:]_*]+)[[:space:]]*((\\[[0-9]*\\])+)?[[:space:]]*(=[[:space:]]*[[:space:]]*([^[:space:]]+))?;$"
-#define REGEX_VARIABLE_DECLARATION "^ *(static[[:space:]]+)?(([[:alnum:]_]+[[:space:]]+)?[[:alnum:]_*]+([[:space:]]*\\*)*)[[:space:]]+(([[:alnum:]_*]+)[[:space:]]*((\\[[0-9]*\\])+)?[[:space:]]*(=[[:space:]]*[[:space:]]*([^[:space:],;]+))?([[:space:]]*,[[:space:]]*([[:alnum:]_*]+)[[:space:]]*((\\[[0-9]*\\])+)?[[:space:]]*(=[[:space:]]*[[:space:]]*[^[:space:],;]+)?)*);"
+#define REGEX_VARIABLE_DECLARATION "^ *(static[[:space:]]+)?(([[:alnum:]_*]+[[:space:]]+)*[[:alnum:]_*]+([[:space:]]*\\*)*)[[:space:]]+(([[:alnum:]_*]+)[[:space:]]*((\\[[0-9]*\\])+)?[[:space:]]*(=[[:space:]]*[[:space:]]*([^[:space:],;]+))?([[:space:]]*,[[:space:]]*([[:alnum:]_*]+)[[:space:]]*((\\[[0-9]*\\])+)?[[:space:]]*(=[[:space:]]*[[:space:]]*[^[:space:],;]+)?)*);"
 #define REGEX_VARIABLE_NAMES "^[[:space:]]*,?[[:space:]]*([[:alnum:]_*]+)[[:space:]]*((\\[[0-9]*\\])+)?[[:space:]]*(=[[:space:]]*[[:space:]]*([^[:space:],]+))?([[:space:]]*,[[:space:]]*([[:alnum:]_*]+)[[:space:]]*((\\[[0-9]*\\])+)?[[:space:]]*(=[[:space:]]*[[:space:]]*[^[:space:],]+)?)*$"
 
 typedef struct type {
