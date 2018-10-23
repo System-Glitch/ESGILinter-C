@@ -138,13 +138,26 @@ arraylist_t *get_variables_from_declaration(char *line) {
 	arraylist_t *list = NULL;
 	field_t *variable = NULL;
 	char *tmp_names;
-	char *tmp;
 	char *type;
+
+	match_t *match_type = pvar_type(line);
+	if(match_type == NULL) {
+		printf("tesssst\n");
+		return NULL;
+	}
 
 	if(exec_regex(&regex, REGEX_VARIABLE_DECLARATION, line, 16, &pmatch)) {
 
 		list      = arraylist_init(5);
-		type      = substr_regex_match(line, pmatch[2]);
+		//type      = substr_regex_match(line, pmatch[2]);
+		match_type = pvar_type(line);
+		if(match_type == NULL) {
+			arraylist_free(list, 1);
+			return NULL;
+		}
+		type = substr_match(line, *match_type);
+		free(match_type);
+
 		tmp_names = substr_regex_match(line, pmatch[5]);
 		length    = strlen(tmp_names);
 
