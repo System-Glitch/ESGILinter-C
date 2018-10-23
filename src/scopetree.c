@@ -142,7 +142,6 @@ arraylist_t *get_variables_from_declaration(char *line) {
 
 	match_t *match_type = pvar_type(line);
 	if(match_type == NULL) {
-		printf("tesssst\n");
 		return NULL;
 	}
 
@@ -168,6 +167,13 @@ arraylist_t *get_variables_from_declaration(char *line) {
 
 			//Remove stars
 			type[strlen(type) - type_sub_index] = '\0';
+
+			if(strcount(type, '*')) {
+				free(tmp_names);
+				free(type);
+				arraylist_free(list, 1);
+				return NULL;
+			}
 
 			do {
 				variable = get_variable_from_declaration(type, star_count_type, tmp_names, &names_index);

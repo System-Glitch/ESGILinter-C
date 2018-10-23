@@ -58,6 +58,10 @@ void test() {
 	test_variable_declaration_parsing("unsigned* char c[42];");
 	test_variable_declaration_parsing("unsigned** char c[42];");
 	test_variable_declaration_parsing("unsigned* char** c[42];");
+
+	test_variable_declaration_parsing("ch[ar var;");
+	test_variable_declaration_parsing("un*si()gned ch[ar var;");
+
 	test_variable_declaration_parsing("char * spacing;");
 	test_variable_declaration_parsing("unsigned long * spacing;");
 	test_variable_declaration_parsing("unsigned long ** spacing;");
