@@ -127,6 +127,7 @@ arraylist_t *get_variables_from_declaration(char *line) {
 	int star_count_type;
 	int type_sub_index;
 	unsigned int length;
+	unsigned int type_length;
 	unsigned int names_index = 0;
 	arraylist_t *list = NULL;
 	field_t *variable = NULL;
@@ -148,9 +149,10 @@ arraylist_t *get_variables_from_declaration(char *line) {
 			return NULL;
 		}
 		type = substr_match(line, *match_type);
+		type_length = strlen(type);
 		free(match_type);
 
-		tmp_names = substr_regex_match(line, pmatch[5]);
+		tmp_names = strsubstr(line, type_length, strlen(line) - type_length);
 		length    = strlen(tmp_names);
 
 		if(type != NULL) {
