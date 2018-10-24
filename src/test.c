@@ -77,5 +77,11 @@ void test() {
 	test_variable_declaration_parsing("int i; int j;");
 	test_variable_declaration_parsing("unsigned long long int* one, *two;");
 
+	test_variable_declaration_parsing("int;");
+	test_variable_declaration_parsing("unsigned int;");
+	test_variable_declaration_parsing("unsigned int ;");
+	test_variable_declaration_parsing("qwerty;");
+	test_variable_declaration_parsing("qwerty int;");
+
 	printf("------------------------------%s\n", FORMAT_RESET);
 }
