@@ -271,45 +271,44 @@ arraylist_t *get_variables_from_declaration(char *line) {
 	}
 
 	type = substr_match(line, *match_type);
-	type_length = strlen(type);
 	free(match_type);
 
+	if(type != NULL) {
 
-	tmp_names = strsubstr(line, type_length, strlen(line) - type_length);
-	length    = strlen(tmp_names);
+		type_length = strlen(type);
+		tmp_names   = strsubstr(line, type_length, strlen(line) - type_length);
+		length      = strlen(tmp_names);
 
-	if(type != NULL && length > 0) {
+		if(length > 0) {
+			list            = arraylist_init(5);
+			star_count_type = strcount(type, '*');
+			type_sub_index  = strcountuntil(type, '*', 1, 1);
 
-		list            = arraylist_init(5);
-		star_count_type = strcount(type, '*');
-		type_sub_index  = strcountuntil(type, '*', 1, 1);
+			//Remove stars
+			type[type_length - type_sub_index] = '\0';
 
-		//Remove stars
-		type[strlen(type) - type_sub_index] = '\0';
+			if(strcount(type, '*')) { //Contains stars inside the type name -> invalid type
+				free(tmp_names);
+				free(type);
+				arraylist_free(list, 1);
+				return NULL;
+			}
 
-		if(strcount(type, '*')) {
-			free(tmp_names);
-			free(type);
-			arraylist_free(list, 1);
-			return NULL;
+			do {
+				variable = get_variable_from_declaration(type, star_count_type, tmp_names, &names_index);
+				if(variable != NULL)
+					arraylist_add(list, variable);
+			} while(variable != NULL && names_index < length);
+
+			if(list->size == 0) {
+				arraylist_free(list, 1);
+				list = NULL;
+			}
 		}
-
-		do {
-			variable = get_variable_from_declaration(type, star_count_type, tmp_names, &names_index);
-			if(variable != NULL)
-				arraylist_add(list, variable);
-		} while(variable != NULL && names_index < length);
 
 		free(type);
-
-
-		if(list->size == 0) {
-			arraylist_free(list, 1);
-			list = NULL;
-		}
+		free(tmp_names);
 	}
-
-	free(tmp_names);
 
 	return list;
 }
