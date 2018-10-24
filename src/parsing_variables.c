@@ -105,7 +105,7 @@ match_t *pvar_name(char *names, unsigned int *start_index, unsigned int *array_c
 
 	match = match_init();
 
-	if(match == NULL) return NULL;
+	if(match == NULL || line[index] == ';') return NULL;
 
 	SKIP_WHITESPACES
 
@@ -118,71 +118,74 @@ match_t *pvar_name(char *names, unsigned int *start_index, unsigned int *array_c
 
 	match->index_end = index;
 
-	if(c != ',') {
+	if(c != ';') {
 
-		SKIP_WHITESPACES
+		if(c != ',') {
 
-		//Is array?
-		do {
-			if(index < length && line[index] == '[') {
-				index++;
-				(*array_count)++;
-
-				//Any character until closing bracket
-				while((c = line[index]) != ']' && index < length) {
-					index++;
-				}
-				index++;
-
-				SKIP_WHITESPACES
-			} else break;
-		} while(index < length);
-
-		SKIP_WHITESPACES
-
-		//Equal symbol?
-		if(index < length && line[index++] == '=') {
-			
 			SKIP_WHITESPACES
 
-			//Expect value
-			//Until comma (if outside quotes and braces)
-			value_start_index = index;
+			//Is array?
 			do {
-				c = line[index];
-				if(!expect_comma && !in_content && (c == '"' || c == '{')) {
-					in_content = c;
-					nested = 1;
-				} else if(!expect_comma && in_content) {
-
-					if(in_content == '{' && c == '{') {
-						nested++;
-					} else if(in_content == '{' && c == '}') {
-						nested--;
-						if(nested <= 0) {
-							in_content = 0;
-							expect_comma = 1;
-						}
-					} else if(in_content == '"' && c == '"' && line[index - 1] != '\\') {
-						in_content = 0;
-						nested = 0;
-						expect_comma = 1;
-					}
-
-				} else if(c == ',') {
+				if(index < length && line[index] == '[') {
 					index++;
-					break;
-				}
-				index++;
+					(*array_count)++;
+
+					//Any character until closing bracket
+					while((c = line[index]) != ']' && index < length) {
+						index++;
+					}
+					index++;
+
+					SKIP_WHITESPACES
+				} else break;
 			} while(index < length);
 
-			if(in_content > 0 || nested > 0 || index - 1 == value_start_index) { //Invalid syntax or missing value before comma
-				free(match);
-				match = NULL;
+			SKIP_WHITESPACES
+
+			//Equal symbol?
+			if(index < length && line[index++] == '=') {
+				
+				SKIP_WHITESPACES
+
+				//Expect value
+				//Until comma (if outside quotes and braces)
+				value_start_index = index;
+				do {
+					c = line[index];
+					if(!expect_comma && !in_content && (c == '"' || c == '{')) {
+						in_content = c;
+						nested = 1;
+					} else if(!expect_comma && in_content) {
+
+						if(in_content == '{' && c == '{') {
+							nested++;
+						} else if(in_content == '{' && c == '}') {
+							nested--;
+							if(nested <= 0) {
+								in_content = 0;
+								expect_comma = 1;
+							}
+						} else if(in_content == '"' && c == '"' && line[index - 1] != '\\') {
+							in_content = 0;
+							nested = 0;
+							expect_comma = 1;
+						}
+
+					} else if(c == ',') {
+						index++;
+						break;
+					}
+					index++;
+				} while(index < length);
+
+				if(in_content > 0 || nested > 0 || index - 1 == value_start_index) { //Invalid syntax or missing value before comma
+					free(match);
+					match = NULL;
+				}
 			}
+		} else {
+			index++;
 		}
-	} else {
-		index++;
 	}
 
 	*start_index += index;
