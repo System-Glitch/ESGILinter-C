@@ -2,20 +2,7 @@
 #include "scopetree.h"
 #include "stringutils.h"
 #include "parsing_variables.h"
-
-define_t *define_init(char *name, char *value) {
-	define_t *define = malloc(sizeof(define_t));
-
-	if(define != NULL) {
-		define->name = name;
-		define->value = value;
-		//TODO get field type
-		define->type.name = "";
-		define->type.is_pointer = 0;
-	}
-
-	return define;
-}
+#include "parsing_defines.h"
 
 function_t *function_init(char *name, char *type, unsigned char type_is_pointer, arraylist_t *params) {
 	function_t *function = malloc(sizeof(function_t));
@@ -46,6 +33,7 @@ scope_t *scope_init(scope_t *parent) {
 	scope_t *scope = malloc(sizeof(scope_t));
 
 	if(scope != NULL) {
+		scope->parent    = parent;
 		scope->child     = linkedlist_init();
 		scope->variables = arraylist_init(10);
 		scope->defines   = arraylist_init(10);
@@ -57,23 +45,6 @@ scope_t *scope_init(scope_t *parent) {
 }
 
 field_t *get_field_from_string(char *field) {
-	//TODO
-	errno = ENOSYS;
-	return NULL;
-}
-
-static char *get_define_type(char *define) {
-	//Substring the value (after last space after name, until new line)
-	
-	//If empty, type void
-	//If not supported (macro, multiline), return NULL
-
-	//TODO
-	errno = ENOSYS;
-	return NULL;
-}
-
-define_t *get_define_from_string(char *define) {
 	//TODO
 	errno = ENOSYS;
 	return NULL;
@@ -94,12 +65,6 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, scope_t *parent
 char type_equals(type_t *type1, type_t *type2) {
 	//TODO handle synonyms such as unsigned char and uint8_t
 	return !strcmp(type1->name, type2->name) && type1->is_pointer == type2->is_pointer;
-}
-
-void define_free(define_t *define) {
-	free(define->name);
-	free(define->value);
-	free(define);
 }
 
 void field_free(field_t *field) {
