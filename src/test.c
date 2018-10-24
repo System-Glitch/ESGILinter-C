@@ -2,6 +2,7 @@
 #include "display.h"
 #include "arraylist.h"
 #include "scopetree.h"
+#include "parsing_variables.h"
 
 static void test_variable_declaration_parsing(char *line) {
 	arraylist_t *list = NULL;

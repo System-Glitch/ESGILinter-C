@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <regex.h>
 
 typedef struct match {
 	unsigned int index_start;
@@ -23,8 +22,6 @@ int strlastindexof(char *str, char chr);
 char *strconcat(char *str1, char *str2);
 char *strjoin(char **strings, unsigned int count, char *join);
 
-char  exec_regex(regex_t * regex, char* regexp, char * source, int max_groups, regmatch_t (*pmatch)[]);
-char *substr_regex_match(char *source, regmatch_t match);
 char *substr_match(char *source, match_t match);
 
 char is_whitespace(char c);

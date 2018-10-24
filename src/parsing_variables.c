@@ -1,4 +1,6 @@
+#include <stdlib.h>
 #include "parsing_variables.h"
+#include "scopetree.h"
 
 #define SKIP_WHITESPACES while(is_whitespace(c = line[index]) && index < length) { index++; };
 
@@ -11,35 +13,12 @@ unsigned char type_exists(char *type) {
 	return 0;
 }
 
-match_t *pvar_type(char *line) {
-	unsigned int index = 0;
-	unsigned int type_start = 0;
-	unsigned int type_end = 0;
-
-	unsigned int type_word_start = 0;
-	unsigned int type_word_end = 0;
-
+static void pvar_type_word(char *line, size_t length, unsigned int *i) {
+	char c;
+	unsigned int index = *i;
+	int type_word_start = 0;
+	int type_word_end = 0;
 	char *word;
-
-	size_t length = strlen(line);
-	unsigned char c;
-	match_t *match = NULL;
-
-	if(length < 3) return NULL; //3 is the minimum size for a declaration
-
-	SKIP_WHITESPACES
-
-	if(strstr(line + index, "static") == line + index)
-		index += 6;
-
-	SKIP_WHITESPACES
-
-	if(strstr(line + index, "const") == line + index)
-		index += 5;
-
-	SKIP_WHITESPACES
-
-	type_start = index;
 
 	do {
 
@@ -63,6 +42,36 @@ match_t *pvar_type(char *line) {
 		free(word);
 	} while(1);
 
+	*i = index;
+}
+
+static match_t *pvar_type(char *line) {
+	unsigned int index = 0;
+	int type_start = -1;
+	int type_end = -1;
+
+	size_t length = strlen(line);
+	unsigned char c;
+	match_t *match = NULL;
+
+	if(length < 3) return NULL; //3 is the minimum size for a declaration
+
+	SKIP_WHITESPACES
+
+	if(strstr(line + index, "static") == line + index)
+		index += 6;
+
+	SKIP_WHITESPACES
+
+	if(strstr(line + index, "const") == line + index)
+		index += 5;
+
+	SKIP_WHITESPACES
+
+	type_start = index;
+
+	pvar_type_word(line, length, &index);
+
 	//Find star	
 	while(index < length) {
 		SKIP_WHITESPACES
@@ -79,27 +88,94 @@ match_t *pvar_type(char *line) {
 
 	type_end = index;
 
-	match = match_init();
-	if(match != NULL) {
-		match->index_start = type_start;
-		match->index_end = type_end;
+	if(type_end != -1) {
+		match = match_init();
+		if(match != NULL) {
+			match->index_start = type_start;
+			match->index_end = type_end;
+		}
 	}
 
 	return match;
 }
 
-match_t *pvar_name(char *names, unsigned int *start_index, unsigned int *array_count) {
-
-	unsigned int index = 0;
+static char pvar_value(char *line, size_t length, unsigned int *i) {
+	unsigned int index = *i;
 	unsigned char in_content = 0;
 	unsigned char expect_comma = 0;
 	unsigned int nested = 0;
 	unsigned char value_start_index = 0;
+	char c;
 
-	char *line = names + *start_index;
+	SKIP_WHITESPACES
+
+	//Expect value
+	//Until comma (if outside quotes and braces)
+	value_start_index = index;
+	do {
+		c = line[index];
+		if(!expect_comma && !in_content && (c == '"' || c == '{')) {
+			in_content = c;
+			nested = 1;
+		} else if(!expect_comma && in_content) {
+
+			if(in_content == '{' && c == '{') {
+				nested++;
+			} else if(in_content == '{' && c == '}') {
+				nested--;
+				if(nested <= 0) {
+					in_content = 0;
+					expect_comma = 1;
+				}
+			} else if(in_content == '"' && c == '"' && line[index - 1] != '\\') {
+				in_content = 0;
+				nested = 0;
+				expect_comma = 1;
+			}
+
+		} else if(c == ',') {
+			index++;
+			break;
+		}
+		index++;
+	} while(index < length);
+
+	*i = index;
+	return !(in_content > 0 || nested > 0 || index - 1 == value_start_index); //Check for invalid syntax or missing value before comma
+}
+
+static unsigned int pvar_array(char *line, size_t length, unsigned int *i) {
+	unsigned int index = *i;
+	unsigned int array_count = 0;
+	char c;
+
+	//Is array?
+	do {
+		if(index < length && line[index] == '[') {
+			index++;
+			array_count++;
+
+			//Any character until closing bracket
+			while((c = line[index]) != ']' && index < length) {
+				index++;
+			}
+			index++;
+
+			SKIP_WHITESPACES
+		} else break;
+	} while(index < length);
+
+	*i = index;
+	return array_count;
+}
+
+static match_t *pvar_name(char *names, unsigned int *start_index, unsigned int *array_count) {
+
+	unsigned int index  = 0;
+	char *line          = names + *start_index;
 	unsigned int length = strlen(line);
+	match_t *match      = NULL;
 	unsigned char c;
-	match_t *match = NULL;
 
 	if(*start_index > strlen(names)) return NULL;
 
@@ -124,61 +200,13 @@ match_t *pvar_name(char *names, unsigned int *start_index, unsigned int *array_c
 
 			SKIP_WHITESPACES
 
-			//Is array?
-			do {
-				if(index < length && line[index] == '[') {
-					index++;
-					(*array_count)++;
-
-					//Any character until closing bracket
-					while((c = line[index]) != ']' && index < length) {
-						index++;
-					}
-					index++;
-
-					SKIP_WHITESPACES
-				} else break;
-			} while(index < length);
+			*array_count += pvar_array(line, length, &index);
 
 			SKIP_WHITESPACES
 
 			//Equal symbol?
 			if(index < length && line[index++] == '=') {
-				
-				SKIP_WHITESPACES
-
-				//Expect value
-				//Until comma (if outside quotes and braces)
-				value_start_index = index;
-				do {
-					c = line[index];
-					if(!expect_comma && !in_content && (c == '"' || c == '{')) {
-						in_content = c;
-						nested = 1;
-					} else if(!expect_comma && in_content) {
-
-						if(in_content == '{' && c == '{') {
-							nested++;
-						} else if(in_content == '{' && c == '}') {
-							nested--;
-							if(nested <= 0) {
-								in_content = 0;
-								expect_comma = 1;
-							}
-						} else if(in_content == '"' && c == '"' && line[index - 1] != '\\') {
-							in_content = 0;
-							nested = 0;
-							expect_comma = 1;
-						}
-
-					} else if(c == ',') {
-						index++;
-						break;
-					}
-					index++;
-				} while(index < length);
-
-				if(in_content > 0 || nested > 0 || index - 1 == value_start_index) { //Invalid syntax or missing value before comma
+				if(!pvar_value(line, length, &index)) { //Invalid syntax or missing value before comma
 					free(match);
 					match = NULL;
 				}
@@ -191,4 +219,94 @@ match_t *pvar_name(char *names, unsigned int *start_index, unsigned int *array_c
 	*start_index += index;
 
 	return match;
+}
+
+static field_t *get_variable_from_declaration(char *type, int star_count_type, char *declaration, unsigned int *names_index) {
+
+	field_t *variable = NULL;
+	match_t *match = NULL;
+	unsigned int star_count, sub_index, tmp_index;
+	char *tmp;
+	char *name;
+	unsigned int array_count = 0;
+
+	tmp_index = *names_index;
+	match = pvar_name(declaration, names_index, &array_count);
+
+	if(match != NULL) {
+		tmp = substr_match(declaration + tmp_index, *match);
+		free(match);
+
+		star_count = strcount(tmp, '*');
+		sub_index  = strcountuntil(tmp, '*', 0, 1);
+
+		//Remove stars
+		name = strsubstr(tmp, sub_index, strlen(tmp) - star_count);
+		free(tmp);
+
+		if(name != NULL)
+			variable = field_init(name, strduplicate(type), star_count + array_count + star_count_type);
+	}
+
+	return variable;
+}
+
+arraylist_t *get_variables_from_declaration(char *line) {
+	unsigned int star_count_type;
+	unsigned int type_sub_index;
+	unsigned int length;
+	unsigned int type_length;
+	unsigned int names_index = 0;
+	arraylist_t *list = NULL;
+	field_t *variable = NULL;
+	char *tmp_names;
+	char *type;
+
+	match_t *match_type = pvar_type(line);
+	if(match_type == NULL) {
+		return NULL;
+	}
+
+	type = substr_match(line, *match_type);
+	type_length = strlen(type);
+	free(match_type);
+
+
+	tmp_names = strsubstr(line, type_length, strlen(line) - type_length);
+	length    = strlen(tmp_names);
+
+	if(type != NULL && length > 0) {
+
+		list            = arraylist_init(5);
+		star_count_type = strcount(type, '*');
+		type_sub_index  = strcountuntil(type, '*', 1, 1);
+
+		//Remove stars
+		type[strlen(type) - type_sub_index] = '\0';
+
+		if(strcount(type, '*')) {
+			free(tmp_names);
+			free(type);
+			arraylist_free(list, 1);
+			return NULL;
+		}
+
+		do {
+			variable = get_variable_from_declaration(type, star_count_type, tmp_names, &names_index);
+			if(variable != NULL)
+				arraylist_add(list, variable);
+		} while(variable != NULL && names_index < length);
+
+		free(type);
+
+
+		if(list->size == 0) {
+			arraylist_free(list, 1);
+			list = NULL;
+		}
+	}
+
+	free(tmp_names);
+
+	return list;
 }
