@@ -1,7 +1,7 @@
 #include <errno.h>
-#include <regex.h>
 #include "scopetree.h"
 #include "stringutils.h"
+#include "parsing_variables.h"
 
 define_t *define_init(char *name, char *value) {
 	define_t *define = malloc(sizeof(define_t));
@@ -89,103 +89,6 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, scope_t *parent
 	//TODO
 	errno = ENOSYS;
 	return NULL;
-}
-
-static field_t *get_variable_from_declaration(char *type, int star_count_type, char *declaration, unsigned int *names_index) {
-
-	field_t *variable = NULL;
-	match_t *match = NULL;
-	unsigned int star_count, sub_index, tmp_index;
-	char *tmp;
-	char *name;
-	unsigned int array_count = 0;
-
-	tmp_index = *names_index;
-	match = pvar_name(declaration, names_index, &array_count);
-
-	if(match != NULL) {
-		tmp = substr_match(declaration + tmp_index, *match);
-		free(match);
-
-		star_count = strcount(tmp, '*');
-		sub_index  = strcountuntil(tmp, '*', 0, 1);
-
-		//Remove stars
-		name = strsubstr(tmp, sub_index, strlen(tmp) - star_count);
-		free(tmp);
-
-		if(name != NULL)
-			variable = field_init(name, strduplicate(type), star_count + array_count + star_count_type);
-	}
-
-	return variable;
-}
-
-arraylist_t *get_variables_from_declaration(char *line) {
-	regex_t regex;
-	regmatch_t pmatch[16];
-	int star_count_type;
-	int type_sub_index;
-	unsigned int length;
-	unsigned int type_length;
-	unsigned int names_index = 0;
-	arraylist_t *list = NULL;
-	field_t *variable = NULL;
-	char *tmp_names;
-	char *type;
-
-	match_t *match_type = pvar_type(line);
-	if(match_type == NULL) {
-		return NULL;
-	}
-
-	if(exec_regex(&regex, REGEX_VARIABLE_DECLARATION, line, 16, &pmatch)) {
-
-		list      = arraylist_init(5);
-		//type      = substr_regex_match(line, pmatch[2]);
-		match_type = pvar_type(line);
-		if(match_type == NULL) {
-			arraylist_free(list, 1);
-			return NULL;
-		}
-		type = substr_match(line, *match_type);
-		type_length = strlen(type);
-		free(match_type);
-
-		tmp_names = strsubstr(line, type_length, strlen(line) - type_length);
-		length    = strlen(tmp_names);
-
-		if(type != NULL) {
-
-			star_count_type = strcount(type, '*');
-			type_sub_index  = strcountuntil(type, '*', 1, 1);
-
-			//Remove stars
-			type[strlen(type) - type_sub_index] = '\0';
-
-			if(strcount(type, '*')) {
-				free(tmp_names);
-				free(type);
-				arraylist_free(list, 1);
-				return NULL;
-			}
-
-			do {
-				variable = get_variable_from_declaration(type, star_count_type, tmp_names, &names_index);
-				if(variable != NULL)
-					arraylist_add(list, variable);
-			} while(variable != NULL && names_index < length);
-
-			free(type);
-		}
-
-		free(tmp_names);
-
-	}
-
-	regfree(&regex);
-
-	return list;
 }
 
 char type_equals(type_t *type1, type_t *type2) {
