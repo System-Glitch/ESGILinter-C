@@ -40,7 +40,7 @@ static void pvar_type_word(char *line, size_t length, unsigned int *i) {
 			break;
 		}
 		free(word);
-	} while(1);
+	} while(c != ';');
 
 	*i = index;
 }
@@ -58,12 +58,12 @@ static match_t *pvar_type(char *line) {
 
 	SKIP_WHITESPACES
 
-	if(strstr(line + index, "static") == line + index)
+	if(strstr(line + index, "static") == line + index) //Skip static keyword
 		index += 6;
 
 	SKIP_WHITESPACES
 
-	if(strstr(line + index, "const") == line + index)
+	if(strstr(line + index, "const") == line + index) //Skip const keyword
 		index += 5;
 
 	SKIP_WHITESPACES
@@ -71,6 +71,9 @@ static match_t *pvar_type(char *line) {
 	type_start = index;
 
 	pvar_type_word(line, length, &index);
+
+	if(line[index] == ';') //If found semi-colon, it's not a variable declaration
+		return NULL;
 
 	//Find star	
 	while(index < length) {
