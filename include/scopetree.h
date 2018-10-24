@@ -3,9 +3,6 @@
 
 #include "linkedlist.h"
 #include "arraylist.h"
-#include "parsing_variables.h"
-
-#define REGEX_VARIABLE_DECLARATION "^ *(static[[:space:]]+)?(([[:alnum:]_*]+[[:space:]]+)*[[:alnum:]_*]+([[:space:]]*\\*)*)[[:space:]]+(([[:alnum:]_*]+)[[:space:]]*((\\[[0-9]*\\])+)?[[:space:]]*(=[[:space:]]*[[:space:]]*([^[:space:],;]+))?([[:space:]]*,[[:space:]]*([[:alnum:]_*]+)[[:space:]]*((\\[[0-9]*\\])+)?[[:space:]]*(=[[:space:]]*[[:space:]]*[^[:space:],;]+)?)*);"
 
 typedef struct type {
 	char          *name;
@@ -50,7 +47,6 @@ define_t    *get_define_from_string(char *define);
 arraylist_t *get_function_params(char *function_head);
 
 scope_t     *parse_scope(arraylist_t *file, unsigned int start_line, scope_t *parent_scope);
-arraylist_t *get_variables_from_declaration(char *line);
 
 char type_equals(type_t *type1, type_t *type2);
 
