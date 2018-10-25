@@ -57,11 +57,26 @@ arraylist_t *get_function_params(char *function_head) {
 	return NULL;
 }
 
+static char is_in_child_scope(scope_t *scope, int line) {
+	scope_t *child;
+	node_t * current = scope->children->head;
+	if(current != NULL) {
+		do {
+			child = (scope_t*) current->val;
+			if(line >= child->from_line && line <= child->to_line)
+				return 1;
+		} while ((current = current->next) != NULL);
+	}
+
+	return 0;
+}
+
 static void parse_scope_content(arraylist_t *file, scope_t *scope) {
 	char *line;
 	arraylist_t *list;
 
 	for(int i = scope->from_line ; i < scope->to_line ; i++) {
+		if(is_in_child_scope(scope, i)) continue; //Ignore lines inside child scopes
 		line = (char*) arraylist_get(file, i);
 		list = get_variables_from_declaration(line);
 		if(list != NULL) {

@@ -50,7 +50,13 @@ static void test_variable_declaration_parsing(char *line) {
 
 static void print_scope(scope_t *scope, unsigned int level) {
 	
+	node_t *current;
+
 	if(scope == NULL) return;
+
+	for(unsigned int i = 0 ; i < level ; i++)
+		printf("\t");
+	printf("From %d to %d\n", scope->from_line, scope->to_line);
 
 	for(unsigned int i = 0 ; i < level ; i++)
 		printf("\t");
@@ -62,7 +68,7 @@ static void print_scope(scope_t *scope, unsigned int level) {
 	for(unsigned int i = 0 ; i < level ; i++)
 		printf("\t");
 	printf("%sChildren:%s  ", COLOR_CYAN_BOLD, FORMAT_RESET);
-	node_t * current = scope->children->head;
+	current = scope->children->head;
 	if(current != NULL) {
 		printf("\n");
 		do {
@@ -144,6 +150,7 @@ void test() {
 	printf("%sTESTING PARSE SCOPE%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
 
 	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	//arraylist_add(file, strduplicate("static int global = 52;"));
 	arraylist_add(file, strduplicate("int main() {"));
 	arraylist_add(file, strduplicate("\tint i = 42;"));
 	arraylist_add(file, strduplicate("\tchar array[] = {'a','b','c','d'};"));
