@@ -22,12 +22,14 @@ typedef struct function {
 
 typedef struct scope {
 	struct scope *parent;
-	linkedlist_t *child;
+	linkedlist_t *children;
 	arraylist_t  *functions;
 	arraylist_t  *variables;
 	arraylist_t  *defines;
 	int from_line;
+	int from_char;
 	int to_line;
+	int to_char;
 } scope_t;
 
 function_t *function_init(char *name, char *type, unsigned char type_is_pointer, arraylist_t *params);
@@ -37,7 +39,7 @@ scope_t    *scope_init(scope_t *parent);
 field_t     *get_field_from_string(char *field);
 arraylist_t *get_function_params(char *function_head);
 
-scope_t     *parse_scope(arraylist_t *file, unsigned int start_line, scope_t *parent_scope);
+scope_t     *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int from_char, scope_t *parent_scope);
 
 char type_equals(type_t *type1, type_t *type2);
 
