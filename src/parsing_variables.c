@@ -13,11 +13,12 @@ unsigned char type_exists(char *type) {
 	return 0;
 }
 
-static void pvar_type_word(char *line, size_t length, unsigned int *i) {
+static char pvar_type_word(char *line, size_t length, unsigned int *i) {
 	char c;
-	unsigned int index = *i;
-	int type_word_start = 0;
-	int type_word_end = 0;
+	unsigned int index  = *i;
+	int type_word_start =  0;
+	int type_word_end   =  0;
+	char found          =  0;
 	char *word;
 
 	do {
@@ -38,11 +39,12 @@ static void pvar_type_word(char *line, size_t length, unsigned int *i) {
 			free(word);
 			index = type_word_start;
 			break;
-		}
+		} else found = 1;
 		free(word);
 	} while(c != ';');
 
 	*i = index;
+	return found;
 }
 
 static match_t *pvar_type(char *line) {
@@ -70,7 +72,8 @@ static match_t *pvar_type(char *line) {
 
 	type_start = index;
 
-	pvar_type_word(line, length, &index);
+	if(!pvar_type_word(line, length, &index)) //No type word found, it's not a variable declaration
+		return NULL;
 
 	if(line[index] == ';') //If found semi-colon, it's not a variable declaration
 		return NULL;
@@ -207,9 +210,14 @@ static match_t *pvar_name(char *names, unsigned int *start_index, unsigned int *
 
 			SKIP_WHITESPACES
 
-			//Equal symbol?
-			if(index < length && line[index++] == '=') {
-				if(!pvar_value(line, length, &index)) { //Invalid syntax or missing value before comma
+			if(index < length) {
+				//Equal symbol?
+				if(line[index] == '=') {
+					if(!pvar_value(line, length, &index)) { //Invalid syntax or missing value before comma
+						free(match);
+						match = NULL;
+					}
+				} else if(line[index] != ',' && line[index] != ';') { //Syntax error
 					free(match);
 					match = NULL;
 				}
@@ -260,6 +268,7 @@ arraylist_t *get_variables_from_declaration(char *line) {
 	unsigned int length;
 	unsigned int type_length;
 	unsigned int names_index = 0;
+	unsigned int type_start_index = 0;
 	arraylist_t *list = NULL;
 	field_t *variable = NULL;
 	char *tmp_names;
@@ -271,12 +280,13 @@ arraylist_t *get_variables_from_declaration(char *line) {
 	}
 
 	type = substr_match(line, *match_type);
+	type_start_index = match_type->index_start;
 	free(match_type);
 
 	if(type != NULL) {
 
 		type_length = strlen(type);
-		tmp_names   = strsubstr(line, type_length, strlen(line) - type_length);
+		tmp_names   = strsubstr(line, type_start_index + type_length, strlen(line) - type_length);
 		length      = strlen(tmp_names);
 
 		if(length > 0) {

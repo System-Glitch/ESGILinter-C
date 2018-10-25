@@ -34,8 +34,9 @@ scope_t *scope_init(scope_t *parent) {
 
 	if(scope != NULL) {
 		scope->parent    = parent;
-		scope->child     = linkedlist_init();
+		scope->children  = linkedlist_init();
 		scope->variables = arraylist_init(10);
+		scope->functions = arraylist_init(10);
 		scope->defines   = arraylist_init(10);
 		scope->from_line = -1;
 		scope->to_line   = -1;
@@ -56,10 +57,69 @@ arraylist_t *get_function_params(char *function_head) {
 	return NULL;
 }
 
-scope_t *parse_scope(arraylist_t *file, unsigned int start_line, scope_t *parent_scope) {
-	//TODO
-	errno = ENOSYS;
-	return NULL;
+static void parse_scope_content(arraylist_t *file, scope_t *scope) {
+	char *line;
+	arraylist_t *list;
+
+	for(int i = scope->from_line ; i < scope->to_line ; i++) {
+		line = (char*) arraylist_get(file, i);
+		list = get_variables_from_declaration(line);
+		if(list != NULL) {
+			arraylist_add_all(scope->variables, list);
+			arraylist_free(list, 0);
+			list = NULL;
+		}
+	}
+}
+
+scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int from_char, scope_t *parent_scope) {
+	scope_t *scope        = scope_init(parent_scope);
+	unsigned int level    =  0;
+	char found            =  0;
+	unsigned int length;
+	char *line;
+	
+	for(size_t i = start_line ; i < file->size ; i++) { //Already considers end of line as bracket
+		line   = arraylist_get(file, i);
+		length = strlen(line);
+		for(size_t j = i == start_line ? from_char : 0 ; j < length ; j++) {
+			if(line[j] == '{') {
+				level++;
+
+				if(!found) {
+					scope->from_line = i;
+					scope->from_char = j;
+				}
+
+				found = 1;
+
+				if(level > 1) {
+					scope_t *child = parse_scope(file, i, j, scope);
+					if(child != NULL)
+						linkedlist_add(scope->children, child);
+				}
+			} else if(line[j] == '}') {
+				level--;
+
+				if(found && level == 0) {
+					scope->to_line = i;
+					scope->to_char = j;
+					break;
+				}
+			}
+		}
+
+		if(scope->to_line != -1) break;
+	}
+
+	if(scope->to_line == -1) {
+		scope_free(scope);
+		scope = NULL;
+	} else {
+		parse_scope_content(file, scope);
+	}
+
+	return scope;
 }
 
 char type_equals(type_t *type1, type_t *type2) {
@@ -87,28 +147,30 @@ void scope_free(scope_t *scope) {
 	//Don't free parent !
 	
 	//Recursively free children
-	current = scope->child->head;
+	current = scope->children->head;
 	while (current != NULL) {
 		scope_free(current->val);
+		current->val = NULL;
 		current = current->next;
 	}
+	linkedlist_free(scope->children);
 
 	//Free functions
-	for(unsigned int i = 0 ; i < scope->functions->size; i++) {
+	for(size_t i = 0 ; i < scope->functions->size; i++) {
 		function_free(scope->functions->array[i]);
 		scope->functions->array[i] = NULL;
 	}
 	arraylist_free(scope->functions, 1);
 
 	//Free variables
-	for(unsigned int i = 0 ; i < scope->variables->size; i++) {
+	for(size_t i = 0 ; i < scope->variables->size; i++) {
 		field_free(scope->variables->array[i]);
 		scope->variables->array[i] = NULL;
 	}
 	arraylist_free(scope->variables, 1);
 
 	//Free defines
-	for(unsigned int i = 0 ; i < scope->defines->size; i++) {
+	for(size_t i = 0 ; i < scope->defines->size; i++) {
 		define_free(scope->defines->array[i]);
 		scope->defines->array[i] = NULL;
 	}
