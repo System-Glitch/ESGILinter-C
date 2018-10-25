@@ -5,7 +5,7 @@
 #define SKIP_WHITESPACES while(is_whitespace(c = line[index]) && index < length) { index++; };
 
 unsigned char type_exists(char *type) {
-	static const char *known_types[] = {"char","short","int","unsigned","long","signed","float","double","size_t"};
+	static const char *known_types[] = {"char","short","int","unsigned","long","signed","float","double","size_t","void"};
 	for(unsigned i = 0 ; i < 9 ; i++)
 		if(!strcmp(type, known_types[i]))
 			return 1;
