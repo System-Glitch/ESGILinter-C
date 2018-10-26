@@ -40,6 +40,8 @@ scope_t *scope_init(scope_t *parent) {
 		scope->defines   = arraylist_init(10);
 		scope->from_line = -1;
 		scope->to_line   = -1;
+		scope->from_char = -1;
+		scope->to_char   = -1;
 	}
 
 	return scope;
@@ -87,13 +89,35 @@ static void parse_scope_content(arraylist_t *file, scope_t *scope) {
 	}
 }
 
+scope_t *parse_root_scope(arraylist_t *file) {
+	scope_t *scope        = scope_init(NULL);
+	scope_t *child        = NULL;
+	scope_t *tmp_child    = NULL;
+
+	if(scope == NULL) return NULL;
+
+	scope->from_line = 0;
+	scope->to_line   = file->size - 1;
+	scope->from_char = 0;
+	scope->to_char   = strlen((char*) arraylist_get(file, file->size - 1));
+
+	while((child = parse_scope(file, tmp_child != NULL ? tmp_child->to_line : 0, tmp_child != NULL ? tmp_child->to_char : 0, scope)) != NULL) {
+		linkedlist_add(scope->children, child);
+		tmp_child = child;
+	}
+
+	parse_scope_content(file, scope);
+
+	return scope;
+}
+
 scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int from_char, scope_t *parent_scope) {
 	scope_t *scope        = scope_init(parent_scope);
 	unsigned int level    =  0;
 	char found            =  0;
 	unsigned int length;
 	char *line;
-	
+
 	for(size_t i = start_line ; i < file->size ; i++) { //Already considers end of line as bracket
 		line   = arraylist_get(file, i);
 		length = strlen(line);
@@ -118,7 +142,7 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int fr
 
 				if(found && level == 0) {
 					scope->to_line = i;
-					scope->to_char = j;
+					scope->to_char = j + 1;
 					break;
 				}
 			}
