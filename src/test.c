@@ -129,6 +129,7 @@ void test() {
 
 	test_variable_declaration_parsing("\t//int j = 88;");
 	test_variable_declaration_parsing("\tprintf(\"%d\", i);");
+	test_variable_declaration_parsing("\t/*int j = 88;*/");
 
 	printf("------------------------------%s\n", FORMAT_RESET);
 
@@ -143,7 +144,7 @@ void test() {
 	arraylist_add(file, strduplicate("}"));
 
 	arraylist_add(file, strduplicate("int main() {"));
-	arraylist_add(file, strduplicate("\tint i = 42; int j = 25;"));
+	arraylist_add(file, strduplicate("\tint i = 42;"));
 	arraylist_add(file, strduplicate("\tchar array[] = {'a','b','c','d'};"));
 	arraylist_add(file, strduplicate("\tprintf(\"%d\", i);"));
 	arraylist_add(file, strduplicate("\tif(i == 42) {"));
@@ -165,6 +166,26 @@ void test() {
 	arraylist_add(file, strduplicate("\tif(i == 42) {"));
 	arraylist_add(file, strduplicate("\t\tchar c = array[1];"));
 	//Missing closing parenthesis
+	arraylist_add(file, strduplicate("}"));
+
+	scope = parse_root_scope(file);
+	if(scope != NULL) {
+		print_scope(scope, 0);
+		scope_free(scope);
+	} else {
+		printf("%sScope %sNULL%s, possible syntax error.\n%s", COLOR_YELLOW, COLOR_RED, COLOR_YELLOW, FORMAT_RESET);
+	}
+
+	arraylist_free(file, 1);
+
+	file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	arraylist_add(file, strduplicate("int main() {"));
+	arraylist_add(file, strduplicate("/*"));
+	arraylist_add(file, strduplicate("double db = 1.2;"));
+	arraylist_add(file, strduplicate("*/"));
+	arraylist_add(file, strduplicate("\tfor(int i = 0, j = 5 ; i < 10 ; i++) {"));
+	arraylist_add(file, strduplicate("\t\tprintf(\"%d\", i);"));
+	arraylist_add(file, strduplicate("\t}"));
 	arraylist_add(file, strduplicate("}"));
 
 	scope = parse_root_scope(file);
