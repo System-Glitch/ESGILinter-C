@@ -150,7 +150,13 @@ void test() {
 	printf("%sTESTING PARSE SCOPE%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
 
 	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
-	//arraylist_add(file, strduplicate("static int global = 52;"));
+	arraylist_add(file, strduplicate("static int glob = 89;"));
+
+	arraylist_add(file, strduplicate("void test(int param) {"));
+	arraylist_add(file, strduplicate("\tchar c = 'c';"));
+	arraylist_add(file, strduplicate("\tprintf(\"%c %d\", c, i);"));
+	arraylist_add(file, strduplicate("}"));
+
 	arraylist_add(file, strduplicate("int main() {"));
 	arraylist_add(file, strduplicate("\tint i = 42;"));
 	arraylist_add(file, strduplicate("\tchar array[] = {'a','b','c','d'};"));
@@ -160,7 +166,7 @@ void test() {
 	arraylist_add(file, strduplicate("\t}"));
 	arraylist_add(file, strduplicate("}"));
 
-	scope_t *scope = parse_scope(file, 0, 0, NULL);
+	scope_t *scope = parse_root_scope(file);
 	if(scope != NULL) {
 		print_scope(scope, 0);
 		scope_free(scope);
@@ -176,7 +182,7 @@ void test() {
 	//Missing closing parenthesis
 	arraylist_add(file, strduplicate("}"));
 
-	scope = parse_scope(file, 0, 0, NULL);
+	scope = parse_root_scope(file);
 	if(scope != NULL) {
 		print_scope(scope, 0);
 		scope_free(scope);
