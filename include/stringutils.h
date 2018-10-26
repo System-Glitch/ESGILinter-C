@@ -10,6 +10,7 @@ typedef struct match {
 	unsigned int index_end;
 } match_t;
 
+char *str_remove_comments(char *str);
 char *strduplicate(char *str);
 char *strsubstr(char *str , int from, int count);
 

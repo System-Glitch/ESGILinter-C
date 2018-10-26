@@ -311,16 +311,20 @@ arraylist_t *get_variables_from_declaration(char *line) {
 	char *type;
 	char *tmp_line = NULL;
 
-	for_loop = match_for_loop(line);
+	tmp_line = str_remove_comments(line);
+
+	for_loop = match_for_loop(tmp_line);
 	if(for_loop != NULL) {
-		tmp_line = substr_match(line, *for_loop);
-		line = tmp_line;
+		line = substr_match(tmp_line, *for_loop);
+		free(tmp_line);
 		free(for_loop);
+	} else {
+		line = tmp_line;
 	}
 
 	match_type = pvar_type(line);
 	if(match_type == NULL) {
-		if(tmp_line != NULL) free(tmp_line);
+		free(line);
 		return NULL;
 	}
 
@@ -346,7 +350,7 @@ arraylist_t *get_variables_from_declaration(char *line) {
 				free(tmp_names);
 				free(type);
 				arraylist_free(list, 1);
-				if(tmp_line != NULL) free(tmp_line);
+				free(line);
 				return NULL;
 			}
 
@@ -366,7 +370,7 @@ arraylist_t *get_variables_from_declaration(char *line) {
 		free(tmp_names);
 	}
 
-	if(tmp_line != NULL) free(tmp_line);
+	free(line);
 
 	return list;
 }
