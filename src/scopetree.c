@@ -73,6 +73,16 @@ static char is_in_child_scope(scope_t *scope, int line) {
 	return 0;
 }
 
+static char previous_char_is_equal(char *line, size_t index) {
+	char c;
+
+	index--;
+	while(is_whitespace(c = line[index]) && index >= 0) { index--; }
+
+	printf("test %c\n", c);
+	return c == '=';
+}
+
 static void parse_scope_content(arraylist_t *file, scope_t *scope) {
 	char *line;
 	arraylist_t *list;
@@ -112,9 +122,11 @@ scope_t *parse_root_scope(arraylist_t *file) {
 }
 
 scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int from_char, scope_t *parent_scope) {
-	scope_t *scope        = scope_init(parent_scope);
-	unsigned int level    =  0;
-	char found            =  0;
+	scope_t *scope              = scope_init(parent_scope);
+	unsigned int level          =  0;
+	unsigned int no_scope_level =  0;
+	char found                  =  0;
+	char in_comment             =  0;
 	unsigned int length;
 	char *line;
 
@@ -122,30 +134,56 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int fr
 		line   = arraylist_get(file, i);
 		length = strlen(line);
 		for(size_t j = i == start_line ? from_char : 0 ; j < length ; j++) {
-			if(line[j] == '{') {
-				level++;
-
-				if(!found) {
-					scope->from_line = i;
-					scope->from_char = j;
-				}
-
-				found = 1;
-
-				if(level > 1) {
-					scope_t *child = parse_scope(file, i, j, scope);
-					if(child != NULL)
-						linkedlist_add(scope->children, child);
-				}
-			} else if(line[j] == '}') {
-				level--;
-
-				if(found && level == 0) {
-					scope->to_line = i;
-					scope->to_char = j + 1;
-					break;
-				}
+			
+			if(line[j] == '/' && line[j+1] == '/') {
+				//Comment until end of line, skip line
+				break;
 			}
+
+			if(in_comment) { //Close multi-line comment
+				if(line[j] == '*' && line[j+1] == '/') {
+					in_comment = 0;
+					j += 2;
+				}
+			} else {
+				if(line[j] == '/' && line[j+1] == '*') { //Open multi-line comment
+					in_comment = 1;
+				} else {
+					if(line[j] == '{') {
+
+						if(previous_char_is_equal(line, j)) {
+							no_scope_level++;
+						} else {
+							level++;
+
+							if(!found) {
+								scope->from_line = i;
+								scope->from_char = j;
+							}
+
+							found = 1;
+
+							if(level > 1) {
+								scope_t *child = parse_scope(file, i, j, scope);
+								if(child != NULL)
+									linkedlist_add(scope->children, child);
+							}
+						}
+					} else if(line[j] == '}') {
+						if(no_scope_level != 0) {
+							no_scope_level--;
+						} else {
+							level--;
+
+							if(found && level == 0) {
+								scope->to_line = i;
+								scope->to_char = j + 1;
+								break;
+							}
+						}
+					}
+				}
+			}			
 		}
 
 		if(scope->to_line != -1) break;

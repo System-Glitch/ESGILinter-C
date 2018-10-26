@@ -84,22 +84,7 @@ static void print_scope(scope_t *scope, unsigned int level) {
 }
 
 void test() {
-	arraylist_t *list = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
-	int *value;
-	
-	for(unsigned int i = 0 ; i < 25 ; i++) {
-		value = malloc(sizeof(int));
-		*value = i;
-		arraylist_add(list, value);
-	}
 
-	printf("------------------------------%s\n", FORMAT_RESET);
-	printf("%sTESTING ARRAY LIST%s\n%s-> %s", COLOR_GREEN_BOLD, FORMAT_RESET, COLOR_GREY, FORMAT_RESET);
-	for(size_t i = 0 ; i < list->size; i++)
-		printf("%d ", *((int*)arraylist_get(list, i)));
-
-	printf("\n%sFreeing array list%s\n", COLOR_CYAN, FORMAT_RESET);
-	arraylist_free(list, 1);
 	printf("------------------------------%s\n", FORMAT_RESET);
 	printf("%sTESTING PARSE VARIABLE DECLARATION%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
 	
@@ -158,7 +143,7 @@ void test() {
 	arraylist_add(file, strduplicate("}"));
 
 	arraylist_add(file, strduplicate("int main() {"));
-	arraylist_add(file, strduplicate("\tint i = 42;"));
+	arraylist_add(file, strduplicate("\tint i = 42; int j = 25;"));
 	arraylist_add(file, strduplicate("\tchar array[] = {'a','b','c','d'};"));
 	arraylist_add(file, strduplicate("\tprintf(\"%d\", i);"));
 	arraylist_add(file, strduplicate("\tif(i == 42) {"));
