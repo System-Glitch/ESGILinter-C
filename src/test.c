@@ -130,6 +130,8 @@ void test() {
 	test_variable_declaration_parsing("\t//int j = 88;");
 	test_variable_declaration_parsing("\tprintf(\"%d\", i);");
 	test_variable_declaration_parsing("\t/*int j = 88;*/");
+	test_variable_declaration_parsing("/* comment */ double db = 1.2;");
+	test_variable_declaration_parsing("/* comment */ for(int count = 0 ; count < 5 ; count++) {}");
 
 	printf("------------------------------%s\n", FORMAT_RESET);
 
@@ -180,9 +182,7 @@ void test() {
 
 	file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 	arraylist_add(file, strduplicate("int main() {"));
-	arraylist_add(file, strduplicate("/*"));
-	arraylist_add(file, strduplicate("double db = 1.2;"));
-	arraylist_add(file, strduplicate("*/"));
+	arraylist_add(file, strduplicate("/* comment */ double db = 1.2;"));
 	arraylist_add(file, strduplicate("\tfor(int i = 0, j = 5 ; i < 10 ; i++) {"));
 	arraylist_add(file, strduplicate("\t\tprintf(\"%d\", i);"));
 	arraylist_add(file, strduplicate("\t}"));
