@@ -262,6 +262,40 @@ static field_t *get_variable_from_declaration(char *type, int star_count_type, c
 	return variable;
 }
 
+static match_t *match_for_loop(char *line) {
+	match_t *match = NULL;
+	unsigned int index = 0;
+	size_t length = strlen(line);
+	char c;
+
+	SKIP_WHITESPACES
+
+	if(strstr(line + index, "for") == line + index) {
+
+		index += 3; // Skip "for"
+
+		SKIP_WHITESPACES
+
+		if(c != '(') return NULL; //Syntax error
+
+		index++;
+		SKIP_WHITESPACES
+
+		match = match_init();
+		if(match == NULL) return NULL;
+
+		match->index_start = index;
+		match->index_end = strindexof(line + index , ';') + index + 1;
+
+		if(match->index_start > match->index_end) {
+			free(match);
+			match = NULL;
+		}
+	}
+
+	return match;
+}
+
 arraylist_t *get_variables_from_declaration(char *line) {
 	unsigned int star_count_type;
 	unsigned int type_sub_index;
@@ -269,13 +303,24 @@ arraylist_t *get_variables_from_declaration(char *line) {
 	unsigned int type_length;
 	unsigned int names_index = 0;
 	unsigned int type_start_index = 0;
-	arraylist_t *list = NULL;
-	field_t *variable = NULL;
+	arraylist_t *list   = NULL;
+	field_t *variable   = NULL;
+	match_t *for_loop   = NULL;
+	match_t *match_type = NULL;
 	char *tmp_names;
 	char *type;
+	char *tmp_line = NULL;
 
-	match_t *match_type = pvar_type(line);
+	for_loop = match_for_loop(line);
+	if(for_loop != NULL) {
+		tmp_line = substr_match(line, *for_loop);
+		line = tmp_line;
+		free(for_loop);
+	}
+
+	match_type = pvar_type(line);
 	if(match_type == NULL) {
+		if(tmp_line != NULL) free(tmp_line);
 		return NULL;
 	}
 
@@ -301,6 +346,7 @@ arraylist_t *get_variables_from_declaration(char *line) {
 				free(tmp_names);
 				free(type);
 				arraylist_free(list, 1);
+				if(tmp_line != NULL) free(tmp_line);
 				return NULL;
 			}
 
@@ -319,6 +365,8 @@ arraylist_t *get_variables_from_declaration(char *line) {
 		free(type);
 		free(tmp_names);
 	}
+
+	if(tmp_line != NULL) free(tmp_line);
 
 	return list;
 }

@@ -73,13 +73,12 @@ static char is_in_child_scope(scope_t *scope, int line) {
 	return 0;
 }
 
-static char previous_char_is_equal(char *line, size_t index) {
+static char previous_char_is_equal(char *line, int index) {
 	char c;
 
 	index--;
 	while(is_whitespace(c = line[index]) && index >= 0) { index--; }
 
-	printf("test %c\n", c);
 	return c == '=';
 }
 
