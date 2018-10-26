@@ -1,5 +1,41 @@
 #include "stringutils.h"
 
+char *str_remove_comments(char *str) {
+	char *result = NULL;
+	char *tmp = NULL;
+	int comment_start = -1;
+	int comment_end   = -1;
+	size_t length = strlen(str);
+
+	for(unsigned i = 0 ; i < length ; i++) {
+		if(comment_start == -1) {
+			if(str[i] == '/' && str[i+1] == '*') {
+				comment_start = i;
+				i++;
+			}
+		} else {
+			if(str[i] == '*' && str[i+1] == '/') {
+				comment_end = i + 2;
+				break;
+			}
+		}
+	}
+
+	if(comment_start != -1 && comment_end != -1) {
+		result = malloc((length + 1) * sizeof(char));
+		strncpy(result, str, comment_start);
+		strncpy(result + comment_start, str + comment_end, length - comment_end);
+		result[comment_start + (length - comment_end)] = '\0';
+		tmp = str_remove_comments(result);
+		free(result);
+		result = tmp;
+	} else {
+		result = strduplicate(str);
+	}
+
+	return result;
+}
+
 char *strduplicate(char *str) {
 	char *result = NULL;
 	int len;
