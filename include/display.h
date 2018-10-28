@@ -1,6 +1,10 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
+#include <stdio.h>
+
+void displayLinterError(char* fileName, unsigned int lineNb, char* line, unsigned int errorIndex);
+
 /* FORMAT */
 #define FORMAT_BOLD       "\e[1m"
 #define FORMAT_DIM        "\e[2m"
