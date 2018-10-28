@@ -182,7 +182,7 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int fr
 						}
 					}
 				}
-			}			
+			}
 		}
 
 		if(scope->to_line != -1) break;
