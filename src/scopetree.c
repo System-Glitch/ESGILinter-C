@@ -206,6 +206,15 @@ void field_free(field_t *field) {
 	free(field);
 }
 
+void field_list_free(arraylist_t *list) {
+	field_t *field = NULL;
+	for(unsigned int i = 0 ; i < list->size ; i++) {
+		field = arraylist_get(list, i);
+		field_free(field);
+	}
+	arraylist_free(list, 0);
+}
+
 void scope_free(scope_t *scope) {
 	node_t * current;
 
@@ -228,11 +237,7 @@ void scope_free(scope_t *scope) {
 	arraylist_free(scope->functions, 1);
 
 	//Free variables
-	for(size_t i = 0 ; i < scope->variables->size; i++) {
-		field_free(scope->variables->array[i]);
-		scope->variables->array[i] = NULL;
-	}
-	arraylist_free(scope->variables, 1);
+	field_list_free(scope->variables);
 
 	//Free defines
 	for(size_t i = 0 ; i < scope->defines->size; i++) {

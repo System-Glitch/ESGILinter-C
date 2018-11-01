@@ -52,11 +52,11 @@ static void print_function(function_t *function, unsigned int tabs) {
 			printf("\t");
 		printf("      %sParameters:   %s", COLOR_CYAN, FORMAT_RESET);
 		if(function->params->size == 0) {
-			printf("%sNone%s", COLOR_RED, FORMAT_RESET);
+			printf("%sNone%s\n", COLOR_RED, FORMAT_RESET);
 		} else {
+			printf("\n");
 			print_variables(function->params, tabs + 1);
 		}
-		printf("\n");
 	}
 }
 
@@ -74,7 +74,6 @@ static void test_function_declaration_parsing(char *line) {
 
 static void test_variable_declaration_parsing(char *line) {
 	arraylist_t *list = NULL;
-	field_t *variable = NULL;
 	
 	list = get_variables_from_declaration(line);
 
@@ -82,11 +81,7 @@ static void test_variable_declaration_parsing(char *line) {
 	if(list != NULL) {
 		printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
 		print_variables(list, 0);
-		for(unsigned int i = 0 ; i < list->size ; i++) {
-			variable = arraylist_get(list, i);
-			field_free(variable);
-		}
-		arraylist_free(list, 0);
+		field_list_free(list);
 	} else
 		printf("%sOutput: %sNULL%s\n", COLOR_BLUE, COLOR_RED, FORMAT_RESET);
 }
@@ -250,16 +245,18 @@ static void test_function_parsing() {
 
 	test_function_declaration_parsing("void test();");
 	test_function_declaration_parsing("void test2(int, int);");
-	test_function_declaration_parsing("void test3(int i, int j);");
-	test_function_declaration_parsing("void test4(int i , int j) {");
+	test_function_declaration_parsing("void test3(int i, int* j);");
+	test_function_declaration_parsing("void test4(int i , unsigned int *ptr) {");
 	test_function_declaration_parsing("void *test_ptr() {");
 	test_function_declaration_parsing("void* *test_ptr2() {");
 	test_function_declaration_parsing("void * test_ptr3() {");
 	test_function_declaration_parsing("void[15] array() {");
+	test_function_declaration_parsing("void test2(int) {");
 }
 
 void test() {
 
+	//test_variable_parsing();
 	test_scope_parsing();	
 	test_function_parsing();	
 
