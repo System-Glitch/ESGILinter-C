@@ -252,6 +252,8 @@ static void test_function_parsing() {
 	test_function_declaration_parsing("void * test_ptr3() {");
 	test_function_declaration_parsing("void[15] array() {");
 	test_function_declaration_parsing("void test2(int) {");
+	test_function_declaration_parsing("void test2(int array[15]) {");
+	test_function_declaration_parsing("void test2(int* array[15]) {");
 }
 
 void test() {
