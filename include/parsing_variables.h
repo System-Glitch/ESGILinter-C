@@ -4,8 +4,6 @@
 #include "arraylist.h"
 #include "stringutils.h"
 
-unsigned char type_exists(char *type);
-
 arraylist_t *get_variables_from_declaration(char *line);
 
 #endif

@@ -1,0 +1,150 @@
+#include <stdlib.h>
+#include "arraylist.h"
+#include "parsing_functions.h"
+#include "scopetree.h"
+
+function_t *function_init(char *name, char *type, unsigned char type_is_pointer, arraylist_t *params) {
+	function_t *function = malloc(sizeof(function_t));
+
+	if(function != NULL) {
+		function->name                   = name;
+		function->return_type.name       = type;
+		function->return_type.is_pointer = type_is_pointer;
+		function->params                 = params;
+	}
+
+	return function;
+}
+
+static char *parse_function_name(char *line, unsigned int *star_count_name) {
+	unsigned int index      = 0;
+	unsigned int length     = strlen(line);
+	unsigned int star_count = 0;
+	unsigned int sub_index  = 0;
+	match_t *match          = NULL;
+	unsigned char c;
+	char *name = NULL;
+	char *tmp  = NULL;
+
+	SKIP_WHITESPACES
+
+	match = match_init();
+	if(match == NULL) return NULL;
+	else if(line[index] == ';' || line[index] == '{') {
+		free(match);
+		return NULL;
+	}
+
+	match->index_start = index;
+
+	//Until not alphanumeric
+	while((is_alphanumeric(c = line[index]) || c == '*') && index < length) {
+		index++;
+	}
+
+	match->index_end = index;
+
+	SKIP_WHITESPACES
+
+	if(line[index] != '(') { //No parenthesis found, this is not a function delaration
+		free(match);
+		return NULL;
+	}
+
+	//No array modifier in name
+
+	tmp = substr_match(line, *match);
+	free(match);
+
+	star_count = strcount(tmp, '*');
+	sub_index  = strcountuntil(tmp, '*', 0, 1);
+
+	//Remove stars
+	name = strsubstr(tmp, sub_index, strlen(tmp) - star_count);
+	free(tmp);
+
+	*star_count_name = star_count;
+	return name;
+}
+
+function_t *get_function_from_declaration(char *line) {
+	unsigned int star_count_type;
+	unsigned int star_count_name;
+	unsigned int type_sub_index;
+	unsigned int length;
+	unsigned int type_length;
+	unsigned int type_start_index = 0;
+	function_t *function = NULL;
+	arraylist_t *params = NULL;
+	match_t *match_type = NULL;
+	char *tmp_name;
+	char *name = NULL;
+	char *type;
+
+	line = str_remove_comments(line);
+
+	match_type = parse_type(line);
+	if(match_type == NULL) {
+		free(line);
+		return NULL;
+	}
+
+	type = substr_match(line, *match_type);
+	type_start_index = match_type->index_start;
+	free(match_type);
+
+	if(type != NULL) {
+
+		type_length = strlen(type);
+		tmp_name    = strsubstr(line, type_start_index + type_length, strlen(line) - type_length);
+		length      = strlen(tmp_name);
+
+		if(length > 0) {
+			params          = arraylist_init(5);
+			star_count_type = strcount(type, '*');
+			type_sub_index  = strcountuntil(type, '*', 1, 1);
+
+			//Remove stars
+			type[type_length - type_sub_index] = '\0';
+
+			//No array modifier in type
+
+			if(strcount(type, '*')) { //Contains stars inside the type name -> invalid type
+				free(tmp_name);
+				free(type);
+				arraylist_free(params, 1);
+				free(line);
+				return NULL;
+			}
+
+			name = parse_function_name(tmp_name, &star_count_name);
+
+			if(name != NULL) {
+				//TODO Parse parameters
+				function = function_init(name, strduplicate(type), star_count_type + star_count_name, params); //TODO count stars in name
+			} else {
+				free(tmp_name);
+				free(type);
+				arraylist_free(params, 1);
+				free(line);
+				return NULL;
+			}
+
+		}
+
+		free(type);
+		free(tmp_name);
+	}
+
+	free(line);
+
+	return function;
+}
+
+void function_free(function_t *function) {
+	free(function->name);
+	for(unsigned int i = 0 ; i < function->params->size ; i++)
+		field_free(function->params->array[i]);
+	arraylist_free(function->params, 1);
+	free(function);
+}
