@@ -82,30 +82,91 @@ static char *parse_function_name(char *line, unsigned int *star_count_name, unsi
 	return name;
 }
 
-static arraylist_t *parse_function_parameters(char *line) {
-	arraylist_t *list   = arraylist_init(5);
-	unsigned int start_index  = 0;
-	unsigned int index        = 0;
-	unsigned int length       = strlen(line);
+static arraylist_t *parse_function_parameters(char *line, unsigned char is_prototype) {
+	arraylist_t *list            = arraylist_init(5);
+	unsigned int start_index     = 0;
+	unsigned int index           = 0;
+	unsigned int sub_index       = 0;
+	unsigned int length          = strlen(line);
+	unsigned int type_length     = 0;
+	unsigned int star_count_type = 0;
+	unsigned int star_count_name = 0;
+	unsigned int array_count     = 0;
+	unsigned int type_sub_index;
 	unsigned char c;
-	char *tmp;
+	char *tmp           = NULL;
+	char *tmp_name      = NULL;
+	char *type          = NULL;
+	char *name          = NULL;
+	match_t *match_type = NULL;
+	match_t *match_name = NULL;
+	field_t *field      = NULL;
 
-	SKIP_WHITESPACES
+	do {
+		SKIP_WHITESPACES
 
-	start_index = index;
+		start_index = index;
 
-	//Until comma
-	while((c = line[index]) != ',' && index < length) {
-		index++;
-	}
+		//Until comma
+		while((c = line[index]) != ',' && index < length) {
+			index++;
+		}
 
-	if(index < length) {
-
-			tmp = strsubstr(line, start_index, index - start_index);
-
+		tmp = strsubstr(line, start_index, index - start_index);
+		if(strlen(tmp) == 0) {
 			free(tmp);
+			break;
+		}
 
-	} //Else end reached
+		//Parse type
+		match_type = parse_type(tmp);
+		if(match_type == NULL) {
+			free(tmp);
+			field_list_free(list);
+			return NULL;
+		}
+
+		type = substr_match(tmp, *match_type);
+		free(match_type);
+		type_length     = strlen(type);
+		star_count_type = strcount(type, '*');
+		type_sub_index  = strcountuntil(type, '*', 1, 1);
+
+		//Remove stars
+		type[type_length - type_sub_index] = '\0';
+
+		//If no name and not prototype, invalid syntax
+		match_name = parse_variable_name(tmp + type_length, &sub_index, &array_count);
+		if(match_name != NULL) {
+			tmp_name = substr_match(tmp + type_length, *match_name);
+			free(match_name);
+
+			if(strlen(tmp_name) == 0 && !is_prototype) { //Parameter names compulsory when not prototype
+				free(tmp);
+				field_list_free(list);
+				return NULL;
+			}
+
+			star_count_name = strcount(tmp_name, '*');
+			sub_index       = strcountuntil(tmp_name, '*', 0, 1);
+
+			//Remove stars
+			name = strsubstr(tmp_name, sub_index, strlen(tmp_name) - star_count_name);
+			free(tmp_name);
+		} else if(!is_prototype) { //Parameter names compulsory when not prototype
+			free(tmp);
+			field_list_free(list);
+			return NULL;
+		}
+
+		field = field_init(name, type, star_count_type + star_count_name + array_count);
+		arraylist_add(list, field);
+
+		free(tmp);
+
+		index++;
+		
+	} while(index < length);
 
 	return list;
 }
@@ -125,7 +186,7 @@ function_t *get_function_from_declaration(char *line) {
 	char *tmp_name;
 	char *tmp_params;
 	char *name = NULL;
-	char *type;
+	char *type = NULL;
 	char is_prototype;
 
 	line = str_remove_comments(line);
@@ -189,7 +250,7 @@ function_t *get_function_from_declaration(char *line) {
 
 				tmp_params = strsubstr(tmp_name, params_start_index, index - params_start_index);
 
-				params = parse_function_parameters(tmp_params);
+				params = parse_function_parameters(tmp_params, is_prototype);
 				free(tmp_params);
 				free(tmp_name);
 
@@ -218,8 +279,6 @@ function_t *get_function_from_declaration(char *line) {
 
 void function_free(function_t *function) {
 	free(function->name);
-	for(unsigned int i = 0 ; i < function->params->size ; i++)
-		field_free(function->params->array[i]);
-	arraylist_free(function->params, 1);
+	field_list_free(function->params);
 	free(function);
 }
