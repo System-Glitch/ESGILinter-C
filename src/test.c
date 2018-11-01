@@ -4,6 +4,7 @@
 #include "linkedlist.h"
 #include "scopetree.h"
 #include "parsing_variables.h"
+#include "parsing_functions.h"
 
 static void print_variables(arraylist_t *variables, unsigned int tabs) {
 	field_t *variable = NULL;
@@ -27,6 +28,35 @@ static void print_variables(arraylist_t *variables, unsigned int tabs) {
 			printf("      %sIs pointer: %s%d\n", COLOR_CYAN, FORMAT_RESET, variable->type.is_pointer);
 		}
 	}
+}
+
+static void print_function(function_t *function, unsigned int tabs) {
+	if(function != NULL) {
+		for(unsigned int j = 0 ; j < tabs ; j++)
+			printf("\t");
+
+		printf("      %sName:       %s%s\n", COLOR_CYAN, FORMAT_RESET, function->name);
+
+		for(unsigned int j = 0 ; j < tabs ; j++)
+			printf("\t");
+		printf("      %sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, function->return_type.name);
+
+		for(unsigned int j = 0 ; j < tabs ; j++)
+			printf("\t");
+		printf("      %sIs pointer: %s%d\n", COLOR_CYAN, FORMAT_RESET, function->return_type.is_pointer);
+	}
+}
+
+static void test_function_declaration_parsing(char *line) {
+	function_t *function = get_function_from_declaration(line);
+
+	printf("%sInput: %s\"%s\"%s\n", COLOR_BLUE, COLOR_YELLOW, line, FORMAT_RESET);
+	if(function != NULL) {
+		printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
+		print_function(function, 0);
+		function_free(function);
+	} else
+		printf("%sOutput: %sNULL%s\n", COLOR_BLUE, COLOR_RED, FORMAT_RESET);
 }
 
 static void test_variable_declaration_parsing(char *line) {
@@ -83,8 +113,7 @@ static void print_scope(scope_t *scope, unsigned int level) {
 	printf("%s--------------------%s\n", FORMAT_DIM, FORMAT_RESET);
 }
 
-void test() {
-
+static void test_variable_parsing() {
 	printf("------------------------------%s\n", FORMAT_RESET);
 	printf("%sTESTING PARSE VARIABLE DECLARATION%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
 	
@@ -132,7 +161,9 @@ void test() {
 	test_variable_declaration_parsing("\t/*int j = 88;*/");
 	test_variable_declaration_parsing("/* comment */ double db = 1.2;");
 	test_variable_declaration_parsing("/* comment */ for(int count = 0 ; count < 5 ; count++) {}");
+}
 
+static void test_scope_parsing() {
 	printf("------------------------------%s\n", FORMAT_RESET);
 
 	printf("%sTESTING PARSE SCOPE%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
@@ -197,6 +228,27 @@ void test() {
 	}
 
 	arraylist_free(file, 1);
+}
+
+static void test_function_parsing() {
+	printf("------------------------------%s\n", FORMAT_RESET);
+
+	printf("%sTESTING PARSE FUNCTIONS%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
+
+	test_function_declaration_parsing("void test();");
+	test_function_declaration_parsing("void test2(int, int);");
+	test_function_declaration_parsing("void test3(int i, int j);");
+	test_function_declaration_parsing("void test4(int i , int j) {}");
+	test_function_declaration_parsing("void *test_ptr() {}");
+	test_function_declaration_parsing("void* *test_ptr2() {}");
+	test_function_declaration_parsing("void * test_ptr3() {}");
+	test_function_declaration_parsing("void[15] array() {}");
+}
+
+void test() {
+
+	test_scope_parsing();	
+	test_function_parsing();	
 
 	printf("------------------------------%s\n", FORMAT_RESET);
 }

@@ -2,20 +2,8 @@
 #include "scopetree.h"
 #include "stringutils.h"
 #include "parsing_variables.h"
+#include "parsing_functions.h"
 #include "parsing_defines.h"
-
-function_t *function_init(char *name, char *type, unsigned char type_is_pointer, arraylist_t *params) {
-	function_t *function = malloc(sizeof(function_t));
-
-	if(function != NULL) {
-		function->name                   = name;
-		function->return_type.name       = type;
-		function->return_type.is_pointer = type_is_pointer;
-		function->params                 = params;
-	}
-
-	return function;
-}
 
 field_t *field_init(char *name, char *type, unsigned char type_is_pointer) {
 	field_t *field = malloc(sizeof(field_t));
@@ -198,23 +186,24 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int fr
 	return scope;
 }
 
-char type_equals(type_t *type1, type_t *type2) {
+unsigned char type_equals(type_t *type1, type_t *type2) {
 	//TODO handle synonyms such as unsigned char and uint8_t
 	return !strcmp(type1->name, type2->name) && type1->is_pointer == type2->is_pointer;
+}
+
+unsigned char type_exists(char *type) {
+	static const char *known_types[] = {"char","short","int","unsigned","long","signed","float","double","size_t","void"};
+	for(unsigned i = 0 ; i < 10 ; i++)
+		if(!strcmp(type, known_types[i]))
+			return 1;
+
+	return 0;
 }
 
 void field_free(field_t *field) {
 	free(field->name);
 	free(field->type.name);
 	free(field);
-}
-
-void function_free(function_t *function) {
-	free(function->name);
-	for(unsigned int i = 0 ; i < function->params->size ; i++)
-		field_free(function->params->array[i]);
-	arraylist_free(function->params, 1);
-	free(function);
 }
 
 void scope_free(scope_t *scope) {
