@@ -82,6 +82,34 @@ static char *parse_function_name(char *line, unsigned int *star_count_name, unsi
 	return name;
 }
 
+static arraylist_t *parse_function_parameters(char *line) {
+	arraylist_t *list   = arraylist_init(5);
+	unsigned int start_index  = 0;
+	unsigned int index        = 0;
+	unsigned int length       = strlen(line);
+	unsigned char c;
+	char *tmp;
+
+	SKIP_WHITESPACES
+
+	start_index = index;
+
+	//Until comma
+	while((c = line[index]) != ',' && index < length) {
+		index++;
+	}
+
+	if(index < length) {
+
+			tmp = strsubstr(line, start_index, index - start_index);
+
+			free(tmp);
+
+	} //Else end reached
+
+	return list;
+}
+
 function_t *get_function_from_declaration(char *line) {
 	unsigned int star_count_type;
 	unsigned int star_count_name;
@@ -92,8 +120,8 @@ function_t *get_function_from_declaration(char *line) {
 	unsigned int params_start_index = 0;
 	unsigned int index              = 0;
 	function_t *function = NULL;
-	arraylist_t *params = NULL;
-	match_t *match_type = NULL;
+	arraylist_t *params  = NULL;
+	match_t *match_type  = NULL;
 	char *tmp_name;
 	char *tmp_params;
 	char *name = NULL;
@@ -114,7 +142,7 @@ function_t *get_function_from_declaration(char *line) {
 		free(line);
 		return NULL;
 	}
-	
+
 	type = substr_match(line, *match_type);
 	type_start_index = match_type->index_start;
 	free(match_type);
@@ -126,7 +154,6 @@ function_t *get_function_from_declaration(char *line) {
 		length      = strlen(tmp_name);
 
 		if(length > 0) {
-			params          = arraylist_init(5);
 			star_count_type = strcount(type, '*');
 			type_sub_index  = strcountuntil(type, '*', 1, 1);
 
@@ -138,7 +165,6 @@ function_t *get_function_from_declaration(char *line) {
 			if(strcount(type, '*')) { //Contains stars inside the type name -> invalid type
 				free(tmp_name);
 				free(type);
-				arraylist_free(params, 1);
 				free(line);
 				return NULL;
 			}
@@ -157,19 +183,25 @@ function_t *get_function_from_declaration(char *line) {
 					free(tmp_name);
 					free(name);
 					free(type);
-					arraylist_free(params, 1);
 					free(line);
 					return NULL;
 				}
 
 				tmp_params = strsubstr(tmp_name, params_start_index, index - params_start_index);
 
-				//TODO Parse parameters
-				function = function_init(name, is_prototype, strduplicate(type), star_count_type + star_count_name, params); //TODO count stars in name
+				params = parse_function_parameters(tmp_params);
+				free(tmp_params);
+				free(tmp_name);
+
+				if(params != NULL) {
+					function = function_init(name, is_prototype, strduplicate(type), star_count_type + star_count_name, params);
+				} else {
+					free(line);
+					return NULL;
+				}
 			} else {
 				free(tmp_name);
 				free(type);
-				arraylist_free(params, 1);
 				free(line);
 				return NULL;
 			}
@@ -177,7 +209,6 @@ function_t *get_function_from_declaration(char *line) {
 		}
 
 		free(type);
-		free(tmp_name);
 	}
 
 	free(line);
