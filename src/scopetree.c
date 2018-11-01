@@ -35,18 +35,6 @@ scope_t *scope_init(scope_t *parent) {
 	return scope;
 }
 
-field_t *get_field_from_string(char *field) {
-	//TODO
-	errno = ENOSYS;
-	return NULL;
-}
-
-arraylist_t *get_function_params(char *function_head) {
-	//TODO
-	errno = ENOSYS;
-	return NULL;
-}
-
 static char is_in_child_scope(scope_t *scope, int line) {
 	scope_t *child;
 	node_t * current = scope->children->head;
@@ -72,16 +60,30 @@ static char previous_char_is_equal(char *line, int index) {
 
 static void parse_scope_content(arraylist_t *file, scope_t *scope) {
 	char *line;
-	arraylist_t *list;
+	arraylist_t *variables;
 
 	for(int i = scope->from_line ; i < scope->to_line ; i++) {
 		if(is_in_child_scope(scope, i)) continue; //Ignore lines inside child scopes
 		line = (char*) arraylist_get(file, i);
-		list = get_variables_from_declaration(line);
-		if(list != NULL) {
-			arraylist_add_all(scope->variables, list);
-			arraylist_free(list, 0);
-			list = NULL;
+		variables = get_variables_from_declaration(line);
+		if(variables != NULL) {
+			arraylist_add_all(scope->variables, variables);
+			arraylist_free(variables, 0);
+			variables = NULL;
+		}
+	}
+}
+
+static void parse_scope_functions(arraylist_t *file, scope_t *scope) {
+	char *line;
+	function_t *function;
+
+	for(int i = scope->from_line ; i < scope->to_line ; i++) {
+		line = (char*) arraylist_get(file, i);
+		function = get_function_from_declaration(line);
+		if(function != NULL) {
+			arraylist_add(scope->functions, function);
+			function = NULL;
 		}
 	}
 }
@@ -104,6 +106,7 @@ scope_t *parse_root_scope(arraylist_t *file) {
 	}
 
 	parse_scope_content(file, scope);
+	parse_scope_functions(file, scope); //Parse functions only in root scope
 
 	return scope;
 }
