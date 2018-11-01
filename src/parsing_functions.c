@@ -3,11 +3,12 @@
 #include "parsing_functions.h"
 #include "scopetree.h"
 
-function_t *function_init(char *name, char *type, unsigned char type_is_pointer, arraylist_t *params) {
+function_t *function_init(char *name, unsigned char is_prototype, char *type, unsigned char type_is_pointer, arraylist_t *params) {
 	function_t *function = malloc(sizeof(function_t));
 
 	if(function != NULL) {
 		function->name                   = name;
+		function->is_prototype           = is_prototype;
 		function->return_type.name       = type;
 		function->return_type.is_pointer = type_is_pointer;
 		function->params                 = params;
@@ -16,7 +17,20 @@ function_t *function_init(char *name, char *type, unsigned char type_is_pointer,
 	return function;
 }
 
-static char *parse_function_name(char *line, unsigned int *star_count_name) {
+static unsigned char function_is_prototype(char *line) {
+	size_t length = strlen(line);
+	int index = length - 1;
+
+	while(is_whitespace(line[index]) && index >= 0) { index--; }; //Skip whitespaces
+
+	switch(line[index]) {
+		case ';': return 1;
+		case '{': return 0;
+		default: return -1; //Syntax error
+	}
+}
+
+static char *parse_function_name(char *line, unsigned int *star_count_name, unsigned int *params_start_index) {
 	unsigned int index      = 0;
 	unsigned int length     = strlen(line);
 	unsigned int star_count = 0;
@@ -64,6 +78,7 @@ static char *parse_function_name(char *line, unsigned int *star_count_name) {
 	free(tmp);
 
 	*star_count_name = star_count;
+	*params_start_index = index + 1;
 	return name;
 }
 
@@ -73,22 +88,33 @@ function_t *get_function_from_declaration(char *line) {
 	unsigned int type_sub_index;
 	unsigned int length;
 	unsigned int type_length;
-	unsigned int type_start_index = 0;
+	unsigned int type_start_index   = 0;
+	unsigned int params_start_index = 0;
+	unsigned int index              = 0;
 	function_t *function = NULL;
 	arraylist_t *params = NULL;
 	match_t *match_type = NULL;
 	char *tmp_name;
+	char *tmp_params;
 	char *name = NULL;
 	char *type;
+	char is_prototype;
 
 	line = str_remove_comments(line);
+
+	is_prototype = function_is_prototype(line);
+	if(is_prototype == -1) {
+		free(line);
+		free(match_type);
+		return NULL;
+	}
 
 	match_type = parse_type(line);
 	if(match_type == NULL) {
 		free(line);
 		return NULL;
 	}
-
+	
 	type = substr_match(line, *match_type);
 	type_start_index = match_type->index_start;
 	free(match_type);
@@ -117,11 +143,29 @@ function_t *get_function_from_declaration(char *line) {
 				return NULL;
 			}
 
-			name = parse_function_name(tmp_name, &star_count_name);
+			name = parse_function_name(tmp_name, &star_count_name, &params_start_index);
 
 			if(name != NULL) {
+
+				index = params_start_index;
+				//Find closing parenthesis
+				while(tmp_name[index] != ')' && index < length) {
+					index++;
+				}
+
+				if(tmp_name[index] != ')') { //Syntax error, no closing parenthesis found
+					free(tmp_name);
+					free(name);
+					free(type);
+					arraylist_free(params, 1);
+					free(line);
+					return NULL;
+				}
+
+				tmp_params = strsubstr(tmp_name, params_start_index, index - params_start_index);
+
 				//TODO Parse parameters
-				function = function_init(name, strduplicate(type), star_count_type + star_count_name, params); //TODO count stars in name
+				function = function_init(name, is_prototype, strduplicate(type), star_count_type + star_count_name, params); //TODO count stars in name
 			} else {
 				free(tmp_name);
 				free(type);
