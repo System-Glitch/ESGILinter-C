@@ -13,9 +13,10 @@ typedef struct field {
 } field_t;
 
 typedef struct function {
-	char        *name;
-	type_t       return_type;
-	arraylist_t *params;
+	char         *name;
+	type_t        return_type;
+	unsigned char is_prototype;
+	arraylist_t  *params;
 } function_t;
 
 typedef struct scope {

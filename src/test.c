@@ -34,16 +34,19 @@ static void print_function(function_t *function, unsigned int tabs) {
 	if(function != NULL) {
 		for(unsigned int j = 0 ; j < tabs ; j++)
 			printf("\t");
-
-		printf("      %sName:       %s%s\n", COLOR_CYAN, FORMAT_RESET, function->name);
-
-		for(unsigned int j = 0 ; j < tabs ; j++)
-			printf("\t");
-		printf("      %sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, function->return_type.name);
+		printf("      %sName:         %s%s\n", COLOR_CYAN, FORMAT_RESET, function->name);
 
 		for(unsigned int j = 0 ; j < tabs ; j++)
 			printf("\t");
-		printf("      %sIs pointer: %s%d\n", COLOR_CYAN, FORMAT_RESET, function->return_type.is_pointer);
+		printf("      %sIs prototype: %s%d\n", COLOR_CYAN, FORMAT_RESET, function->is_prototype);
+
+		for(unsigned int j = 0 ; j < tabs ; j++)
+			printf("\t");
+		printf("      %sType:         %s%s\n", COLOR_CYAN, FORMAT_RESET, function->return_type.name);
+
+		for(unsigned int j = 0 ; j < tabs ; j++)
+			printf("\t");
+		printf("      %sIs pointer:   %s%d\n", COLOR_CYAN, FORMAT_RESET, function->return_type.is_pointer);
 	}
 }
 
@@ -238,11 +241,11 @@ static void test_function_parsing() {
 	test_function_declaration_parsing("void test();");
 	test_function_declaration_parsing("void test2(int, int);");
 	test_function_declaration_parsing("void test3(int i, int j);");
-	test_function_declaration_parsing("void test4(int i , int j) {}");
-	test_function_declaration_parsing("void *test_ptr() {}");
-	test_function_declaration_parsing("void* *test_ptr2() {}");
-	test_function_declaration_parsing("void * test_ptr3() {}");
-	test_function_declaration_parsing("void[15] array() {}");
+	test_function_declaration_parsing("void test4(int i , int j) {");
+	test_function_declaration_parsing("void *test_ptr() {");
+	test_function_declaration_parsing("void* *test_ptr2() {");
+	test_function_declaration_parsing("void * test_ptr3() {");
+	test_function_declaration_parsing("void[15] array() {");
 }
 
 void test() {
