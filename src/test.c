@@ -60,6 +60,16 @@ static void print_function(function_t *function, unsigned int tabs) {
 	}
 }
 
+static void print_functions(arraylist_t *functions, unsigned int tabs) {
+	function_t *function = NULL;
+	if(functions != NULL) {
+		for(unsigned int i = 0 ; i < functions->size ; i++) {
+			function = arraylist_get(functions, i);
+			print_function(function, tabs);
+		}
+	}
+}
+
 static void test_function_declaration_parsing(char *line) {
 	function_t *function = get_function_from_declaration(line);
 
@@ -95,6 +105,15 @@ static void print_scope(scope_t *scope, unsigned int level) {
 	for(unsigned int i = 0 ; i < level ; i++)
 		printf("\t");
 	printf("From %d to %d\n", scope->from_line, scope->to_line);
+
+	if(scope->parent == NULL) { //Is root scope
+		for(unsigned int i = 0 ; i < level ; i++)
+			printf("\t");
+		printf("%sFunctions:%s ", COLOR_CYAN_BOLD, FORMAT_RESET);
+		if(scope->functions->size == 0) printf("%sNone%s", COLOR_RED, FORMAT_RESET);
+		printf("\n");
+		print_functions(scope->functions, level);
+	}
 
 	for(unsigned int i = 0 ; i < level ; i++)
 		printf("\t");
@@ -258,9 +277,9 @@ static void test_function_parsing() {
 
 void test() {
 
-	//test_variable_parsing();
-	test_scope_parsing();	
+	test_variable_parsing();
 	test_function_parsing();	
+	test_scope_parsing();	
 
 	printf("------------------------------%s\n", FORMAT_RESET);
 }
