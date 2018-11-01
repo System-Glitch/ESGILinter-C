@@ -47,6 +47,16 @@ static void print_function(function_t *function, unsigned int tabs) {
 		for(unsigned int j = 0 ; j < tabs ; j++)
 			printf("\t");
 		printf("      %sIs pointer:   %s%d\n", COLOR_CYAN, FORMAT_RESET, function->return_type.is_pointer);
+
+		for(unsigned int j = 0 ; j < tabs ; j++)
+			printf("\t");
+		printf("      %sParameters:   %s", COLOR_CYAN, FORMAT_RESET);
+		if(function->params->size == 0) {
+			printf("%sNone%s", COLOR_RED, FORMAT_RESET);
+		} else {
+			print_variables(function->params, tabs + 1);
+		}
+		printf("\n");
 	}
 }
 
