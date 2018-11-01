@@ -44,6 +44,7 @@ unsigned char type_equals(type_t *type1, type_t *type2);
 unsigned char type_exists(char *type);
 
 void field_free(field_t *field);
+void field_list_free(arraylist_t *list);
 void scope_free(scope_t *scope);
 
 #endif

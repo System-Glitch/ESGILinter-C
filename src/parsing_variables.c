@@ -3,7 +3,7 @@
 #include "parsing_type.h"
 #include "scopetree.h"
 
-static char pvar_value(char *line, size_t length, unsigned int *i) {
+static char parse_variable_value(char *line, size_t length, unsigned int *i) {
 	unsigned int index = *i;
 	unsigned char in_content = 0;
 	unsigned char expect_comma = 0;
@@ -48,7 +48,7 @@ static char pvar_value(char *line, size_t length, unsigned int *i) {
 	return !(in_content > 0 || nested > 0 || index - 1 == value_start_index); //Check for invalid syntax or missing value before comma
 }
 
-static unsigned int pvar_array(char *line, size_t length, unsigned int *i) {
+static unsigned int parse_variable_array(char *line, size_t length, unsigned int *i) {
 	unsigned int index = *i;
 	unsigned int array_count = 0;
 	char c;
@@ -73,7 +73,7 @@ static unsigned int pvar_array(char *line, size_t length, unsigned int *i) {
 	return array_count;
 }
 
-static match_t *pvar_name(char *names, unsigned int *start_index, unsigned int *array_count) {
+match_t *parse_variable_name(char *names, unsigned int *start_index, unsigned int *array_count) {
 	unsigned int index  = 0;
 	char *line          = names + *start_index;
 	unsigned int length = strlen(line);
@@ -107,14 +107,14 @@ static match_t *pvar_name(char *names, unsigned int *start_index, unsigned int *
 
 			SKIP_WHITESPACES
 
-			*array_count += pvar_array(line, length, &index);
+			*array_count += parse_variable_array(line, length, &index);
 
 			SKIP_WHITESPACES
 
 			if(index < length) {
 				//Equal symbol?
 				if(line[index] == '=') {
-					if(!pvar_value(line, length, &index)) { //Invalid syntax or missing value before comma
+					if(!parse_variable_value(line, length, &index)) { //Invalid syntax or missing value before comma
 						free(match);
 						match = NULL;
 					}
@@ -143,7 +143,7 @@ static field_t *get_variable_from_declaration(char *type, int star_count_type, c
 	unsigned int array_count = 0;
 
 	tmp_index = *names_index;
-	match = pvar_name(declaration, names_index, &array_count);
+	match = parse_variable_name(declaration, names_index, &array_count);
 
 	if(match != NULL) {
 		tmp = substr_match(declaration + tmp_index, *match);
