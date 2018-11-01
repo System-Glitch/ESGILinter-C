@@ -3,11 +3,9 @@
 
 #include "linkedlist.h"
 #include "arraylist.h"
+#include "parsing_type.h"
 
-typedef struct type {
-	char          *name;
-	unsigned char  is_pointer;
-} type_t;
+#define SKIP_WHITESPACES while(is_whitespace(c = line[index]) && index < length) { index++; };
 
 typedef struct field {
 	char   *name;
@@ -32,7 +30,6 @@ typedef struct scope {
 	int to_char;
 } scope_t;
 
-function_t  *function_init(char *name, char *type, unsigned char type_is_pointer, arraylist_t *params);
 field_t     *field_init(char *name, char *type, unsigned char type_is_pointer);
 scope_t     *scope_init(scope_t *parent);
 
@@ -42,10 +39,10 @@ arraylist_t *get_function_params(char *function_head);
 scope_t     *parse_root_scope(arraylist_t *file);
 scope_t     *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int from_char, scope_t *parent_scope);
 
-char type_equals(type_t *type1, type_t *type2);
+unsigned char type_equals(type_t *type1, type_t *type2);
+unsigned char type_exists(char *type);
 
 void field_free(field_t *field);
-void function_free(function_t *function);
 void scope_free(scope_t *scope);
 
 #endif
