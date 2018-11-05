@@ -49,6 +49,11 @@ match_t *parse_type(char *line) {
 
 	SKIP_WHITESPACES
 
+	if(strstr(line + index, "extern") == line + index) //Skip extern keyword
+		index += 6;
+
+	SKIP_WHITESPACES
+
 	if(strstr(line + index, "static") == line + index) //Skip static keyword
 		index += 6;
 
