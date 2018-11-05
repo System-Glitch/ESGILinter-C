@@ -188,6 +188,9 @@ static void test_variable_parsing() {
 	test_variable_declaration_parsing("\t/*int j = 88;*/");
 	test_variable_declaration_parsing("/* comment */ double db = 1.2;");
 	test_variable_declaration_parsing("/* comment */ for(int count = 0 ; count < 5 ; count++) {}");
+
+	test_variable_declaration_parsing("extern unsigned char c = 42;");
+
 }
 
 static void test_scope_parsing() {
