@@ -176,6 +176,7 @@ char *strjoin(char **strings, unsigned int count, char *join) {
 	return result;
 }
 
+
 char *substr_match(char *source, match_t match) {
 	int length = match.index_end - match.index_start;
 	char *substr = malloc((length + 1) * sizeof(char));
@@ -199,4 +200,12 @@ char is_alphanumeric(char c) {
 match_t *match_init() {
 	match_t *match = malloc(sizeof(match_t));
 	return match;
+}
+
+void strformat(char *str, int length){
+    if(strlen(str) <= 0 || length <= 0) return;
+
+    if(strlen(str) <= length){
+        str[strlen(str) - 1] = '\0';
+    }
 }

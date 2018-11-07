@@ -30,4 +30,7 @@ char is_alphanumeric(char c);
 
 match_t *match_init();
 
+
+void strformat(char *str, int length);
+
 #endif /* STRINGUTILS_H_ */
