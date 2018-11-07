@@ -11,7 +11,6 @@ arraylist_t *arraylist_init(unsigned int initial_capacity) {
 		list->array = malloc(list->capacity * sizeof(void*));
 		if(list->array == NULL) free(list);
 	}
-
 	return list;
 }
 

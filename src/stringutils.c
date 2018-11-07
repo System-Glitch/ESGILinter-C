@@ -87,3 +87,11 @@ char *strjoin(char **strings, unsigned int count, char *join) {
 
 	return result;
 }
+
+void strformat(char *str, int length){
+    if(strlen(str) <= 0 || length <= 0) return;
+
+    if(strlen(str) <= length){
+        str[strlen(str) - 1] = '\0';
+    }
+}

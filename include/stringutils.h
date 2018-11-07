@@ -13,4 +13,6 @@ int strlastindexof(char *str, char chr);
 char *strconcat(char *str1, char *str2);
 char *strjoin(char **strings, unsigned int count, char *join);
 
+void strformat(char *str, int length);
+
 #endif /* STRINGUTILS_H_ */
