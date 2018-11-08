@@ -33,4 +33,6 @@ int is_recursive(arraylist_t *conf);
 
 rule_t *get_rule(arraylist_t *conf, char *name);
 
+void exclude_conf_file(arraylist_t *conf, char *name);
+
 #endif //ESGILINTER_C_CONF_H
