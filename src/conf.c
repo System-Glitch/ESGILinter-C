@@ -14,17 +14,25 @@ void load_configuration(char *filename, arraylist_t *conf) {
 
     FILE *src;
     char *line;
+    char *tmp;
+    rule_t *e;
 
     src = fopen(filename, "rb");
     if(src == NULL) return;
 
     line = malloc(sizeof(char) * 255);
+    tmp = malloc(sizeof(char) * 255);
+    e = malloc(sizeof(rule_t));
+
+    exclude_conf_file(conf, filename);
 
     while(fgets(line, 255, src) != NULL){
         if(strstr(line, "=extends") != NULL){
             fgets(line, 255, src);
-            while(line[0] != '\n' && line[0] != '#'){
-                strformat(line, 255);
+            strcpy(tmp, "conf_inc_");
+            strformat(line, 255);
+            strcat(tmp, line);
+            while(line[0] != '\n' && line[0] != '#' && find_rule_index(conf, tmp) == -1 ){
                 load_configuration(line, conf);
                 fgets(line, 255, src);
             }
@@ -39,8 +47,10 @@ void load_configuration(char *filename, arraylist_t *conf) {
             recursive_activation(src, conf);
         }
     }
+
     fclose(src);
     free(line);
+    free(tmp);
 }
 
 /**
@@ -160,6 +170,28 @@ void exclude_file(FILE *src, arraylist_t *conf){
     free(line);
     free(tmp);
 }
+
+/**
+ * Avoid loop on the extends property
+ * @param arraylist_t *conf
+ * @param char *name
+ */
+void exclude_conf_file(arraylist_t *conf, char *name){
+    if(strlen(name) <= 0) return;
+
+    rule_t *e;
+
+    e = malloc(sizeof(rule_t));
+    e->name = malloc(sizeof(char) * 255);
+
+    strcpy(e->name, "conf_inc_");
+    strcat(e->name, name);
+
+    e->enable = 1;
+    e->value = 0;
+    arraylist_add(conf, e);
+}
+
 
 /**
  * Load the recursive rule in the configuration file
