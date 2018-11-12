@@ -95,3 +95,29 @@ void strformat(char *str, int length){
         str[strlen(str) - 1] = '\0';
     }
 }
+
+
+char *substr_match(char *source, match_t match) {
+	int length = match.index_end - match.index_start;
+	char *substr = malloc((length + 1) * sizeof(char));
+
+	if(substr != NULL) {
+		strncpy(substr, source + match.index_start, length);
+		substr[length] = '\0';
+	}
+
+	return substr;
+}
+
+char is_whitespace(char c) {
+	return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\v' || c == '\f';
+}
+
+char is_alphanumeric(char c) {
+	return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_';
+}
+
+match_t *match_init() {
+	match_t *match = malloc(sizeof(match_t));
+	return match;
+}

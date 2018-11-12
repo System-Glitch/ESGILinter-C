@@ -15,4 +15,11 @@ char *strjoin(char **strings, unsigned int count, char *join);
 
 void strformat(char *str, int length);
 
+char *substr_match(char *source, match_t match);
+
+char is_whitespace(char c);
+char is_alphanumeric(char c);
+
+match_t *match_init();
+
 #endif /* STRINGUTILS_H_ */
