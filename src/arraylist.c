@@ -27,14 +27,21 @@ void arraylist_add(arraylist_t *list, void *value) {
 	list->array[list->size++] = value;
 }
 
-void *arraylist_get(arraylist_t *list, unsigned int index) {
+void arraylist_add_all(arraylist_t *list, arraylist_t *values) {
+	for(unsigned int i = 0 ; i < values->size ; i++)
+		arraylist_add(list, arraylist_get(values, i));
+}
+
+void *arraylist_get(arraylist_t *list, size_t index) {
 	return index >= list->size ? NULL : list->array[index];
 }
 
-void arraylist_free(arraylist_t *list) {
-	for(unsigned int i = 0 ; i < list->size ; i++) {
-		if(list->array[i] != NULL)
-			free(list->array[i]);
+void arraylist_free(arraylist_t *list, unsigned char free_content) {
+	if(free_content) {
+		for(unsigned int i = 0 ; i < list->size ; i++) {
+			if(list->array[i] != NULL)
+				free(list->array[i]);
+		}
 	}
 	free(list->array);
 	free(list);

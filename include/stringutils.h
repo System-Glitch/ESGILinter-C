@@ -5,7 +5,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct match {
+	unsigned int index_start;
+	unsigned int index_end;
+} match_t;
+
+char *str_remove_comments(char *str);
+char *strduplicate(char *str);
 char *strsubstr(char *str , int from, int count);
+
+unsigned int strcount(char *str, char chr);
+unsigned int strcountuntil(char *str, char chr, char reverse, char ignore_whitespace);
 
 int strindexof(char *str, char chr);
 int strlastindexof(char *str, char chr);
