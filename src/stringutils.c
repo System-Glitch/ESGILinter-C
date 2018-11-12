@@ -176,6 +176,14 @@ char *strjoin(char **strings, unsigned int count, char *join) {
 	return result;
 }
 
+void strformat(char *str, int length){
+    if(strlen(str) <= 0 || length <= 0) return;
+
+    if(strlen(str) <= length){
+        str[strlen(str) - 1] = '\0';
+    }
+}
+
 char *substr_match(char *source, match_t match) {
 	int length = match.index_end - match.index_start;
 	char *substr = malloc((length + 1) * sizeof(char));
