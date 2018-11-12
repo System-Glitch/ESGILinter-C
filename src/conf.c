@@ -20,30 +20,27 @@ void load_configuration(char *filename, arraylist_t *conf) {
     src = fopen(filename, "rb");
     if(src == NULL) return;
 
-    line = malloc(sizeof(char) * 255);
-    tmp = malloc(sizeof(char) * 255);
+    line = malloc(sizeof(char) * 1048);
+    tmp = malloc(sizeof(char) * 1048);
     e = malloc(sizeof(rule_t));
 
     exclude_conf_file(conf, filename);
 
-    while(fgets(line, 255, src) != NULL){
-        if(strstr(line, "=extends") != NULL){
-            fgets(line, 255, src);
+    while(fgets(line, 1048, src) != NULL){
+        if(strstr(line, "=extends") ==  line){
+            fgets(line, 1048, src);
             strcpy(tmp, "conf_inc_");
-            strformat(line, 255);
+            strformat(line, 1048);
             strcat(tmp, line);
             while(line[0] != '\n' && line[0] != '#' && find_rule_index(conf, tmp) == -1 ){
                 load_configuration(line, conf);
-                fgets(line, 255, src);
+                fgets(line, 1048, src);
             }
-        }
-        if(strstr(line, "=rules") != NULL){
+        }else if(strstr(line, "=rules") == line){
             load_rules(src, conf);
-        }
-        if(strstr(line, "=excludedFiles") != NULL){
+        }else if(strstr(line, "=excludedFiles") == line){
             exclude_file(src, conf);
-        }
-        if(strstr(line, "=recursive") != NULL){
+        }else if(strstr(line, "=recursive") == line){
             recursive_activation(src, conf);
         }
     }
@@ -67,14 +64,15 @@ void load_rules(FILE *src, arraylist_t *conf){
     int sum;
     int enable;
     int found;
+    size_t length;
     rule_t *e;
     const char equal[2] = "=";
 
-    line = malloc(sizeof(char) * 255);
-    name = malloc(sizeof(char) * 255);
+    line = malloc(sizeof(char) * 1048);
+    name = malloc(sizeof(char) * 1048);
 
-    fgets(line, 255, src);
-    while(line[0] != '\n' && line[0] != '#'){
+    fgets(line, 1048, src);
+    while(!is_whitespace(line[0]) && line[0] != '#'){
 
         tmp = strtok(line, equal);
         if(tmp == NULL) return;
@@ -95,7 +93,8 @@ void load_rules(FILE *src, arraylist_t *conf){
         if(tmp[0] == ' ') tmp = tmp+1;
         sum = 0;
         enable = 0;
-        for(int i = 0; i  < strlen(tmp) ; i++){
+        length = strlen(tmp);
+        for(int i = 0; i  < length ; i++){
             if(tmp[i] >= 48 && tmp[i] <= 57){
                 sum += (tmp[i]-48);
                 if(i != strlen(tmp) -2){
@@ -106,8 +105,7 @@ void load_rules(FILE *src, arraylist_t *conf){
                 if(strstr(tmp, "on")) {
                     enable = 1;
                     break;
-                }else if(strstr(tmp, "off")){
-                    enable = 0;
+                }else{
                     break;
                 }
             }
@@ -124,7 +122,7 @@ void load_rules(FILE *src, arraylist_t *conf){
             e->enable = enable;
             arraylist_add(conf, e);
         }
-        fgets(line, 255, src);
+        fgets(line, 1048, src);
     }
     free(line);
     free(name);
@@ -142,30 +140,30 @@ void exclude_file(FILE *src, arraylist_t *conf){
     char *tmp;
     rule_t *e;
 
-    line = malloc(sizeof(char) * 255);
-    tmp = malloc(sizeof(char) * 255);
+    line = malloc(sizeof(char) * 1048);
+    tmp = malloc(sizeof(char) * 1048);
 
-    fgets(line, 255, src);
+    fgets(line, 1048, src);
 
-    while(line[0] != '\n' && line[0] != '#'){
+    while(!is_whitespace(line[0]) && line[0] != '#'){
         strcpy(tmp, "exfile_");
         if(line[1] == ' '){
             strcat(tmp, line+2);
         }else{
             strcat(tmp, line+1);
         }
-        strformat(tmp, 255);
+        strformat(tmp, 1048);
 
         found = find_rule_index(conf, tmp);
         if(found == -1 ){
             e = malloc(sizeof(rule_t));
-            e->name = malloc(sizeof(char) * 255);
+            e->name = malloc(sizeof(char) * 1048);
             strcpy(e->name, tmp);
             e->value = 0;
             e->enable = 0;
             arraylist_add(conf, e);
         }
-        fgets(line, 255, src);
+        fgets(line, 1048, src);
     }
     free(line);
     free(tmp);
@@ -182,7 +180,7 @@ void exclude_conf_file(arraylist_t *conf, char *name){
     rule_t *e;
 
     e = malloc(sizeof(rule_t));
-    e->name = malloc(sizeof(char) * 255);
+    e->name = malloc(sizeof(char) * 1048);
 
     strcpy(e->name, "conf_inc_");
     strcat(e->name, name);
@@ -207,10 +205,10 @@ void recursive_activation(FILE *src, arraylist_t *conf){
     enable = 0;
     rule_t *e;
 
-    line = malloc(sizeof(char) * 255);
+    line = malloc(sizeof(char) * 1048);
 
-    fgets(line, 255, src);
-    if(line[0] != '\n' && line[0] != '#'){
+    fgets(line, 1048, src);
+    if(!is_whitespace(line[0]) && line[0] != '#'){
 
         found = find_rule_index(conf, "recursive");
 
@@ -226,7 +224,7 @@ void recursive_activation(FILE *src, arraylist_t *conf){
         }else if(found == -1){
             e = malloc(sizeof(rule_t));
 
-            e->name = malloc(sizeof(char) * 255);
+            e->name = malloc(sizeof(char) * 1048);
 
             strcpy(e->name, "recursive");
             e->value = 0;

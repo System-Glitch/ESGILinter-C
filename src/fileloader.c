@@ -23,7 +23,7 @@ unsigned int file_row_number(FILE *src)
     /*
      * Memory allocation
      */
-    line = malloc(sizeof(char)*255);
+    line = malloc(sizeof(char)*1048);
 
     /*
      * Rewind the file
@@ -34,7 +34,7 @@ unsigned int file_row_number(FILE *src)
      * List all of the line of the file
      */
 
-    while(fgets(line, 255, src) != NULL){
+    while(fgets(line, 1048, src) != NULL){
         rows++;
     }
 
@@ -91,11 +91,11 @@ arraylist_t* file_loader(char *filename, int type){
      */
     initialized = 0;
     for(i = 0; i < length; i++){
-        line = malloc(sizeof(char) * 255);
-        res = malloc(sizeof(char)*255);
+        line = malloc(sizeof(char) * 1048);
+        res = malloc(sizeof(char)*1048);
         tempo = 0;
         counter = 0;
-        fgets(line, 255, src);
+        fgets(line, 1048, src);
 
         if(!initialized && i != 0){
             past_length = strlen(tmp);
@@ -149,7 +149,7 @@ arraylist_t* file_loader(char *filename, int type){
         }
 
         if(!initialized){
-            tmp = malloc(sizeof(char) * 255);
+            tmp = malloc(sizeof(char) * 1048);
             strcpy(tmp,line);
         }
     }
