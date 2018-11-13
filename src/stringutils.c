@@ -13,13 +13,13 @@ char *strsubstr(char *str , int from, int count) {
 	return result;
 }
 
-int strindexof(char *str, char chr) {
+size_t strindexof(char *str, char chr) {
 
-	unsigned int length = strlen(str);
+	size_t length = strlen(str);
 
-	for(unsigned int i = 0 ; i < length ; i++) {
+	for(size_t i = 0 ; i < length ; i++) {
 		if(str[i] == chr)
-			return i;
+			return (int)i;
 	}
 	return -1;
 }
@@ -88,6 +88,7 @@ char *strjoin(char **strings, unsigned int count, char *join) {
 	return result;
 }
 
+
 void strformat(char *str, int length){
     if(strlen(str) <= 0 || length <= 0) return;
 
@@ -109,13 +110,16 @@ char *substr_match(char *source, match_t match) {
 	return substr;
 }
 
+
 char is_whitespace(char c) {
 	return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\v' || c == '\f';
 }
 
+
 char is_alphanumeric(char c) {
 	return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_';
 }
+
 
 match_t *match_init() {
 	match_t *match = malloc(sizeof(match_t));
