@@ -287,9 +287,9 @@ static void test_rule_no_prototype() {
 
 	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 	arraylist_add(file, strduplicate("static int glob = 89;"));
-	arraylist_add(file, strduplicate("void test(char test);"));
+	arraylist_add(file, strduplicate("void test(int param);"));
 
-	arraylist_add(file, strduplicate("void test(int param) {"));
+	arraylist_add(file, strduplicate("char test(int param) {"));
 	arraylist_add(file, strduplicate("\tchar c = 'c';"));
 	arraylist_add(file, strduplicate("\tprintf(\"%c %d\", c, i);"));
 	arraylist_add(file, strduplicate("}"));
@@ -298,10 +298,9 @@ static void test_rule_no_prototype() {
 	arraylist_add(file, strduplicate("\tint i = 42;"));
 	arraylist_add(file, strduplicate("}"));
 
-	arraylist_add(file, strduplicate("char* test2() {"));
+	arraylist_add(file, strduplicate("char* test2(char v) {"));
 	arraylist_add(file, strduplicate("\tint i = 42;"));
 	arraylist_add(file, strduplicate("}"));
-
 
 	scope_t *scope = parse_root_scope(file);
 	if(scope != NULL) {
@@ -315,9 +314,9 @@ static void test_rule_no_prototype() {
 
 void test() {
 
-	/*test_variable_parsing();
+	test_variable_parsing();
 	test_function_parsing();
-	test_scope_parsing();*/
+	test_scope_parsing();
 	test_rule_no_prototype();
 
 	printf("------------------------------%s\n", FORMAT_RESET);

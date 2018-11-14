@@ -89,10 +89,23 @@ static void parse_scope_functions(arraylist_t *file, scope_t *scope) {
 	}
 }
 
+static function_t *find_function_from_line(arraylist_t *list, int line) {
+	function_t *function = NULL;
+	for(size_t i = 0 ; i < list->size ; i++) {
+		function = arraylist_get(list, i);
+		if(function->line == line)
+			return function;
+	}
+	return NULL;
+}
+
 scope_t *parse_root_scope(arraylist_t *file) {
-	scope_t *scope        = scope_init(NULL);
-	scope_t *child        = NULL;
-	scope_t *tmp_child    = NULL;
+	scope_t    *scope     = scope_init(NULL);
+	scope_t    *child     = NULL;
+	scope_t    *tmp_child = NULL;
+	function_t *function  = NULL;
+	node_t     *current   = NULL;
+	field_t    *tmp_field = NULL;
 
 	if(scope == NULL) return NULL;
 
@@ -109,15 +122,28 @@ scope_t *parse_root_scope(arraylist_t *file) {
 	parse_scope_content(file, scope);
 	parse_scope_functions(file, scope); //Parse functions only in root scope
 
+	//Copy parameters to child variables
+	current = scope->children->head;
+	if(current != NULL) {
+		do {
+			tmp_child = current->val;
+			function = find_function_from_line(scope->functions, tmp_child->from_line);
+			for(size_t i = 0 ; i < function->params->size ; i++) {
+				tmp_field = arraylist_get(function->params, i);
+				arraylist_add(tmp_child->variables, field_init(strduplicate(tmp_field->name), strduplicate(tmp_field->type.name), tmp_field->type.is_pointer, tmp_field->line));
+			}
+		} while ((current = current->next) != NULL);
+	}
+
 	return scope;
 }
 
 scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int from_char, scope_t *parent_scope) {
 	scope_t *scope              = scope_init(parent_scope);
-	unsigned int level          =  0;
-	unsigned int no_scope_level =  0;
-	char found                  =  0;
-	char in_comment             =  0;
+	unsigned int level          = 0;
+	unsigned int no_scope_level = 0;
+	char found                  = 0;
+	char in_comment             = 0;
 	unsigned int length;
 	char *line;
 

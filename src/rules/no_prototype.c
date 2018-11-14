@@ -29,9 +29,9 @@ unsigned int check_no_prototype(scope_t *root_scope, arraylist_t *file) {
 				if(prototype->is_prototype && !strcmp(prototype->name, function->name)) {
 					//Proto found
 
-					//Check parameters
-					if(!check_params(function, prototype)) {
-						print_error("fictive_file.c", function->line, arraylist_get(file, function->line), "Conflicting types");
+					//Check parameters and return type
+					if(strcmp(function->return_type.name, prototype->return_type.name) || !check_params(function, prototype)) {
+						print_error("fictive_file.c", prototype->line, arraylist_get(file, prototype->line), "Conflicting types");
 						count++;
 					}
 					found = 1;
