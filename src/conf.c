@@ -8,9 +8,10 @@
  * Load the configuration array
  * @param char *filename
  * @param arraylist_t *conf
+ * @return char 0 on success
  */
-void load_configuration(char *filename, arraylist_t *conf) {
-    if (strlen(filename) <= 0) return;
+char load_configuration(char *filename, arraylist_t *conf) {
+    if (strlen(filename) <= 0) return 1;
 
     FILE *src;
     char *line;
@@ -18,7 +19,7 @@ void load_configuration(char *filename, arraylist_t *conf) {
     char *get; //fgets return
 
     src = fopen(filename, "rb");
-    if(src == NULL) return;
+    if(src == NULL) return 1;
 
     line = malloc(sizeof(char) * 1048);
     tmp = malloc(sizeof(char) * 1048);
@@ -32,7 +33,7 @@ void load_configuration(char *filename, arraylist_t *conf) {
                 fclose(src);
                 free(tmp);
                 free(line);
-                return;
+                return 2;
             }
             if(!is_whitespace(line[0])){
                 strcpy(tmp, "conf_inc_");
@@ -45,7 +46,7 @@ void load_configuration(char *filename, arraylist_t *conf) {
                         fclose(src);
                         free(tmp);
                         free(line);
-                        return;
+                        return 2;
                     }
                 }
             }
@@ -61,6 +62,8 @@ void load_configuration(char *filename, arraylist_t *conf) {
     fclose(src);
     free(line);
     free(tmp);
+
+    return 0;
 }
 
 /**
