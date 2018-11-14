@@ -4,6 +4,6 @@
 #include "arraylist.h"
 #include "stringutils.h"
 
-arraylist_t *get_variables_from_declaration(char *line);
+arraylist_t *get_variables_from_declaration(int line_index, char *line);
 
 #endif

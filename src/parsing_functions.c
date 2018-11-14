@@ -3,7 +3,7 @@
 #include "parsing_functions.h"
 #include "scopetree.h"
 
-function_t *function_init(char *name, unsigned char is_prototype, char *type, unsigned char type_is_pointer, arraylist_t *params) {
+function_t *function_init(char *name, unsigned char is_prototype, char *type, unsigned char type_is_pointer, arraylist_t *params, int line_index) {
 	function_t *function = malloc(sizeof(function_t));
 
 	if(function != NULL) {
@@ -12,6 +12,7 @@ function_t *function_init(char *name, unsigned char is_prototype, char *type, un
 		function->return_type.name       = type;
 		function->return_type.is_pointer = type_is_pointer;
 		function->params                 = params;
+		function->line                   = line_index;
 	}
 
 	return function;
@@ -159,7 +160,7 @@ static arraylist_t *parse_function_parameters(char *line, unsigned char is_proto
 			return NULL;
 		}
 
-		field = field_init(name, type, star_count_type + star_count_name + array_count);
+		field = field_init(name, type, star_count_type + star_count_name + array_count, -1);
 		arraylist_add(list, field);
 
 		free(tmp);
@@ -171,7 +172,7 @@ static arraylist_t *parse_function_parameters(char *line, unsigned char is_proto
 	return list;
 }
 
-function_t *get_function_from_declaration(char *line) {
+function_t *get_function_from_declaration(int line_index, char *line) {
 	unsigned int star_count_type;
 	unsigned int star_count_name;
 	unsigned int type_sub_index;
@@ -255,7 +256,7 @@ function_t *get_function_from_declaration(char *line) {
 				free(tmp_name);
 
 				if(params != NULL) {
-					function = function_init(name, is_prototype, strduplicate(type), star_count_type + star_count_name, params);
+					function = function_init(name, is_prototype, strduplicate(type), star_count_type + star_count_name, params, line_index);
 				} else {
 					free(line);
 					return NULL;

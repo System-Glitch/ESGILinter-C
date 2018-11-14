@@ -3,6 +3,6 @@
 
 #include "scopetree.h"
 
-char check_no_prototype(scope_t *root_scope);
+unsigned int check_no_prototype(scope_t *root_scope, arraylist_t *file);
 
 #endif

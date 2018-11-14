@@ -72,7 +72,7 @@ static void print_functions(arraylist_t *functions, unsigned int tabs) {
 }
 
 static void test_function_declaration_parsing(char *line) {
-	function_t *function = get_function_from_declaration(line);
+	function_t *function = get_function_from_declaration(0, line);
 
 	printf("%sInput: %s\"%s\"%s\n", COLOR_BLUE, COLOR_YELLOW, line, FORMAT_RESET);
 	if(function != NULL) {
@@ -86,7 +86,7 @@ static void test_function_declaration_parsing(char *line) {
 static void test_variable_declaration_parsing(char *line) {
 	arraylist_t *list = NULL;
 	
-	list = get_variables_from_declaration(line);
+	list = get_variables_from_declaration(0, line);
 
 	printf("%sInput: %s\"%s\"%s\n", COLOR_BLUE, COLOR_YELLOW, line, FORMAT_RESET);
 	if(list != NULL) {
@@ -287,6 +287,7 @@ static void test_rule_no_prototype() {
 
 	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 	arraylist_add(file, strduplicate("static int glob = 89;"));
+	arraylist_add(file, strduplicate("void test(char test);"));
 
 	arraylist_add(file, strduplicate("void test(int param) {"));
 	arraylist_add(file, strduplicate("\tchar c = 'c';"));
@@ -297,10 +298,14 @@ static void test_rule_no_prototype() {
 	arraylist_add(file, strduplicate("\tint i = 42;"));
 	arraylist_add(file, strduplicate("}"));
 
+	arraylist_add(file, strduplicate("char* test2() {"));
+	arraylist_add(file, strduplicate("\tint i = 42;"));
+	arraylist_add(file, strduplicate("}"));
+
 
 	scope_t *scope = parse_root_scope(file);
 	if(scope != NULL) {
-		printf("Return: %d\n", check_no_prototype(scope));
+		printf("Return: %d\n", check_no_prototype(scope, file));
 		scope_free(scope);
 	} else {
 		printf("%sScope %sNULL\n%s", COLOR_YELLOW, COLOR_RED, FORMAT_RESET);

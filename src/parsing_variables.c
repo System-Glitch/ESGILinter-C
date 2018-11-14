@@ -133,7 +133,7 @@ match_t *parse_variable_name(char *names, unsigned int *start_index, unsigned in
 	return match;
 }
 
-static field_t *get_variable_from_declaration(char *type, int star_count_type, char *declaration, unsigned int *names_index) {
+static field_t *get_variable_from_declaration(int line_index, char *type, int star_count_type, char *declaration, unsigned int *names_index) {
 
 	field_t *variable = NULL;
 	match_t *match = NULL;
@@ -157,7 +157,7 @@ static field_t *get_variable_from_declaration(char *type, int star_count_type, c
 		free(tmp);
 
 		if(name != NULL)
-			variable = field_init(name, strduplicate(type), star_count + array_count + star_count_type);
+			variable = field_init(name, strduplicate(type), star_count + array_count + star_count_type, line_index);
 	}
 
 	return variable;
@@ -197,7 +197,7 @@ static match_t *match_for_loop(char *line) {
 	return match;
 }
 
-arraylist_t *get_variables_from_declaration(char *line) {
+arraylist_t *get_variables_from_declaration(int line_index, char *line) {
 	unsigned int star_count_type;
 	unsigned int type_sub_index;
 	unsigned int length;
@@ -256,7 +256,7 @@ arraylist_t *get_variables_from_declaration(char *line) {
 			}
 
 			do {
-				variable = get_variable_from_declaration(type, star_count_type, tmp_names, &names_index);
+				variable = get_variable_from_declaration(line_index, type, star_count_type, tmp_names, &names_index);
 				if(variable != NULL)
 					arraylist_add(list, variable);
 			} while(variable != NULL && names_index < length);

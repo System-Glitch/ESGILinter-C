@@ -5,13 +5,14 @@
 #include "parsing_functions.h"
 #include "parsing_defines.h"
 
-field_t *field_init(char *name, char *type, unsigned char type_is_pointer) {
+field_t *field_init(char *name, char *type, unsigned char type_is_pointer, int line_index) {
 	field_t *field = malloc(sizeof(field_t));
 
 	if(field != NULL) {
-		field->name                   = name;
+		field->name            = name;
 		field->type.name       = type;
-		field->type.is_pointer = type_is_pointer; 
+		field->type.is_pointer = type_is_pointer;
+		field->line            = line_index;
 	}
 
 	return field;
@@ -65,7 +66,7 @@ static void parse_scope_content(arraylist_t *file, scope_t *scope) {
 	for(int i = scope->from_line ; i < scope->to_line ; i++) {
 		if(is_in_child_scope(scope, i)) continue; //Ignore lines inside child scopes
 		line = (char*) arraylist_get(file, i);
-		variables = get_variables_from_declaration(line);
+		variables = get_variables_from_declaration(i,line);
 		if(variables != NULL) {
 			arraylist_add_all(scope->variables, variables);
 			arraylist_free(variables, 0);
@@ -80,7 +81,7 @@ static void parse_scope_functions(arraylist_t *file, scope_t *scope) {
 
 	for(int i = scope->from_line ; i < scope->to_line ; i++) {
 		line = (char*) arraylist_get(file, i);
-		function = get_function_from_declaration(line);
+		function = get_function_from_declaration(i, line);
 		if(function != NULL) {
 			arraylist_add(scope->functions, function);
 			function = NULL;

@@ -10,6 +10,7 @@
 typedef struct field {
 	char   *name;
 	type_t  type;
+	int     line;
 } field_t;
 
 typedef struct function {
@@ -17,6 +18,7 @@ typedef struct function {
 	type_t        return_type;
 	unsigned char is_prototype;
 	arraylist_t  *params;
+	int           line;
 } function_t;
 
 typedef struct scope {
@@ -31,7 +33,7 @@ typedef struct scope {
 	int to_char;
 } scope_t;
 
-field_t     *field_init(char *name, char *type, unsigned char type_is_pointer);
+field_t     *field_init(char *name, char *type, unsigned char type_is_pointer, int line_index);
 scope_t     *scope_init(scope_t *parent);
 
 field_t     *get_field_from_string(char *field);
