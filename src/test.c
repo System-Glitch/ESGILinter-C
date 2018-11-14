@@ -5,6 +5,7 @@
 #include "scopetree.h"
 #include "parsing_variables.h"
 #include "parsing_functions.h"
+#include "rules/no_prototype.h"
 
 static void print_variables(arraylist_t *variables, unsigned int tabs) {
 	field_t *variable = NULL;
@@ -278,11 +279,41 @@ static void test_function_parsing() {
 	test_function_declaration_parsing("void test2(int* array[15]) {");
 }
 
+static void test_rule_no_prototype() {
+
+	printf("------------------------------%s\n", FORMAT_RESET);
+
+	printf("%sTESTING RULE: no-prototype%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
+
+	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	arraylist_add(file, strduplicate("static int glob = 89;"));
+
+	arraylist_add(file, strduplicate("void test(int param) {"));
+	arraylist_add(file, strduplicate("\tchar c = 'c';"));
+	arraylist_add(file, strduplicate("\tprintf(\"%c %d\", c, i);"));
+	arraylist_add(file, strduplicate("}"));
+
+	arraylist_add(file, strduplicate("int main() {"));
+	arraylist_add(file, strduplicate("\tint i = 42;"));
+	arraylist_add(file, strduplicate("}"));
+
+
+	scope_t *scope = parse_root_scope(file);
+	if(scope != NULL) {
+		printf("Return: %d\n", check_no_prototype(scope));
+		scope_free(scope);
+	} else {
+		printf("%sScope %sNULL\n%s", COLOR_YELLOW, COLOR_RED, FORMAT_RESET);
+	}
+	arraylist_free(file, 1);
+}
+
 void test() {
 
-	test_variable_parsing();
-	test_function_parsing();	
-	test_scope_parsing();	
+	/*test_variable_parsing();
+	test_function_parsing();
+	test_scope_parsing();*/
+	test_rule_no_prototype();
 
 	printf("------------------------------%s\n", FORMAT_RESET);
 }
