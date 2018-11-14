@@ -15,6 +15,7 @@ void load_configuration(char *filename, arraylist_t *conf) {
     FILE *src;
     char *line;
     char *tmp;
+    char *get; //fgets return
 
     src = fopen(filename, "rb");
     if(src == NULL) return;
@@ -26,14 +27,26 @@ void load_configuration(char *filename, arraylist_t *conf) {
 
     while(fgets(line, 1048, src) != NULL){
         if(strstr(line, "=extends") ==  line){
-            fgets(line, 1048, src);
+            get = fgets(line, 1048, src);
+            if(get == NULL) { //Unexpected EOF reached
+                fclose(src);
+                free(tmp);
+                free(line);
+                return;
+            }
             if(!is_whitespace(line[0])){
                 strcpy(tmp, "conf_inc_");
                 strformat(line, 1048);
                 strcat(tmp, line);
                 while(!is_whitespace(line[0]) && line[0] != '#' && find_rule_index(conf, tmp) == -1 ){
                     load_configuration(line, conf);
-                    fgets(line, 1048, src);
+                    get = fgets(line, 1048, src);
+                    if(get == NULL) { //Unexpected EOF reached
+                        fclose(src);
+                        free(tmp);
+                        free(line);
+                        return;
+                    }
                 }
             }
         }else if(strstr(line, "=rules") == line){
@@ -61,6 +74,7 @@ void load_rules(FILE *src, arraylist_t *conf){
     char *line;
     char *name;
     char *tmp;
+    char *get; //fgets return
     int sum;
     int enable;
     int found;
@@ -71,7 +85,12 @@ void load_rules(FILE *src, arraylist_t *conf){
     line = malloc(sizeof(char) * 1048);
     name = malloc(sizeof(char) * 1048);
 
-    fgets(line, 1048, src);
+    get = fgets(line, 1048, src);
+    if(get == NULL) { //Unexpected EOF reached
+        free(line);
+        free(name);
+        return;
+    }
     while(!is_whitespace(line[0]) && line[0] != '#'){
 
         tmp = strtok(line, equal);
@@ -94,7 +113,7 @@ void load_rules(FILE *src, arraylist_t *conf){
         sum = 0;
         enable = 0;
         length = strlen(tmp);
-        for(int i = 0; i  < length ; i++){
+        for(size_t i = 0; i  < length ; i++){
             if(tmp[i] >= 48 && tmp[i] <= 57){
                 sum += (tmp[i]-48);
                 if(i != strlen(tmp) -2){
@@ -122,7 +141,8 @@ void load_rules(FILE *src, arraylist_t *conf){
             e->enable = enable;
             arraylist_add(conf, e);
         }
-        fgets(line, 1048, src);
+        get = fgets(line, 1048, src);
+        if(get == NULL) break;
     }
     free(line);
     free(name);
@@ -138,12 +158,18 @@ void exclude_file(FILE *src, arraylist_t *conf){
     char *line;
     int found;
     char *tmp;
+    char *get;
     rule_t *e;
 
     line = malloc(sizeof(char) * 1048);
     tmp = malloc(sizeof(char) * 1048);
 
-    fgets(line, 1048, src);
+    get = fgets(line, 1048, src);
+    if(get == NULL) { //Unexpected EOF reached
+        free(line);
+        free(tmp);
+        return;
+    }
 
     while(!is_whitespace(line[0]) && line[0] != '#'){
         strcpy(tmp, "exfile_");
@@ -163,7 +189,8 @@ void exclude_file(FILE *src, arraylist_t *conf){
             e->enable = 0;
             arraylist_add(conf, e);
         }
-        fgets(line, 1048, src);
+        get = fgets(line, 1048, src);
+        if(get == NULL) break;
     }
     free(line);
     free(tmp);
@@ -200,6 +227,7 @@ void recursive_activation(FILE *src, arraylist_t *conf){
     if(src == NULL) return;
 
     char *line;
+    char *get; //fgets return
     int found;
     int enable;
     enable = 0;
@@ -207,7 +235,11 @@ void recursive_activation(FILE *src, arraylist_t *conf){
 
     line = malloc(sizeof(char) * 1048);
 
-    fgets(line, 1048, src);
+    get = fgets(line, 1048, src);
+    if(get == NULL) { //Unexpected EOF reached
+        free(line);
+        return;
+    }
     if(!is_whitespace(line[0]) && line[0] != '#'){
 
         found = find_rule_index(conf, "recursive");
@@ -245,7 +277,7 @@ void recursive_activation(FILE *src, arraylist_t *conf){
 int find_rule_index(arraylist_t *conf, char *name){
     if(strlen(name) <= 0) return -2;
 
-    for(int i = 0; i < conf->size; i++){
+    for(size_t i = 0; i < conf->size; i++){
         if(strcmp(name, ((rule_t*)(conf->array[i]))->name) == 0){
             return i;
         }

@@ -69,6 +69,7 @@ arraylist_t* file_loader(char *filename){
     char *line;
     char *tmp;
     char *res;
+    char *get; //fgets return
     int initialized;
     int past_length;
     int counter;
@@ -98,7 +99,15 @@ arraylist_t* file_loader(char *filename){
 
         tempo = 0;
         counter = 0;
-        fgets(line, 1048, src);
+        get = fgets(line, 1048, src);
+
+        if(get == NULL) { //Unexpected EOF reached
+            fclose(src);
+            if(tmp != NULL) free(tmp);
+            free(line);
+            free(res);
+            return NULL;
+        }
 
         if(!initialized && i != 0){
             past_length = (int)strlen(tmp);

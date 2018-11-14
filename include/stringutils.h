@@ -24,7 +24,7 @@ char *strconcat(char *str1, char *str2);
 char *strjoin(char **strings, unsigned int count, char *join);
 
 
-void strformat(char *str, int length);
+void strformat(char *str, size_t length);
 
 
 char *substr_match(char *source, match_t match);

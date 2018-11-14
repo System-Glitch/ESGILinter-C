@@ -32,9 +32,9 @@ $(EXECUTABLE): $(OBJECTS) $(MAIN)
 	sed -i '1d;$$d' $@.log; \
 	sed -i '/^[[:space:]]*$$/d' $@.log; \
 	if [ $$RESULT -ne 0 ]; then \
-		printf "%-60b%b" "$(COM_COLOR)Building$(OBJ_COLOR) $@" "$(ERROR_COLOR)$(ERROR_STRING)$(NO_COLOR)\n"; \
+		printf "%-60b%b" "$(COM_COLOR)Building$(OBJ_COLOR) $(@F)" "$(ERROR_COLOR)$(ERROR_STRING)$(NO_COLOR)\n"; \
 	elif [ -s $@.log ]; then \
-		printf "%-60b%b" "$(COM_COLOR)Building$(OBJ_COLOR) $@" "$(WARN_COLOR)$(WARN_STRING)$(NO_COLOR)\n"; \
+		printf "%-60b%b" "$(COM_COLOR)Building$(OBJ_COLOR) $(@F)" "$(WARN_COLOR)$(WARN_STRING)$(NO_COLOR)\n"; \
 	else  \
 		printf "%-60b%b" "$(COM_COLOR)Building$(OBJ_COLOR) $(@F)" "$(OK_COLOR)$(OK_STRING)$(NO_COLOR)\n"; \
 		printf "%b" "$(OK_COLOR)Build success$(NO_COLOR)\n"; \
@@ -48,9 +48,9 @@ $(OBJECTS): $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c
 	sed -i '1d;$$d' $@.log; \
 	sed -i '/^[[:space:]]*$$/d' $@.log; \
 	if [ $$RESULT -ne 0 ]; then \
-		printf "%-60b%b" "$(COM_COLOR)$(COM_STRING)$(OBJ_COLOR) $@" "$(ERROR_COLOR)$(ERROR_STRING)$(NO_COLOR)\n"; \
+		printf "%-60b%b" "$(COM_COLOR)$(COM_STRING)$(OBJ_COLOR) $(@F)" "$(ERROR_COLOR)$(ERROR_STRING)$(NO_COLOR)\n"; \
 	elif [ -s $@.log ]; then \
-		printf "%-60b%b" "$(COM_COLOR)$(COM_STRING)$(OBJ_COLOR) $@" "$(WARN_COLOR)$(WARN_STRING)$(NO_COLOR)\n"; \
+		printf "%-60b%b" "$(COM_COLOR)$(COM_STRING)$(OBJ_COLOR) $(@F)" "$(WARN_COLOR)$(WARN_STRING)$(NO_COLOR)\n"; \
 	else  \
 		printf "%-60b%b" "$(COM_COLOR)$(COM_STRING)$(OBJ_COLOR) $(@F)" "$(OK_COLOR)$(OK_STRING)$(NO_COLOR)\n"; \
 	fi; \
