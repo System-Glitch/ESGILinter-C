@@ -23,12 +23,16 @@ int strlastindexof(char *str, char chr);
 char *strconcat(char *str1, char *str2);
 char *strjoin(char **strings, unsigned int count, char *join);
 
+
 void strformat(char *str, int length);
+
 
 char *substr_match(char *source, match_t match);
 
+
 char is_whitespace(char c);
 char is_alphanumeric(char c);
+
 
 match_t *match_init();
 
