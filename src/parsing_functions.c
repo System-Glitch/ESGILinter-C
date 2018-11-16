@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <errno.h>
 #include "arraylist.h"
 #include "parsing_functions.h"
 #include "parsing_variables.h"
@@ -280,8 +279,55 @@ function_t *get_function_from_declaration(int line_index, char *line) {
 	return function;
 }
 
+static arraylist_t *parse_function_call_params(char *line) {
+	arraylist_t *list        = arraylist_init(5);
+	unsigned int start_index = 0;
+	unsigned int end_index   = 0;
+	unsigned int index       = 0;
+	size_t length            = strlen(line);
+	char c;
+
+	if(list == NULL || length == 0) return list;
+
+	do {
+		SKIP_WHITESPACES
+
+		start_index = index;
+
+		//Until not alphanumeric
+		while((is_alphanumeric(c = line[index]) || c == '*') && index < length) {
+			index++;
+		}
+
+		end_index = index;
+
+		arraylist_add(list, strsubstr(line, start_index, end_index - start_index));
+
+		SKIP_WHITESPACES
+
+		if(index < length && c != ',') {
+			//Expected comma but get something else
+			//Syntax error
+			arraylist_free(list, 1);
+			list = NULL;
+			return list;
+		} else if(c == ',') {
+			//Expect next param
+			index++;
+		}
+	} while(index < length);
+
+	if(is_whitespace(c) || c == ',') {
+		//Expected next param but reached end
+		//Syntax error
+		arraylist_free(list, 1);
+		list = NULL;
+	}
+
+	return list;
+}
+
 function_t *parse_function_call(int line_index, char *line) {
-	errno = ENOSYS;
 	return NULL;
 }
 
