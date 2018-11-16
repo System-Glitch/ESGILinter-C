@@ -312,12 +312,79 @@ static void test_rule_no_prototype() {
 	arraylist_free(file, 1);
 }
 
+static void test_function_call_parsing() {
+	function_t *function = parse_function_call(0 , "printf(\"%d\", variable);");
+	if(function == NULL) {
+		printf("%sSyntax error%s\n", COLOR_RED, FORMAT_RESET);
+	} else {
+		print_function(function, 0);
+		function_free(function);
+	}
+
+	function = parse_function_call(0 , "test  (int);");
+	if(function == NULL) {
+		printf("%sSyntax error%s\n", COLOR_RED, FORMAT_RESET);
+	} else {
+		print_function(function, 0);
+		function_free(function);
+	}
+
+	function = parse_function_call(0 , "test(a, b)");
+	if(function == NULL) {
+		printf("%sSyntax error%s\n", COLOR_RED, FORMAT_RESET);
+	} else {
+		print_function(function, 0);
+		function_free(function);
+	}
+
+	function = parse_function_call(0 , "test()");
+	if(function == NULL) {
+		printf("%sSyntax error%s\n", COLOR_RED, FORMAT_RESET);
+	} else {
+		print_function(function, 0);
+		function_free(function);
+	}
+
+	function = parse_function_call(0 , "test(')')");
+	if(function == NULL) {
+		printf("%sSyntax error%s\n", COLOR_RED, FORMAT_RESET);
+	} else {
+		print_function(function, 0);
+		function_free(function);
+	}
+
+	function = parse_function_call(0 , "test(\"bla()\")");
+	if(function == NULL) {
+		printf("%sSyntax error%s\n", COLOR_RED, FORMAT_RESET);
+	} else {
+		print_function(function, 0);
+		function_free(function);
+	}
+
+	function = parse_function_call(0 , "test(bla())");
+	if(function == NULL) {
+		printf("%sSyntax error%s\n", COLOR_RED, FORMAT_RESET);
+	} else {
+		print_function(function, 0);
+		function_free(function);
+	}
+
+	function = parse_function_call(0 , "test(bla))");
+	if(function == NULL) {
+		printf("%sSyntax error%s\n", COLOR_RED, FORMAT_RESET);
+	} else {
+		print_function(function, 0);
+		function_free(function);
+	}
+}
+
 void test() {
 
 	test_variable_parsing();
 	test_function_parsing();
 	test_scope_parsing();
 	test_rule_no_prototype();
+	test_function_call_parsing();
 
 	printf("------------------------------%s\n", FORMAT_RESET);
 }

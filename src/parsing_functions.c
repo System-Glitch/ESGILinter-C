@@ -285,6 +285,7 @@ static arraylist_t *parse_function_call_params(char *line) {
 	unsigned int end_index   = 0;
 	unsigned int index       = 0;
 	size_t length            = strlen(line);
+	char *name               = NULL;
 	char c;
 
 	if(list == NULL || length == 0) return list;
@@ -294,14 +295,20 @@ static arraylist_t *parse_function_call_params(char *line) {
 
 		start_index = index;
 
-		//Until not alphanumeric
-		while((is_alphanumeric(c = line[index]) || c == '*') && index < length) {
+		//Until comma or end
+		while((c = line[index]) != ',' && index < length) {
 			index++;
 		}
 
 		end_index = index;
 
-		arraylist_add(list, strsubstr(line, start_index, end_index - start_index));
+		name = strsubstr(line, start_index, end_index - start_index);
+		if(type_exists(name)) {
+			//Syntax error
+			arraylist_free(list, 1);
+			return NULL;
+		}
+		arraylist_add(list, name);
 
 		SKIP_WHITESPACES
 
@@ -309,8 +316,7 @@ static arraylist_t *parse_function_call_params(char *line) {
 			//Expected comma but get something else
 			//Syntax error
 			arraylist_free(list, 1);
-			list = NULL;
-			return list;
+			return NULL;
 		} else if(c == ',') {
 			//Expect next param
 			index++;
@@ -328,6 +334,53 @@ static arraylist_t *parse_function_call_params(char *line) {
 }
 
 function_t *parse_function_call(int line_index, char *line) {
+	//Line should be already subbed if call is assignation
+	function_t  *function     = NULL;
+	arraylist_t *param_list   = NULL;
+	int start_index           = 0;
+	int end_index             = 0;
+	unsigned int index        = 0;
+	size_t length             = strlen(line);
+	char *name                = NULL;
+	char *params              = NULL;
+	char c;
+
+	SKIP_WHITESPACES
+
+	start_index = index;
+
+	//Until not alphanumeric
+	while(is_alphanumeric(c = line[index]) && index < length) {
+		index++;
+	}
+
+	end_index = index;
+
+	name = strsubstr(line, start_index, end_index - start_index);
+
+	SKIP_WHITESPACES
+
+	//Expect parenthesis
+	if(c == '(') {
+		//Find closing parenthesis
+		start_index = index + 1;
+		end_index = strlastindexof(line, ')');
+		if(end_index != -1 && end_index >= start_index) {
+			params = strsubstr(line, start_index, end_index - start_index);
+			param_list = parse_function_call_params(params);
+			free(params);
+			if(param_list != NULL) {
+				function = function_init(name, 0, strduplicate("void"), 0,  arraylist_init(param_list->size), line_index);
+				function->params->size = param_list->size;
+				for(size_t i = 0 ; i < param_list->size ; i++)
+					function->params->array[i] = field_init(arraylist_get(param_list, i), strduplicate("void"), 0, -1);
+				return function;
+			}
+		}
+	}
+
+	free(name);
+
 	return NULL;
 }
 
