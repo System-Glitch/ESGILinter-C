@@ -1,6 +1,8 @@
 #include <stdlib.h>
+#include <errno.h>
 #include "arraylist.h"
 #include "parsing_functions.h"
+#include "parsing_variables.h"
 #include "scopetree.h"
 
 function_t *function_init(char *name, unsigned char is_prototype, char *type, unsigned char type_is_pointer, arraylist_t *params, int line_index) {
@@ -276,6 +278,11 @@ function_t *get_function_from_declaration(int line_index, char *line) {
 	free(line);
 
 	return function;
+}
+
+function_t *parse_function_call(int line_index, char *line) {
+	errno = ENOSYS;
+	return NULL;
 }
 
 void function_free(function_t *function) {
