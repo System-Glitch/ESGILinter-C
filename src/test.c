@@ -7,6 +7,7 @@
 #include "parsing_variables.h"
 #include "parsing_functions.h"
 #include "rules/no_prototype.h"
+#include "rules/max_line_numbers.h"
 
 static void print_variables(arraylist_t *variables, unsigned int tabs) {
 	field_t *variable = NULL;
@@ -86,7 +87,7 @@ static void test_function_declaration_parsing(char *line) {
 
 static void test_variable_declaration_parsing(char *line) {
 	arraylist_t *list = NULL;
-	
+
 	list = get_variables_from_declaration(0, line);
 
 	printf("%sInput: %s\"%s\"%s\n", COLOR_BLUE, COLOR_YELLOW, line, FORMAT_RESET);
@@ -99,7 +100,7 @@ static void test_variable_declaration_parsing(char *line) {
 }
 
 static void print_scope(scope_t *scope, unsigned int level) {
-	
+
 	node_t *current;
 
 	if(scope == NULL) return;
@@ -145,7 +146,7 @@ static void print_scope(scope_t *scope, unsigned int level) {
 static void test_variable_parsing() {
 	printf("------------------------------%s\n", FORMAT_RESET);
 	printf("%sTESTING PARSE VARIABLE DECLARATION%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
-	
+
 	test_variable_declaration_parsing("int i;");
 	test_variable_declaration_parsing("\tint i = 5;");
 	test_variable_declaration_parsing("int t i = 5;");
@@ -280,6 +281,24 @@ static void test_function_parsing() {
 	test_function_declaration_parsing("void test2(int* array[15]) {");
 }
 
+static void test_rule_max_line_numbers(){
+	printf("------------------------------%s\n", FORMAT_RESET);
+
+	printf("%sTESTING RULE: max-line-numbers%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
+
+	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	arraylist_add(file, strduplicate("static int glob = 89;"));
+	arraylist_add(file, strduplicate("void test(int param);"));
+
+	arraylist_add(file, strduplicate("char test(int param) {"));
+	arraylist_add(file, strduplicate("\tchar c = 'c';"));
+	arraylist_add(file, strduplicate("\tprintf(\"%c %d\", c, i);"));
+
+	max_line_numbers(file, 5);
+	max_line_numbers(file, 50);
+
+}
+
 static void test_rule_no_prototype() {
 
 	printf("------------------------------%s\n", FORMAT_RESET);
@@ -388,7 +407,7 @@ static void test_expression_type(char *line, scope_t *scope) {
 	printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
 	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);
 	printf("\t%sIs pointer: %s%d\n", COLOR_CYAN, FORMAT_RESET, type.is_pointer);
-	
+
 	if(strcmp(type.name, "NULL"))
 		free(type.name);
 	if(undefined_variable != NULL) {
@@ -443,6 +462,7 @@ void test() {
 	test_variable_parsing();
 	test_function_parsing();
 	test_scope_parsing();
+	test_rule_max_line_numbers();
 	test_rule_no_prototype();
 	test_function_call_parsing();
 	test_parse_expression_type();
