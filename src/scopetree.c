@@ -36,18 +36,18 @@ scope_t *scope_init(scope_t *parent) {
 	return scope;
 }
 
-static char is_in_child_scope(scope_t *scope, int line) {
+scope_t *is_in_child_scope(scope_t *scope, int line) {
 	scope_t *child;
 	node_t * current = scope->children->head;
 	if(current != NULL) {
 		do {
 			child = (scope_t*) current->val;
 			if(line >= child->from_line && line <= child->to_line)
-				return 1;
+				return child;
 		} while ((current = current->next) != NULL);
 	}
 
-	return 0;
+	return NULL;
 }
 
 static char previous_char_is_equal(char *line, int index) {
@@ -245,6 +245,15 @@ void field_list_free(arraylist_t *list) {
 	arraylist_free(list, 0);
 }
 
+void function_list_free(arraylist_t *list) {
+	function_t *function = NULL;
+	for(unsigned int i = 0 ; i < list->size ; i++) {
+		function = arraylist_get(list, i);
+		function_free(function);
+	}
+	arraylist_free(list, 0);
+}
+
 void scope_free(scope_t *scope) {
 	node_t * current;
 
@@ -287,12 +296,12 @@ static scope_t *get_root_scope(scope_t *scope) {
 	return scope;
 }
 
-function_t *find_function(scope_t *scope, char *name) {
+function_t *find_function(scope_t *scope, char *name, unsigned char allow_prototypes) {
 	scope_t *root = get_root_scope(scope);
 	function_t *function = NULL;
 	for(size_t i = 0 ; i < root->functions->size ; i++) {
 		function = arraylist_get(root->functions, i);
-		if(!strcmp(name, function->name))
+		if(!strcmp(name, function->name) && (allow_prototypes || !function->is_prototype))
 			return function;
 	}
 	return NULL;
@@ -309,5 +318,20 @@ field_t *find_variable(scope_t *scope, char *name) {
 		}
 		scope = scope->parent;
 	}
+	return NULL;
+}
+
+function_t *find_function_prototype(scope_t *root_scope, char *name) {
+
+	arraylist_t *functions = root_scope->functions;
+	function_t *prototype  = NULL;
+
+	for(size_t j = 0 ; j < functions->size ; j++) {
+		prototype = arraylist_get(functions, j);
+		if(prototype->is_prototype && !strcmp(prototype->name, name)) {
+			return prototype;
+		}
+	}
+
 	return NULL;
 }

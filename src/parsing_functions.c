@@ -385,6 +385,34 @@ function_t *parse_function_call(int line_index, char *line) {
 	return NULL;
 }
 
+void check_function_call_parameters(scope_t *scope, function_t *call, function_t *function, arraylist_t *undeclared, arraylist_t *invalid) {
+	field_t *field   = NULL;
+	field_t *param   = NULL;
+	field_t *var_dec = NULL;
+
+	if(function != NULL && call->params->size != function->params->size) {
+		//TODO show error
+	}
+
+	for(size_t i = 0 ; i < call->params->size ; i++) {
+		if(function != NULL && i >= function->params->size) break;
+
+		field   = arraylist_get(call->params, i);			
+		var_dec = find_variable(scope, field->name);
+
+		if(var_dec == NULL) {
+			arraylist_add(undeclared, strduplicate(field->name));
+		} else {
+			if(function != NULL) {
+				param = arraylist_get(function->params, i);
+				if(!type_equals(&(field->type), &(param->type))) {
+					arraylist_add(invalid, field);
+				}
+			}
+		}
+	}
+}
+
 void function_free(function_t *function) {
 	free(function->name);
 	field_list_free(function->params);

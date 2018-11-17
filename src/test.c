@@ -7,6 +7,8 @@
 #include "parsing_variables.h"
 #include "parsing_functions.h"
 #include "rules/no_prototype.h"
+#include "rules/undeclared_variable.h"
+#include "rules/undeclared_function.h"
 
 static void print_variables(arraylist_t *variables, unsigned int tabs) {
 	field_t *variable = NULL;
@@ -314,6 +316,10 @@ static void test_rule_no_prototype() {
 }
 
 static void test_function_call_parsing() {
+
+	printf("------------------------------%s\n", FORMAT_RESET);
+	printf("%sTESTING FUNCTION CALL PARSING%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
+
 	function_t *function = parse_function_call(0 , "printf(\"%d\", variable);");
 	if(function == NULL) {
 		printf("%sSyntax error%s\n", COLOR_RED, FORMAT_RESET);
@@ -379,26 +385,35 @@ static void test_function_call_parsing() {
 	}
 }
 
-static void test_expression_type(char *line, scope_t *scope) {
+static void test_expression_type(char *line, unsigned int line_index, scope_t *scope) {
 	printf("%sInput: %s\"%s\"%s\n", COLOR_BLUE, COLOR_YELLOW, line, FORMAT_RESET);
 
-	char *undefined_variable = NULL;
-	char *undefined_function = NULL;
-	type_t type = get_expression_type(line, scope, &undefined_variable, &undefined_function);
+	arraylist_t *undeclared_functions = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	arraylist_t *undeclared_variables = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	arraylist_t *invalid_params       = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	type_t type = get_expression_type(line, line_index, scope, undeclared_variables, undeclared_functions, invalid_params);
 	printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
 	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);
 	printf("\t%sIs pointer: %s%d\n", COLOR_CYAN, FORMAT_RESET, type.is_pointer);
 	
 	if(strcmp(type.name, "NULL"))
 		free(type.name);
-	if(undefined_variable != NULL) {
-		printf("\t%sUndefined variable: %s%s\n", COLOR_RED, FORMAT_RESET, undefined_variable);
-		free(undefined_variable);
+
+	for(size_t i = 0 ; i < undeclared_functions->size ; i++) {
+		printf("\t%sUndefined function: %s%s\n", COLOR_RED, FORMAT_RESET, ((function_t*)arraylist_get(undeclared_functions, i))->name);
 	}
-	if(undefined_function != NULL) {
-		printf("\t%sUndefined function: %s%s\n", COLOR_RED, FORMAT_RESET, undefined_function);
-		free(undefined_function);
+
+	for(size_t i = 0 ; i < undeclared_variables->size ; i++) {
+		printf("\t%sUndefined variable: %s%s\n", COLOR_RED, FORMAT_RESET, (char*)arraylist_get(undeclared_variables, i));
 	}
+
+	for(size_t i = 0 ; i < invalid_params->size ; i++) {
+		printf("\t%sInvalid param: %s%s\n", COLOR_RED, FORMAT_RESET, ((field_t*)arraylist_get(invalid_params, i))->name);
+	}
+
+	function_list_free(undeclared_functions);
+	field_list_free(invalid_params);
+	arraylist_free(undeclared_variables, 1);
 }
 
 static void test_parse_expression_type() {
@@ -426,16 +441,93 @@ static void test_parse_expression_type() {
 
 	scope_t *scope = parse_root_scope(file);
 
-	test_expression_type("(char)c", scope);
-	test_expression_type("(  unsigned char   ) c", scope);
-	test_expression_type("'d'", scope);
-	test_expression_type("\"d\"", scope);
-	test_expression_type("function()", scope);
-	test_expression_type("test()", scope);
-	test_expression_type("variable", scope);
-	test_expression_type("*& &  variable", scope);
+	test_expression_type("(char)c", 0, scope);
+	test_expression_type("(  unsigned char   ) c", 0, scope);
+	test_expression_type("'d'", 0, scope);
+	test_expression_type("\"d\"", 0, scope);
+	test_expression_type("function()", 0, scope);
+	test_expression_type("test()", 0, scope);
+	test_expression_type("variable", 0, scope);
+	test_expression_type("*& &  variable", 0, scope);
 
 	scope_free(scope);
+}
+
+static void test_rule_undeclared_variable() {
+
+	printf("------------------------------%s\n", FORMAT_RESET);
+	printf("%sTESTING RULE: undeclared-variable%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
+
+	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	arraylist_add(file, strduplicate("static int glob = 89;"));
+
+	arraylist_add(file, strduplicate("void function(int param);"));
+
+	arraylist_add(file, strduplicate("char function(int param) {"));
+	arraylist_add(file, strduplicate("\tchar c = 'c';"));
+	arraylist_add(file, strduplicate("\tprintf(\"%c %d\", c, i);"));
+	arraylist_add(file, strduplicate("}"));
+
+	arraylist_add(file, strduplicate("int main() {"));
+	arraylist_add(file, strduplicate("\tint i = 42;"));
+	arraylist_add(file, strduplicate("}"));
+
+	arraylist_add(file, strduplicate("char* test2(char v) {"));
+	arraylist_add(file, strduplicate("\tv = glob;"));
+	arraylist_add(file, strduplicate("}"));
+
+	scope_t *scope = parse_root_scope(file);
+	if(scope != NULL) {
+		printf("Return: %d\n", check_undeclared_variables(scope, file));
+		scope_free(scope);
+	} else {
+		printf("%sScope %sNULL\n%s", COLOR_YELLOW, COLOR_RED, FORMAT_RESET);
+	}	
+
+	arraylist_free(file, 1);
+
+}
+
+static void test_rule_undeclared_function() {
+
+	printf("------------------------------%s\n", FORMAT_RESET);
+	printf("%sTESTING RULE: undeclared-function%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
+
+	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	arraylist_add(file, strduplicate("static int glob = 89;"));
+
+	arraylist_add(file, strduplicate("void function(int param);"));
+
+	arraylist_add(file, strduplicate("void declared() {"));
+	arraylist_add(file, strduplicate("}"));
+
+	arraylist_add(file, strduplicate("char function(int param) {"));
+	arraylist_add(file, strduplicate("\tchar c = 'c';"));
+	arraylist_add(file, strduplicate("\tprintf(\"%c %d\", c, i);"));
+	arraylist_add(file, strduplicate("\ttest2(param);"));
+	arraylist_add(file, strduplicate("\tfunction(c);"));
+	arraylist_add(file, strduplicate("\tchar *ret = test2(param);")); //TODO not detected
+	arraylist_add(file, strduplicate("\tdeclared();"));
+	arraylist_add(file, strduplicate("}"));
+
+	arraylist_add(file, strduplicate("int main() {"));
+	arraylist_add(file, strduplicate("\tint i = 42;"));
+	arraylist_add(file, strduplicate("}"));
+
+	arraylist_add(file, strduplicate("char* test2(char v) {"));
+	arraylist_add(file, strduplicate("\tv = glob;"));
+	arraylist_add(file, strduplicate("}"));
+
+	scope_t *scope = parse_root_scope(file);
+	if(scope != NULL) {
+		printf("Return: %d\n", check_undeclared_functions(scope, file));
+		scope_free(scope);
+	} else {
+		printf("%sScope %sNULL\n%s", COLOR_YELLOW, COLOR_RED, FORMAT_RESET);
+	}
+
+	arraylist_free(file, 1);
+
 }
 
 void test() {
@@ -446,6 +538,8 @@ void test() {
 	test_rule_no_prototype();
 	test_function_call_parsing();
 	test_parse_expression_type();
+	test_rule_undeclared_variable();
+	test_rule_undeclared_function();
 
 	printf("------------------------------%s\n", FORMAT_RESET);
 }

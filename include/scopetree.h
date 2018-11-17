@@ -15,6 +15,7 @@ typedef struct field {
 	char   *name;
 	type_t  type;
 	int     line;
+	//TODO is_litteral
 } field_t;
 
 typedef struct function {
@@ -51,9 +52,12 @@ unsigned char type_exists(char *type);
 
 void field_free(field_t *field);
 void field_list_free(arraylist_t *list);
+void function_list_free(arraylist_t *list);
 void scope_free(scope_t *scope);
 
-function_t *find_function(scope_t *scope, char *name);
+function_t *find_function(scope_t *scope, char *name, unsigned char allow_prototypes);
+function_t *find_function_prototype(scope_t *root_scope, char *name);
 field_t    *find_variable(scope_t *scope, char *name);
+scope_t    *is_in_child_scope(scope_t *scope, int line);
 
 #endif

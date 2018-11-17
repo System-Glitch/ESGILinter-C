@@ -131,7 +131,7 @@ static void parse_variable_expression(char *line, char **name, char *is_pointer)
 
 }
 
-type_t get_expression_type(char *line, scope_t *scope, char **undefined_variable, char **undefined_function) {
+type_t get_expression_type(char *line, int line_index, scope_t *scope, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params) { //TODO rename to parse_expression
 	type_t type;
 	function_t *function     = NULL;
 	function_t *function_dec = NULL;
@@ -191,22 +191,28 @@ type_t get_expression_type(char *line, scope_t *scope, char **undefined_variable
 
 			function = parse_function_call(-1, line + index);
 			if(function != NULL) {
-
-				//TODO check prototype and declaration line
-				if(scope == NULL || (function_dec = find_function(scope, function->name)) == NULL)
-					*undefined_function = strduplicate(function->name);
+				if(scope == NULL)
+					arraylist_add(undeclared_functions, function);
 				else {
-					type.name = strduplicate(function_dec->return_type.name);
-					type.is_pointer = function_dec->return_type.is_pointer;
+
+					function_dec = find_function(scope, function->name, 0);
+					if(function_dec != NULL && (function_dec->line < line_index || find_function_prototype(scope, function->name) != NULL)) {
+						type.name = strduplicate(function_dec->return_type.name);
+						type.is_pointer = function_dec->return_type.is_pointer;
+						check_function_call_parameters(scope, function, function_dec, undeclared_variables, invalid_params); //TODO don't use root scope
+						function_free(function);
+					} else {
+						arraylist_add(undeclared_functions, function);
+						check_function_call_parameters(scope, function, function_dec, undeclared_variables, invalid_params); //TODO don't use root scope
+					}
 				}
 
-				function_free(function);
 			} else {
 				parse_variable_expression(line + index, &variable_name, &is_pointer);
 				if(variable_name != NULL) {
 
 					if(scope == NULL || (variable_dec = find_variable(scope, variable_name)) == NULL)
-						*undefined_variable = variable_name;
+						arraylist_add(undeclared_variables, variable_name);
 					else {
 						type.is_pointer = variable_dec->type.is_pointer + is_pointer;
 						if(type.is_pointer < 0) { //More dereferencing than allowed
