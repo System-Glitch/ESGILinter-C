@@ -288,11 +288,6 @@ static void test_rule_max_line_numbers(){
 
 	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 	arraylist_add(file, strduplicate("static int glob = 89;"));
-	arraylist_add(file, strduplicate("void test(int param);"));
-
-	arraylist_add(file, strduplicate("char test(int param) {"));
-	arraylist_add(file, strduplicate("\tchar c = 'c';"));
-	arraylist_add(file, strduplicate("\tprintf(\"%c %d\", c, i);"));
 
 	max_line_numbers(file, 5);
 	max_line_numbers(file, 50);
