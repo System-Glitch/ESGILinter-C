@@ -1,3 +1,4 @@
+#include <string.h>
 #include "rules/no_prototype.h"
 #include "arraylist.h"
 #include "display.h"

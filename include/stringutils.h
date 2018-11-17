@@ -32,6 +32,7 @@ char *substr_match(char *source, match_t match);
 
 char is_whitespace(char c);
 char is_alphanumeric(char c);
+char is_digit(char c);
 
 
 match_t *match_init();

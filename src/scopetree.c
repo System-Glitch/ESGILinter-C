@@ -5,7 +5,7 @@
 #include "parsing_functions.h"
 #include "parsing_defines.h"
 
-field_t *field_init(char *name, char *type, unsigned char type_is_pointer, int line_index) {
+field_t *field_init(char *name, char *type, char type_is_pointer, int line_index) {
 	field_t *field = malloc(sizeof(field_t));
 
 	if(field != NULL) {
@@ -277,4 +277,37 @@ void scope_free(scope_t *scope) {
 	arraylist_free(scope->defines, 1);
 
 	free(scope);
+}
+
+static scope_t *get_root_scope(scope_t *scope) {
+	scope_t *parent = NULL;
+	while((parent = scope->parent) != NULL) {
+		scope = parent;
+	}
+	return scope;
+}
+
+function_t *find_function(scope_t *scope, char *name) {
+	scope_t *root = get_root_scope(scope);
+	function_t *function = NULL;
+	for(size_t i = 0 ; i < root->functions->size ; i++) {
+		function = arraylist_get(root->functions, i);
+		if(!strcmp(name, function->name))
+			return function;
+	}
+	return NULL;
+}
+
+field_t *find_variable(scope_t *scope, char *name) {
+	field_t *variable = NULL;
+
+	while(scope != NULL) {
+		for(size_t i = 0 ; i < scope->variables->size ; i++) {
+			variable = arraylist_get(scope->variables, i);
+			if(!strcmp(name, variable->name))
+				return variable;
+		}
+		scope = scope->parent;
+	}
+	return NULL;
 }

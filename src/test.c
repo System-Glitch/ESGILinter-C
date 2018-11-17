@@ -3,6 +3,7 @@
 #include "arraylist.h"
 #include "linkedlist.h"
 #include "scopetree.h"
+#include "parsing_type.h"
 #include "parsing_variables.h"
 #include "parsing_functions.h"
 #include "rules/no_prototype.h"
@@ -378,6 +379,65 @@ static void test_function_call_parsing() {
 	}
 }
 
+static void test_expression_type(char *line, scope_t *scope) {
+	printf("%sInput: %s\"%s\"%s\n", COLOR_BLUE, COLOR_YELLOW, line, FORMAT_RESET);
+
+	char *undefined_variable = NULL;
+	char *undefined_function = NULL;
+	type_t type = get_expression_type(line, scope, &undefined_variable, &undefined_function);
+	printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
+	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);
+	printf("\t%sIs pointer: %s%d\n", COLOR_CYAN, FORMAT_RESET, type.is_pointer);
+	
+	if(strcmp(type.name, "NULL"))
+		free(type.name);
+	if(undefined_variable != NULL) {
+		printf("\t%sUndefined variable: %s%s\n", COLOR_RED, FORMAT_RESET, undefined_variable);
+		free(undefined_variable);
+	}
+	if(undefined_function != NULL) {
+		printf("\t%sUndefined function: %s%s\n", COLOR_RED, FORMAT_RESET, undefined_function);
+		free(undefined_function);
+	}
+}
+
+static void test_parse_expression_type() {
+
+	printf("------------------------------%s\n", FORMAT_RESET);
+	printf("%sTESTING PARSE EXPRESSION TYPE%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
+
+	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	arraylist_add(file, strduplicate("static int glob = 89;"));
+	arraylist_add(file, strduplicate("unsigned int variable = 89;"));
+	arraylist_add(file, strduplicate("void function(int param);"));
+
+	arraylist_add(file, strduplicate("char function(int param) {"));
+	arraylist_add(file, strduplicate("\tchar c = 'c';"));
+	arraylist_add(file, strduplicate("\tprintf(\"%c %d\", c, i);"));
+	arraylist_add(file, strduplicate("}"));
+
+	arraylist_add(file, strduplicate("int main() {"));
+	arraylist_add(file, strduplicate("\tint i = 42;"));
+	arraylist_add(file, strduplicate("}"));
+
+	arraylist_add(file, strduplicate("char* test2(char v) {"));
+	arraylist_add(file, strduplicate("\tint i = 42;"));
+	arraylist_add(file, strduplicate("}"));
+
+	scope_t *scope = parse_root_scope(file);
+
+	test_expression_type("(char)c", scope);
+	test_expression_type("(  unsigned char   ) c", scope);
+	test_expression_type("'d'", scope);
+	test_expression_type("\"d\"", scope);
+	test_expression_type("function()", scope);
+	test_expression_type("test()", scope);
+	test_expression_type("variable", scope);
+	test_expression_type("*& &  variable", scope);
+
+	scope_free(scope);
+}
+
 void test() {
 
 	test_variable_parsing();
@@ -385,6 +445,7 @@ void test() {
 	test_scope_parsing();
 	test_rule_no_prototype();
 	test_function_call_parsing();
+	test_parse_expression_type();
 
 	printf("------------------------------%s\n", FORMAT_RESET);
 }

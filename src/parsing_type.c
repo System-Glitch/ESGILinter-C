@@ -1,6 +1,7 @@
 #include <stdlib.h>
+#include <string.h>
 #include "parsing_type.h"
-#include "scopetree.h"
+#include "parsing_functions.h"
 
 static char parse_type_word(char *line, size_t length, unsigned int *i) {
 	char c;
@@ -97,4 +98,146 @@ match_t *parse_type(char *line) {
 	}
 
 	return match;
+}
+
+static void parse_variable_expression(char *line, char **name, char *is_pointer) {
+	unsigned int start_index = 0;
+	unsigned int end_index   = 0;
+	int index                = -1;
+	int length               = strlen(line);
+	char c;
+
+	//Check referencing
+	do {
+		index++;
+		SKIP_WHITESPACES
+
+		if(c == '*') (*is_pointer)--;
+		if(c == '&') (*is_pointer)++;
+	} while(c == '*' || c == '&');
+
+	SKIP_WHITESPACES
+
+	start_index = index;
+
+	//Until not alphanumeric
+	while(is_alphanumeric(c = line[index]) && index < length) {
+		index++;
+	}
+
+	end_index = index;
+
+	*name = strsubstr(line, start_index, end_index - start_index);
+
+}
+
+type_t get_expression_type(char *line, scope_t *scope, char **undefined_variable, char **undefined_function) {
+	type_t type;
+	function_t *function     = NULL;
+	function_t *function_dec = NULL;
+	field_t *variable_dec    = NULL;
+	char *variable_name      = NULL;
+	char is_pointer          = 0;
+	unsigned int start_index = 0;
+	unsigned int end_index   = 0;
+	int index                = 0;
+	unsigned int sub_index   = 0;
+	int length               = strlen(line);
+	int type_length;
+	char c;
+
+	type.name = "NULL";
+	type.is_pointer = 0;
+
+	SKIP_WHITESPACES
+
+	if(c == '(') {
+		//Parenthesis -> cast
+
+		index++;
+
+		SKIP_WHITESPACES
+
+		start_index = index;
+
+		while((c = line[index]) != ')' && index < length) index++;
+
+		if(c != ')') { //No closing parenthesis, syntax error
+			return type;
+		}
+
+		//Skip whitespaces backwards to find end of type
+		while(is_whitespace(c = line[index]) && index > 0) { index--; }
+
+		end_index = index;
+
+		type_length     = end_index - start_index;
+		type.name       = strsubstr(line, start_index, type_length);
+		type.is_pointer = strcount(type.name, '*');
+		sub_index       = strcountuntil(type.name, '*', 1, 1);
+
+		//Remove stars
+		type.name[type_length - sub_index] = '\0';
+
+	} else if(c == '\'' && strlastindexof(line, '\'') != index) {
+		type.name       = strduplicate("char");
+		type.is_pointer = 0;
+	} else if(c == '"' && strlastindexof(line, '"') != index) {
+		type.name       = strduplicate("char");
+		type.is_pointer = 1;
+	} else {
+
+		if(!is_digit(c)) {
+
+			function = parse_function_call(-1, line + index);
+			if(function != NULL) {
+
+				//TODO check prototype and declaration line
+				if(scope == NULL || (function_dec = find_function(scope, function->name)) == NULL)
+					*undefined_function = strduplicate(function->name);
+				else {
+					type.name = strduplicate(function_dec->return_type.name);
+					type.is_pointer = function_dec->return_type.is_pointer;
+				}
+
+				function_free(function);
+			} else {
+				parse_variable_expression(line + index, &variable_name, &is_pointer);
+				if(variable_name != NULL) {
+
+					if(scope == NULL || (variable_dec = find_variable(scope, variable_name)) == NULL)
+						*undefined_variable = variable_name;
+					else {
+						type.is_pointer = variable_dec->type.is_pointer + is_pointer;
+						if(type.is_pointer < 0) { //More dereferencing than allowed
+							type.name = "NULL";
+							type.is_pointer = 0;
+						} else {
+							type.name = strduplicate(variable_dec->type.name);
+						}
+					}
+				}
+			}
+		} else {
+			//TODO numbers
+		}
+
+	}
+
+
+	//Starts with 0x -> integer
+	//Integer -> only digits
+	//ends with u or U -> unsigned
+	//follows L or l -> long (while, max 2)
+
+	//Double -> only digits, one dot, can end with 'd'
+	//Can start with dot
+	//follows L or l -> long (max 1)
+	//float -> only digits, one dot, ends with 'f'
+
+	//Variable
+	//If * is_pointer--
+	//If & is_pointer++
+
+	return type;
 }

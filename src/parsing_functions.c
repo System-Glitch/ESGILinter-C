@@ -1,8 +1,9 @@
 #include <stdlib.h>
 #include "arraylist.h"
+#include "scopetree.h"
+#include "parsing_type.h"
 #include "parsing_functions.h"
 #include "parsing_variables.h"
-#include "scopetree.h"
 
 function_t *function_init(char *name, unsigned char is_prototype, char *type, unsigned char type_is_pointer, arraylist_t *params, int line_index) {
 	function_t *function = malloc(sizeof(function_t));
