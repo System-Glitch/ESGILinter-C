@@ -449,6 +449,11 @@ static void test_parse_expression_type() {
 	test_expression_type("test()", 0, scope);
 	test_expression_type("variable", 0, scope);
 	test_expression_type("*& &  variable", 0, scope);
+	test_expression_type("--  variable", 0, scope);
+	test_expression_type("++  variable", 0, scope);
+	test_expression_type("variable++", 0, scope);
+	test_expression_type("variable--", 0, scope);
+	test_expression_type("++variable--", 0, scope);
 
 	scope_free(scope);
 }

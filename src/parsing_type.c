@@ -116,6 +116,8 @@ static void parse_variable_expression(char *line, char **name, char *is_pointer)
 		if(c == '&') (*is_pointer)++;
 	} while(c == '*' || c == '&');
 
+	//TODO ++ -- expressions
+
 	SKIP_WHITESPACES
 
 	start_index = index;
@@ -241,9 +243,7 @@ type_t get_expression_type(char *line, int line_index, scope_t *scope, arraylist
 	//follows L or l -> long (max 1)
 	//float -> only digits, one dot, ends with 'f'
 
-	//Variable
-	//If * is_pointer--
-	//If & is_pointer++
-
+	//TODO conditional expressions and loops
+	//if, else if, for, switch, case, while
 	return type;
 }
