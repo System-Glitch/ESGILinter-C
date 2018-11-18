@@ -344,6 +344,7 @@ function_t *parse_function_call(int line_index, char *line) {
 	size_t length             = strlen(line);
 	char *name                = NULL;
 	char *params              = NULL;
+	char *expr                = NULL;
 	char c;
 
 	SKIP_WHITESPACES
@@ -373,8 +374,11 @@ function_t *parse_function_call(int line_index, char *line) {
 			if(param_list != NULL) {
 				function = function_init(name, 0, strduplicate("void"), 0,  arraylist_init(param_list->size), line_index);
 				function->params->size = param_list->size;
-				for(size_t i = 0 ; i < param_list->size ; i++)
-					function->params->array[i] = field_init(arraylist_get(param_list, i), strduplicate("void"), 0, -1);
+				for(size_t i = 0 ; i < param_list->size ; i++) {
+					expr = arraylist_get(param_list, i);
+					function->params->array[i] = field_init(expr, strduplicate("void"), 0, -1);
+					((field_t*)function->params->array[i])->type = get_expression_type(expr, line_index, NULL, NULL, NULL, NULL);
+				}
 				return function;
 			}
 		}
@@ -413,7 +417,7 @@ void check_function_call_parameters(scope_t *scope, function_t *call, function_t
 					arraylist_add(undeclared_functions, function_call);
 					check_function_call_parameters(scope, function_call, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid);
 				}
-			} else
+			} else if(!field->type.is_literal)
 				arraylist_add(undeclared_variables, strduplicate(field->name));
 		} else if(function != NULL && find_function_prototype(get_root_scope(scope), function->name)) {
 			param = arraylist_get(function->params, i);

@@ -156,8 +156,9 @@ type_t get_expression_type(char *line, int line_index, scope_t *scope, arraylist
 	int type_length;
 	char c;
 
-	type.name = "NULL";
+	type.name = strduplicate("NULL");
 	type.is_pointer = 0;
+	type.is_literal = 0;
 
 	SKIP_WHITESPACES
 
@@ -181,6 +182,7 @@ type_t get_expression_type(char *line, int line_index, scope_t *scope, arraylist
 
 		end_index = index;
 
+		free(type.name);
 		type_length     = end_index - start_index;
 		type.name       = strsubstr(line, start_index, type_length);
 		type.is_pointer = strcount(type.name, '*');
@@ -190,12 +192,16 @@ type_t get_expression_type(char *line, int line_index, scope_t *scope, arraylist
 		type.name[type_length - sub_index] = '\0';
 
 	} else if(c == '\'' && strlastindexof(line, '\'') != index) {
+		free(type.name);
 		type.name       = strduplicate("char");
 		type.is_pointer = 0;
+		type.is_literal = 1;
 	} else if(c == '"' && strlastindexof(line, '"') != index) {
+		free(type.name);
 		type.name       = strduplicate("char");
 		type.is_pointer = 1;
-	} else {
+		type.is_literal = 1;
+	} else if(undeclared_variables != NULL) {
 
 		if(!is_digit(c)) {
 
@@ -207,8 +213,10 @@ type_t get_expression_type(char *line, int line_index, scope_t *scope, arraylist
 
 					function_dec = find_function(scope, function->name, 0);
 					if(function_dec != NULL && (function_dec->line < line_index || find_function_prototype(get_root_scope(scope), function->name) != NULL)) {
+						free(type.name);
 						type.name = strduplicate(function_dec->return_type.name);
 						type.is_pointer = function_dec->return_type.is_pointer;
+						type.is_literal = 0;
 						check_function_call_parameters(scope, function, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid_params);
 						function_free(function);
 					} else {
@@ -226,10 +234,11 @@ type_t get_expression_type(char *line, int line_index, scope_t *scope, arraylist
 					else {
 						type.is_pointer = variable_dec->type.is_pointer + is_pointer;
 						if(type.is_pointer < 0) { //More dereferencing than allowed
-							type.name = "NULL";
 							type.is_pointer = 0;
+							type.is_literal = 0;
 						} else {
 							type.name = strduplicate(variable_dec->type.name);
+							type.is_literal = 0;
 						}
 					}
 				}

@@ -9,13 +9,13 @@
 typedef struct type {
 	char *name;
 	char  is_pointer;
+	unsigned char is_literal;
 } type_t;
 
 typedef struct field {
 	char   *name;
 	type_t  type;
 	int     line;
-	//TODO is_litteral
 } field_t;
 
 typedef struct function {

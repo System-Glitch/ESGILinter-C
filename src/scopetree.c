@@ -12,6 +12,7 @@ field_t *field_init(char *name, char *type, char type_is_pointer, int line_index
 		field->name            = name;
 		field->type.name       = type;
 		field->type.is_pointer = type_is_pointer;
+		field->type.is_literal = 0;
 		field->line            = line_index;
 	}
 
