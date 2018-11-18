@@ -103,9 +103,19 @@ match_t *parse_type(char *line) {
 static void parse_variable_expression(char *line, char **name, char *is_pointer) {
 	unsigned int start_index = 0;
 	unsigned int end_index   = 0;
-	int index                = -1;
+	int index                = 0;
 	int length               = strlen(line);
 	char c;
+
+	//Pre incrementing / decrementing
+	SKIP_WHITESPACES
+	if(strstr(line + index, "++") == line + index || strstr(line + index, "--") == line + index) {
+		//Skip operation
+		index++;	
+	} else if(index >= 0) {
+		index--;
+		c = line[index];
+	}
 
 	//Check referencing
 	do {
@@ -115,8 +125,6 @@ static void parse_variable_expression(char *line, char **name, char *is_pointer)
 		if(c == '*') (*is_pointer)--;
 		if(c == '&') (*is_pointer)++;
 	} while(c == '*' || c == '&');
-
-	//TODO ++ -- expressions
 
 	SKIP_WHITESPACES
 

@@ -21,7 +21,7 @@ unsigned int check_undeclared_functions(scope_t *root_scope, arraylist_t *file) 
 	arraylist_t *undeclared_variables = NULL;
 	arraylist_t *invalid_params       = NULL;
 
-	for(size_t i = root_scope->from_line ; i < root_scope->to_line ; i++) {
+	for(int i = root_scope->from_line ; i < root_scope->to_line ; i++) {
 		scope = get_child_scope(root_scope, i); //segfault?
 		if(scope != root_scope) {
 			if(i == scope->from_line) {
@@ -34,25 +34,25 @@ unsigned int check_undeclared_functions(scope_t *root_scope, arraylist_t *file) 
 
 			line = arraylist_get(file, i);
 			type = get_expression_type(line, i, scope, undeclared_variables, undeclared_functions, invalid_params); //Check type equals
-			for(size_t i = 0 ; i < undeclared_functions->size ; i++) {
-				function = arraylist_get(undeclared_functions, i);
+			for(size_t j = 0 ; j < undeclared_functions->size ; j++) {
+				function = arraylist_get(undeclared_functions, j);
 				message = strconcat("Undeclared function: ", function->name);
-				print_error("fictive_file.c", i, line, message);
+				print_error("fictive_file.c", j, line, message);
 				free(message);
 				result++;
 			}
 
-			for(size_t i = 0 ; i < undeclared_variables->size ; i++) {
-				message = strconcat("Undeclared variable: ", arraylist_get(undeclared_variables, i));
-				print_error("fictive_file.c", i, line, message);
+			for(size_t j = 0 ; j < undeclared_variables->size ; j++) {
+				message = strconcat("Undeclared variable: ", arraylist_get(undeclared_variables, j));
+				print_error("fictive_file.c", j, line, message);
 				free(message);
 				result++;
 			}
 
-			for(size_t i = 0 ; i < invalid_params->size ; i++) {
-				field = arraylist_get(invalid_params, i);
+			for(size_t j = 0 ; j < invalid_params->size ; j++) {
+				field = arraylist_get(invalid_params, j);
 				message = strconcat("Invalid parameter type: ", field->name);
-				print_error("fictive_file.c", i, line, message);
+				print_error("fictive_file.c", j, line, message);
 				free(message);
 				result++;
 			}
