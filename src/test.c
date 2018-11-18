@@ -506,6 +506,7 @@ static void test_rule_undeclared_function() {
 	arraylist_add(file, strduplicate("\tprintf(\"%c %d\", c, i);"));
 	arraylist_add(file, strduplicate("\ttest2(param);"));
 	arraylist_add(file, strduplicate("\tfunction(c);"));
+	arraylist_add(file, strduplicate("\tfunction(test2(test(c2)));"));
 	arraylist_add(file, strduplicate("\tchar *ret = test2(param);")); //TODO not detected
 	arraylist_add(file, strduplicate("\tdeclared();"));
 	arraylist_add(file, strduplicate("}"));
