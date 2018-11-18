@@ -141,12 +141,18 @@ static void parse_variable_expression(char *line, char **name, char *is_pointer)
 
 }
 
+static unsigned char is_type_identifier(char c) {
+	return c == 'u' || c == 'l' || c == 'f' || c == 'U' || c == 'L' || c == 'F' || c == 'd' || c == 'D'; 
+}
+
 type_t get_expression_type(char *line, int line_index, scope_t *scope, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params) { //TODO rename to parse_expression
 	type_t type;
 	function_t *function     = NULL;
 	function_t *function_dec = NULL;
 	field_t *variable_dec    = NULL;
 	char *variable_name      = NULL;
+	char *tmp                = NULL;
+	char *type_identifier    = NULL; 
 	char is_pointer          = 0;
 	unsigned int start_index = 0;
 	unsigned int end_index   = 0;
@@ -203,7 +209,7 @@ type_t get_expression_type(char *line, int line_index, scope_t *scope, arraylist
 		type.is_literal = 1;
 	} else if(undeclared_variables != NULL) {
 
-		if(!is_digit(c)) {
+		if(!is_digit(c) && c != '.') {
 
 			function = parse_function_call(line_index, line + index);
 			if(function != NULL) {
@@ -245,20 +251,79 @@ type_t get_expression_type(char *line, int line_index, scope_t *scope, arraylist
 			}
 		} else {
 			//TODO numbers
+			//Starts with 0x -> integer
+			//Integer -> only digits
+			//ends with u or U -> unsigned
+			//follows L or l -> long (while, max 2)
+
+			//Double -> only digits, one dot, can end with 'd'
+			//Can start with dot
+			//follows L or l -> long (max 1)
+			//float -> only digits, one dot, ends with 'f'
+
+			//Get all digits
+			while(is_digit(c = line[index]) && index < length) {
+				index++;
+			}
+
+			if(c == '.') { //Float or double
+
+			} else if(is_type_identifier(c)) {
+
+				exit_loop = 0;
+				while(is_type_identifier(c) && index < length) {
+
+					switch(c) {
+						case 'u':
+						case 'U':
+							type_identifier = !strcmp(type.name, "NULL") ? "unsigned" : " unsigned";
+							break;
+						case 'l':
+						case 'L':
+							type_identifier = !strcmp(type.name, "NULL") ? "long" : " long";
+							break;
+						case 'f':
+						case 'F':
+							type_identifier = !strcmp(type.name, "NULL") ? "float" : " float";
+							break;
+						case 'd':
+						case 'D':
+							type_identifier = !strcmp(type.name, "NULL") ? "double" : " double";
+							break;
+					}
+
+					if(!strcmp(type.name, "NULL")) {
+						free(type.name);
+						type.name = strduplicate(type_identifier);
+					} else {
+						//If unsigned, wrong
+						//If float or double already set, wrong
+						tmp = strconcat(type.name, type_identifier);
+						free(type.name);
+						type.name = tmp;
+					}
+
+					c = line[index++];
+				}
+
+				if(index < length && c != ';') { //Syntax error
+					free(type.name);
+					type.name = strduplicate("NULL");
+				} else {
+					//If just "unsigned", add "int" at the end
+				}
+
+			} else {
+				type.name = strduplicate("int");
+				type.is_literal = 1;
+				type.is_pointer = 0;
+			}
 		}
 
 	}
 
 
-	//Starts with 0x -> integer
-	//Integer -> only digits
-	//ends with u or U -> unsigned
-	//follows L or l -> long (while, max 2)
-
-	//Double -> only digits, one dot, can end with 'd'
-	//Can start with dot
-	//follows L or l -> long (max 1)
-	//float -> only digits, one dot, ends with 'f'
+	//TODO operations with operators (+, -, ..., &&, ||)
 
 	//TODO conditional expressions and loops
 	//if, else if, for, switch, case, while
