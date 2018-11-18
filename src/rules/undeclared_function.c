@@ -60,6 +60,7 @@ unsigned int check_undeclared_functions(scope_t *root_scope, arraylist_t *file) 
 			function_list_free(undeclared_functions);
 			field_list_free(invalid_params);
 			arraylist_free(undeclared_variables, 1);
+			free(type.name);
 		}
 		
 	}

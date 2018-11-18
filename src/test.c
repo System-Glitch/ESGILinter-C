@@ -396,8 +396,7 @@ static void test_expression_type(char *line, unsigned int line_index, scope_t *s
 	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);
 	printf("\t%sIs pointer: %s%d\n", COLOR_CYAN, FORMAT_RESET, type.is_pointer);
 	
-	if(strcmp(type.name, "NULL"))
-		free(type.name);
+	free(type.name);
 
 	for(size_t i = 0 ; i < undeclared_functions->size ; i++) {
 		printf("\t%sUndefined function: %s%s\n", COLOR_RED, FORMAT_RESET, ((function_t*)arraylist_get(undeclared_functions, i))->name);
@@ -454,6 +453,14 @@ static void test_parse_expression_type() {
 	test_expression_type("variable++", 0, scope);
 	test_expression_type("variable--", 0, scope);
 	test_expression_type("++variable--", 0, scope);
+	test_expression_type("4", 0, scope);
+	test_expression_type("4u", 0, scope);
+	test_expression_type("4l", 0, scope);
+	test_expression_type("4lu", 0, scope);
+	test_expression_type("1.2", 0, scope);
+	test_expression_type("1.2f", 0, scope);
+	test_expression_type(".4", 0, scope);
+	test_expression_type(".4f", 0, scope);
 
 	scope_free(scope);
 }
