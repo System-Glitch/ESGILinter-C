@@ -270,13 +270,12 @@ type_t get_expression_type(char *line, int line_index, scope_t *scope, arraylist
 
 			} else if(is_type_identifier(c)) {
 
-				exit_loop = 0;
 				while(is_type_identifier(c) && index < length) {
 
 					switch(c) {
 						case 'u':
 						case 'U':
-							type_identifier = !strcmp(type.name, "NULL") ? "unsigned" : " unsigned";
+							type_identifier = !strcmp(type.name, "NULL") ? "unsigned" : "unsigned ";
 							break;
 						case 'l':
 						case 'L':
@@ -296,21 +295,28 @@ type_t get_expression_type(char *line, int line_index, scope_t *scope, arraylist
 						free(type.name);
 						type.name = strduplicate(type_identifier);
 					} else {
-						//If unsigned, wrong
-						//If float or double already set, wrong
-						tmp = strconcat(type.name, type_identifier);
+						
+						//If unsigned, float or double already set, wrong
+						if(!strcmp(type_identifier, "unsigned "))
+							tmp = strconcat(type_identifier, type.name);
+						else
+							tmp = strconcat(type.name, type_identifier);
 						free(type.name);
 						type.name = tmp;
 					}
 
-					c = line[index++];
+					if(index < length)
+						c = line[++index];
 				}
 
 				if(index < length && c != ';') { //Syntax error
 					free(type.name);
 					type.name = strduplicate("NULL");
-				} else {
+				} else if(!strcmp(type.name, "unsigned")) {
 					//If just "unsigned", add "int" at the end
+					tmp = strconcat(type.name, " int");
+					free(type.name);
+					type.name = tmp;
 				}
 
 			} else {
