@@ -402,12 +402,10 @@ void check_function_call_parameters(scope_t *scope, function_t *call, function_t
 
 		if(var_dec == NULL) {
 			arraylist_add(undeclared, strduplicate(field->name));
-		} else {
-			if(function != NULL) {
-				param = arraylist_get(function->params, i);
-				if(!type_equals(&(field->type), &(param->type))) {
-					arraylist_add(invalid, field);
-				}
+		} else if(function != NULL && find_function_prototype(get_root_scope(scope), function->name)) {
+			param = arraylist_get(function->params, i);
+			if(!type_equals(&(field->type), &(param->type))) {
+				arraylist_add(invalid, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
 			}
 		}
 	}

@@ -55,6 +55,7 @@ void field_list_free(arraylist_t *list);
 void function_list_free(arraylist_t *list);
 void scope_free(scope_t *scope);
 
+scope_t    *get_root_scope(scope_t *scope);
 function_t *find_function(scope_t *scope, char *name, unsigned char allow_prototypes);
 function_t *find_function_prototype(scope_t *root_scope, char *name);
 field_t    *find_variable(scope_t *scope, char *name);

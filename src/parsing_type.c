@@ -196,14 +196,14 @@ type_t get_expression_type(char *line, int line_index, scope_t *scope, arraylist
 				else {
 
 					function_dec = find_function(scope, function->name, 0);
-					if(function_dec != NULL && (function_dec->line < line_index || find_function_prototype(scope, function->name) != NULL)) {
+					if(function_dec != NULL && (function_dec->line < line_index || find_function_prototype(get_root_scope(scope), function->name) != NULL)) {
 						type.name = strduplicate(function_dec->return_type.name);
 						type.is_pointer = function_dec->return_type.is_pointer;
-						check_function_call_parameters(scope, function, function_dec, undeclared_variables, invalid_params); //TODO don't use root scope
+						check_function_call_parameters(scope, function, function_dec, undeclared_variables, invalid_params);
 						function_free(function);
 					} else {
 						arraylist_add(undeclared_functions, function);
-						check_function_call_parameters(scope, function, function_dec, undeclared_variables, invalid_params); //TODO don't use root scope
+						check_function_call_parameters(scope, function, function_dec, undeclared_variables, invalid_params);
 					}
 				}
 

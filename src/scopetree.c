@@ -288,7 +288,7 @@ void scope_free(scope_t *scope) {
 	free(scope);
 }
 
-static scope_t *get_root_scope(scope_t *scope) {
+scope_t *get_root_scope(scope_t *scope) {
 	scope_t *parent = NULL;
 	while((parent = scope->parent) != NULL) {
 		scope = parent;
