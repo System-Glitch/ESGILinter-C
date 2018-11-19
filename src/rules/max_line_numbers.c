@@ -1,6 +1,4 @@
 #include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "rules/max_line_numbers.h"
 #include "arraylist.h"
 #include "display.h"

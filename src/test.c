@@ -8,6 +8,7 @@
 #include "parsing_functions.h"
 #include "rules/no_prototype.h"
 #include "rules/max_line_numbers.h"
+#include "rules/max_file_line_numbers.h"
 
 static void print_variables(arraylist_t *variables, unsigned int tabs) {
 	field_t *variable = NULL;
@@ -294,6 +295,22 @@ static void test_rule_max_line_numbers(){
 
 }
 
+static void test_rule_max_file_line_numbers(){
+	printf("------------------------------%s\n", FORMAT_RESET);
+
+	printf("%sTESTING RULE: max-file-line-numbers%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
+
+	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	arraylist_add(file, strduplicate("static int glob = 89;"));
+	arraylist_add(file, strduplicate("static int glob = 89;"));
+	arraylist_add(file, strduplicate("static int glob = 89;"));
+	arraylist_add(file, strduplicate("static int glob = 89;"));
+
+	max_file_line_numbers(file, 2);
+	max_file_line_numbers(file, 50);
+
+}
+
 static void test_rule_no_prototype() {
 
 	printf("------------------------------%s\n", FORMAT_RESET);
@@ -458,6 +475,7 @@ void test() {
 	test_function_parsing();
 	test_scope_parsing();
 	test_rule_max_line_numbers();
+	test_rule_max_file_line_numbers();
 	test_rule_no_prototype();
 	test_function_call_parsing();
 	test_parse_expression_type();
