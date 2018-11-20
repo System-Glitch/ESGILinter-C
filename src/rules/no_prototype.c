@@ -35,28 +35,6 @@ unsigned int check_no_prototype(scope_t *root_scope, arraylist_t *file) {
 				print_warning("fictive_file.c", function->line, arraylist_get(file, function->line), "Missing prototype");
 				count++;
 			}
-
-			/*for(size_t j = 0 ; j < functions->size ; j++) {
-				if(i == j) continue;
-				prototype = arraylist_get(functions, j);
-				if(prototype->is_prototype && !strcmp(prototype->name, function->name)) {
-					//Proto found
-
-					//Check parameters and return type
-					if(strcmp(function->return_type.name, prototype->return_type.name) || !check_params(function, prototype)) {
-						print_error("fictive_file.c", prototype->line, arraylist_get(file, prototype->line), "Conflicting types");
-						count++;
-					}
-					found = 1;
-					break;
-				}
-			}
-
-			if(!found) {
-				//Print warning
-				print_warning("fictive_file.c", function->line, arraylist_get(file, function->line), "Missing prototype");
-				count++;
-			}*/
 		}
 	}
 
