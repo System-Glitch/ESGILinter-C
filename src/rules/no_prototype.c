@@ -17,11 +17,9 @@ unsigned int check_no_prototype(scope_t *root_scope, arraylist_t *file) {
 	arraylist_t *functions = root_scope->functions;
 	function_t *function   = NULL;
 	function_t *prototype  = NULL;
-	//char found             = 0;
 	unsigned int count     = 0; //Counts warnings and errors
 
 	for(size_t i = 0 ; i < functions->size ; i++) {
-		//found = 0;
 		function = arraylist_get(functions, i);
 		if(!function->is_prototype && strcmp(function->name, "main")) {
 
