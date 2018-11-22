@@ -5,6 +5,7 @@
 #include "scopetree.h"
 #include "parsing_type.h"
 #include "parsing_variables.h"
+#include "parsing_expressions.h"
 #include "parsing_functions.h"
 #include "rules/no_prototype.h"
 #include "rules/undeclared_variable.h"
@@ -391,7 +392,7 @@ static void test_expression_type(char *line, unsigned int line_index, scope_t *s
 	arraylist_t *undeclared_functions = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 	arraylist_t *undeclared_variables = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 	arraylist_t *invalid_params       = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
-	type_t type = get_expression_type(line, line_index, scope, undeclared_variables, undeclared_functions, invalid_params);
+	type_t type = parse_expression(line, line_index, scope, undeclared_variables, undeclared_functions, invalid_params);
 	printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
 	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);
 	printf("\t%sIs pointer: %s%d\n", COLOR_CYAN, FORMAT_RESET, type.is_pointer);
@@ -463,6 +464,8 @@ static void test_parse_expression_type() {
 	test_expression_type(".4", 0, scope);
 	test_expression_type(".4f", 0, scope);
 	test_expression_type(".4l", 0, scope);
+	test_expression_type(".4 l", 0, scope);
+	test_expression_type(". 4", 0, scope);
 
 	scope_free(scope);
 }

@@ -4,6 +4,7 @@
 #include "parsing_type.h"
 #include "parsing_functions.h"
 #include "parsing_variables.h"
+#include "parsing_expressions.h"
 
 function_t *function_init(char *name, unsigned char is_prototype, char *type, unsigned char type_is_pointer, arraylist_t *params, int line_index) {
 	function_t *function = malloc(sizeof(function_t));
@@ -377,7 +378,7 @@ function_t *parse_function_call(int line_index, char *line) {
 				for(size_t i = 0 ; i < param_list->size ; i++) {
 					expr = arraylist_get(param_list, i);
 					function->params->array[i] = field_init(expr, strduplicate("void"), 0, -1);
-					((field_t*)function->params->array[i])->type = get_expression_type(expr, line_index, NULL, NULL, NULL, NULL);
+					((field_t*)function->params->array[i])->type = parse_expression(expr, line_index, NULL, NULL, NULL, NULL);
 				}
 				return function;
 			}
