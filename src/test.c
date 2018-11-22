@@ -462,6 +462,7 @@ static void test_parse_expression_type() {
 	test_expression_type("1.2f", 0, scope);
 	test_expression_type(".4", 0, scope);
 	test_expression_type(".4f", 0, scope);
+	test_expression_type(".4l", 0, scope);
 
 	scope_free(scope);
 }

@@ -267,7 +267,35 @@ type_t get_expression_type(char *line, int line_index, scope_t *scope, arraylist
 			}
 
 			if(c == '.') { //Float or double
+				c = line[++index];
+				if(is_digit(c)) {
+					while(is_digit(c = line[index]) && index < length) {
+						index++;
+					}
 
+					if(index >= length) {
+						type_identifier = "double";
+					} else if(is_type_identifier(c)) {
+						switch(c) {
+						case 'f':
+						case 'F':
+							type_identifier = "float";
+							break;
+						case 'd':
+						case 'D':
+							type_identifier = "double";
+							break;
+						case 'l':
+						case 'L':
+							type_identifier = "long double";
+							break;
+						}
+
+					}
+
+					free(type.name);
+					type.name = strduplicate(type_identifier);
+				}
 			} else if(is_type_identifier(c)) {
 
 				while(is_type_identifier(c) && index < length) {
