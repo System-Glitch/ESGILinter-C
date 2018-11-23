@@ -289,8 +289,8 @@ static void test_rule_max_line_numbers(){
 	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 	arraylist_add(file, strduplicate("static int glob = 89;"));
 
-	max_line_numbers(file, 5);
-	max_line_numbers(file, 50);
+	check_max_line_length(file, 5);
+	check_max_line_length(file, 50);
 
 }
 

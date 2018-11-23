@@ -6,7 +6,7 @@
 #include "display.h"
 
 //returns number of warnings
-unsigned int max_line_numbers(arraylist_t *file, unsigned int n){
+unsigned int check_max_line_length(arraylist_t *file, unsigned int n){
   unsigned int counter = 0;
 
   for(unsigned int i = 0; i < file->size; i++){
@@ -16,13 +16,8 @@ unsigned int max_line_numbers(arraylist_t *file, unsigned int n){
 }
 
 //returns 1 if excess character(s)
-unsigned int max_line_check(char *line, unsigned int n, unsigned int line_index){
-  unsigned int counter = 0;
-  unsigned int line_length = strlen(line);
-  for(unsigned int i = 0; i < line_length; i++){
-    counter++;
-  }
-  if(counter > n){
+unsigned int line_length_check(char *line, unsigned int n, unsigned int line_index){
+  if(strlen(line) > n){
     print_warning("fictive_file.c", line_index, line, "Excess of characters");
     return 1;
   }
