@@ -282,6 +282,8 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 			parse_number_literal(line, length, index, &type);
 		}
 
+	} else if(is_digit(c) || c == '.') {
+		parse_number_literal(line, length, index, &type);
 	}
 
 	//TODO conditional expressions and loops

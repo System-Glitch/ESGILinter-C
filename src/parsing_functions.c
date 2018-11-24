@@ -409,7 +409,7 @@ void check_function_call_parameters(scope_t *scope, function_t *call, function_t
 	function_t* function_dec  = NULL;
 
 	if(function != NULL && call->params->size != function->params->size) {
-		//TODO show error
+		//TODO show error, missing or too many parameters
 	}
 
 	for(size_t i = 0 ; i < call->params->size ; i++) {
@@ -429,8 +429,9 @@ void check_function_call_parameters(scope_t *scope, function_t *call, function_t
 					arraylist_add(undeclared_functions, function_call);
 					check_function_call_parameters(scope, function_call, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid);
 				}
-			} else if(!field->type.is_literal)
+			} else if(!field->type.is_literal) {
 				arraylist_add(undeclared_variables, strduplicate(field->name));
+			}
 		} else if(function != NULL && find_function_prototype(get_root_scope(scope), function->name)) {
 			param = arraylist_get(function->params, i);
 			if(!type_equals(&(field->type), &(param->type))) {
