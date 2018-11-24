@@ -39,7 +39,8 @@ static void parse_variable_expression(char *line, char **name, char *is_pointer)
 
 	end_index = index;
 
-	*name = strsubstr(line, start_index, end_index - start_index);
+	if(end_index != start_index)
+		*name = strsubstr(line, start_index, end_index - start_index);
 
 }
 
@@ -178,7 +179,7 @@ static void check_function_expression(function_t *function, char *line, int line
 	}
 }
 
-static void check_variable_expression(char *line, int index, scope_t *scope, type_t *type, arraylist_t *undeclared_variables) {
+static void check_variable_expression(char *line, int index, int line_index, scope_t *scope, type_t *type, arraylist_t *undeclared_variables) {
 	field_t *variable_dec = NULL;
 	char *variable_name   = NULL;
 	char is_pointer       = 0;
@@ -186,7 +187,8 @@ static void check_variable_expression(char *line, int index, scope_t *scope, typ
 	parse_variable_expression(line + index, &variable_name, &is_pointer);
 	if(variable_name != NULL) {
 
-		if(scope == NULL || (variable_dec = find_variable(scope, variable_name)) == NULL)
+		variable_dec = find_variable(scope, variable_name);
+		if(scope == NULL || variable_dec == NULL || variable_dec->line > line_index)
 			arraylist_add(undeclared_variables, variable_name);
 		else {
 			type->is_pointer = variable_dec->type.is_pointer + is_pointer;
@@ -247,6 +249,8 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 		//Remove stars
 		type.name[type_length - sub_index] = '\0';
 
+		//TODO Should check expression without cast
+
 	} else if(c == '\'' && strlastindexof(line, '\'') != index) {
 		free(type.name);
 		type.name       = strduplicate("char");
@@ -265,7 +269,7 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 			if(function != NULL) {
 				check_function_expression(function, line, line_index, scope, &type, undeclared_variables, undeclared_functions, invalid_params);
 			} else {
-				check_variable_expression(line, index, scope, &type, undeclared_variables);
+				check_variable_expression(line, index, line_index, scope, &type, undeclared_variables);
 			}
 		} else {
 			parse_number_literal(line, length, index, &type);
@@ -273,10 +277,7 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 
 	}
 
-
-	//TODO operations with operators (+, -, ..., &&, ||)
-
 	//TODO conditional expressions and loops
-	//if, else if, for, switch, case, while
+	//if, else if, for, switch, case, while, ternary
 	return type;
 }

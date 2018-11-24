@@ -7,6 +7,7 @@
 #include "parsing_variables.h"
 #include "parsing_expressions.h"
 #include "parsing_functions.h"
+#include "parsing_operations.h"
 #include "rules/no_prototype.h"
 #include "rules/undeclared_variable.h"
 #include "rules/undeclared_function.h"
@@ -195,6 +196,7 @@ static void test_variable_parsing() {
 	test_variable_declaration_parsing("/* comment */ for(int count = 0 ; count < 5 ; count++) {}");
 
 	test_variable_declaration_parsing("extern unsigned char c = 42;");
+	test_variable_declaration_parsing("static unsigned char b = 98;");
 
 }
 
@@ -386,7 +388,7 @@ static void test_function_call_parsing() {
 	}
 }
 
-static void test_expression_type(char *line, unsigned int line_index, scope_t *scope) {
+static void test_expression(char *line, unsigned int line_index, scope_t *scope) {
 	printf("%sInput: %s\"%s\"%s\n", COLOR_BLUE, COLOR_YELLOW, line, FORMAT_RESET);
 
 	arraylist_t *undeclared_functions = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
@@ -416,14 +418,15 @@ static void test_expression_type(char *line, unsigned int line_index, scope_t *s
 	arraylist_free(undeclared_variables, 1);
 }
 
-static void test_parse_expression_type() {
+static void test_parse_expression() {
 
 	printf("------------------------------%s\n", FORMAT_RESET);
-	printf("%sTESTING PARSE EXPRESSION TYPE%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
+	printf("%sTESTING PARSE EXPRESSION%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
 
 	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 	arraylist_add(file, strduplicate("static int glob = 89;"));
 	arraylist_add(file, strduplicate("unsigned int variable = 89;"));
+	arraylist_add(file, strduplicate("static unsigned char b = 98;"));
 	arraylist_add(file, strduplicate("void function(int param);"));
 
 	arraylist_add(file, strduplicate("char function(int param) {"));
@@ -441,33 +444,35 @@ static void test_parse_expression_type() {
 
 	scope_t *scope = parse_root_scope(file);
 
-	test_expression_type("(char)c", 0, scope);
-	test_expression_type("(  unsigned char   ) c", 0, scope);
-	test_expression_type("'d'", 0, scope);
-	test_expression_type("\"d\"", 0, scope);
-	test_expression_type("function()", 0, scope);
-	test_expression_type("test()", 0, scope);
-	test_expression_type("variable", 0, scope);
-	test_expression_type("*& &  variable", 0, scope);
-	test_expression_type("--  variable", 0, scope);
-	test_expression_type("++  variable", 0, scope);
-	test_expression_type("variable++", 0, scope);
-	test_expression_type("variable--", 0, scope);
-	test_expression_type("++variable--", 0, scope);
-	test_expression_type("4", 0, scope);
-	test_expression_type("123456789", 0, scope);
-	test_expression_type("4u", 0, scope);
-	test_expression_type("4l", 0, scope);
-	test_expression_type("4lu", 0, scope);
-	test_expression_type("1.2", 0, scope);
-	test_expression_type("1.2f", 0, scope);
-	test_expression_type(".4", 0, scope);
-	test_expression_type(".4f", 0, scope);
-	test_expression_type(".4l", 0, scope);
-	test_expression_type(".4 l", 0, scope);
-	test_expression_type(". 4", 0, scope);
+	test_expression("(char)c", 0, scope);
+	test_expression("b", 5, scope);
+	test_expression("(  unsigned char   ) c", 0, scope);
+	test_expression("'d'", 0, scope);
+	test_expression("\"d\"", 0, scope);
+	test_expression("function()", 0, scope);
+	test_expression("test()", 0, scope);
+	test_expression("variable", 4, scope);
+	test_expression("*& &  variable", 4, scope);
+	test_expression("--  variable", 4, scope);
+	test_expression("++  variable", 4, scope);
+	test_expression("variable++", 4, scope);
+	test_expression("variable--", 4, scope);
+	test_expression("++variable--", 4, scope);
+	test_expression("4", 0, scope);
+	test_expression("123456789", 0, scope);
+	test_expression("4u", 0, scope);
+	test_expression("4l", 0, scope);
+	test_expression("4lu", 0, scope);
+	test_expression("1.2", 0, scope);
+	test_expression("1.2f", 0, scope);
+	test_expression(".4", 0, scope);
+	test_expression(".4f", 0, scope);
+	test_expression(".4l", 0, scope);
+	test_expression(".4 l", 0, scope);
+	test_expression(". 4", 0, scope);
 
 	scope_free(scope);
+	arraylist_free(file, 1);
 }
 
 static void test_rule_undeclared_variable() {
@@ -549,6 +554,77 @@ static void test_rule_undeclared_function() {
 
 }
 
+static void test_operation(char* line, unsigned int line_index, scope_t *scope) {
+	printf("%sInput: %s\"%s\"%s\n", COLOR_BLUE, COLOR_YELLOW, line, FORMAT_RESET);
+
+	arraylist_t *undeclared_functions = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	arraylist_t *undeclared_variables = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	arraylist_t *invalid_params       = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	type_t type = parse_operation(line, line_index, scope, undeclared_variables, undeclared_functions, invalid_params);
+	printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
+	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);
+	printf("\t%sIs pointer: %s%d\n", COLOR_CYAN, FORMAT_RESET, type.is_pointer);
+	
+	free(type.name);
+
+	for(size_t i = 0 ; i < undeclared_functions->size ; i++) {
+		printf("\t%sUndefined function: %s%s\n", COLOR_RED, FORMAT_RESET, ((function_t*)arraylist_get(undeclared_functions, i))->name);
+	}
+
+	for(size_t i = 0 ; i < undeclared_variables->size ; i++) {
+		printf("\t%sUndefined variable: %s%s\n", COLOR_RED, FORMAT_RESET, (char*)arraylist_get(undeclared_variables, i));
+	}
+
+	for(size_t i = 0 ; i < invalid_params->size ; i++) {
+		printf("\t%sInvalid param: %s%s\n", COLOR_RED, FORMAT_RESET, ((field_t*)arraylist_get(invalid_params, i))->name);
+	}
+
+	function_list_free(undeclared_functions);
+	field_list_free(invalid_params);
+	arraylist_free(undeclared_variables, 1);
+}
+
+static void test_parsing_operations() {
+	
+	printf("------------------------------%s\n", FORMAT_RESET);
+	printf("%sTESTING PARSE OPERATION%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
+
+	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	arraylist_add(file, strduplicate("static int glob = 89;"));
+	arraylist_add(file, strduplicate("static int a = 97;"));
+	arraylist_add(file, strduplicate("static int **d;"));
+	arraylist_add(file, strduplicate("static unsigned char b = 98;"));
+	arraylist_add(file, strduplicate("static unsigned char ***ptr;"));
+	arraylist_add(file, strduplicate("char* test2(char v) {"));
+	arraylist_add(file, strduplicate("\tv = glob;"));
+	arraylist_add(file, strduplicate("}"));
+
+	scope_t *scope = parse_root_scope(file);
+	print_scope(scope, 0);
+
+	test_operation("int i = 0;", 5, scope);
+	test_operation("a + b", 5, scope);
+	test_operation("b + a", 5, scope);
+	test_operation("ab += ba", 5, scope);
+	test_operation("a << b", 5, scope);
+	test_operation("a <<= ba + ca", 5, scope);
+	test_operation("a * b", 5, scope);
+	test_operation("a * *ptr", 5, scope);
+	test_operation("*ptr * a", 5, scope);
+	test_operation("a & &ptr", 5, scope);
+	test_operation("&ptr & a", 5, scope);
+	test_operation("***ptr * **d", 5, scope);
+	test_operation("***ptr***d", 5, scope);
+	test_operation("a *", 5, scope);
+	test_operation("a <<= b < c << e;", 5, scope);
+	test_operation("a <<< b", 5, scope);
+	test_operation("test(e) + 12.8646f;", 8, scope);
+	test_operation("a = b + test(e) + 12.8646f;", 8, scope);
+
+	scope_free(scope);
+	arraylist_free(file, 1);
+}
+
 void test() {
 
 	test_variable_parsing();
@@ -556,9 +632,10 @@ void test() {
 	test_scope_parsing();
 	test_rule_no_prototype();
 	test_function_call_parsing();
-	test_parse_expression_type();
+	test_parse_expression();
 	test_rule_undeclared_variable();
 	test_rule_undeclared_function();
+	test_parsing_operations();
 
 	printf("------------------------------%s\n", FORMAT_RESET);
 }
