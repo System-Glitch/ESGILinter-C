@@ -123,12 +123,10 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 				is_declaration = 1;
 			} else {
 				left_operand_type = parse_operand(left_operand, line_index, scope, undeclared_variables, undeclared_functions, invalid_params);
-				printf("Left type: %s\n", left_operand_type.name);
 				is_declaration = 0;
 			}
 
 			right_operand_type = parse_operand(right_operand, line_index, scope, undeclared_variables, undeclared_functions, invalid_params);
-			printf("Right type: %s\n", right_operand_type.name);
 
 			if(!is_declaration) {
 				rank = get_highest_rank(right_operand_type.name, left_operand_type.name);
@@ -136,7 +134,6 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 					free(type.name);
 					type.name = strduplicate((char*)type_rank[rank]);
 					//TODO pointer
-					printf("Type: %s\n", type.name);
 				}
 			} else {
 				

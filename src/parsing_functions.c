@@ -369,6 +369,17 @@ function_t *parse_function_call(int line_index, char *line) {
 		start_index = index + 1;
 		end_index = strlastindexof(line, ')');
 		if(end_index != -1 && end_index >= start_index) {
+
+			index = end_index + 1;
+
+			//Check if parenthesis is followed by anything
+			SKIP_WHITESPACES
+			if(index < length && c != ';' && !is_whitespace(c)) {
+				free(name);
+				return NULL;
+			}
+
+
 			params = strsubstr(line, start_index, end_index - start_index);
 			param_list = parse_function_call_params(params);
 			free(params);

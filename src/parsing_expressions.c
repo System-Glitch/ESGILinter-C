@@ -39,6 +39,12 @@ static void parse_variable_expression(char *line, char **name, char *is_pointer)
 
 	end_index = index;
 
+	//Check if name is followed by anything
+	SKIP_WHITESPACES
+	if(index < length && c != ';' && !is_whitespace(c)) {
+		return;
+	}
+
 	if(end_index != start_index)
 		*name = strsubstr(line, start_index, end_index - start_index);
 
@@ -249,8 +255,8 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 		//Remove stars
 		type.name[type_length - sub_index] = '\0';
 
-		//Check expression without cast
-		
+		//TODO Check expression without cast
+
 
 	} else if(c == '\'' && strlastindexof(line, '\'') != index) {
 		free(type.name);
