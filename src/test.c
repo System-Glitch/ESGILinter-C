@@ -600,7 +600,6 @@ static void test_parsing_operations() {
 	arraylist_add(file, strduplicate("}"));
 
 	scope_t *scope = parse_root_scope(file);
-	print_scope(scope, 0);
 
 	test_operation("int i = 0;", 5, scope);
 	test_operation("a + b", 5, scope);
@@ -620,6 +619,7 @@ static void test_parsing_operations() {
 	test_operation("a <<< b", 5, scope);
 	test_operation("test(e) + 12.8646f;", 8, scope);
 	test_operation("a = b + test(e) + 12.8646f;", 8, scope);
+	test_operation("1 / 2f", 5, scope);
 
 	scope_free(scope);
 	arraylist_free(file, 1);

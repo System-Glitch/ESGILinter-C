@@ -249,7 +249,8 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 		//Remove stars
 		type.name[type_length - sub_index] = '\0';
 
-		//TODO Should check expression without cast
+		//Check expression without cast
+		
 
 	} else if(c == '\'' && strlastindexof(line, '\'') != index) {
 		free(type.name);
