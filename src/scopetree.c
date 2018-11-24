@@ -64,7 +64,7 @@ static void parse_scope_content(arraylist_t *file, scope_t *scope) {
 	char *line;
 	arraylist_t *variables;
 
-	for(int i = scope->from_line ; i < scope->to_line ; i++) {
+	for(int i = scope->from_line ; i <= scope->to_line ; i++) {
 		if(is_in_child_scope(scope, i)) continue; //Ignore lines inside child scopes
 		line = (char*) arraylist_get(file, i);
 		variables = get_variables_from_declaration(i,line);
