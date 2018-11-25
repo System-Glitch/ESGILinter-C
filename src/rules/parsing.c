@@ -1,4 +1,6 @@
-#include "rules/undeclared_function.h"
+//Handles all rules which need parsing
+
+#include "rules/parsing.h"
 #include "parsing_type.h"
 #include "parsing_expressions.h"
 #include "arraylist.h"
@@ -9,7 +11,7 @@ static scope_t *get_child_scope(scope_t *scope, int line) {
 	return child == NULL ? scope : child;
 }
  
-unsigned int check_undeclared_functions(scope_t *root_scope, arraylist_t *file) {
+unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file) {
 
 	type_t type;
 	unsigned int result = 0;
@@ -26,7 +28,7 @@ unsigned int check_undeclared_functions(scope_t *root_scope, arraylist_t *file) 
 		scope = get_child_scope(root_scope, i); //segfault?
 		if(scope != root_scope) {
 			if(i == scope->from_line) {
-				result += check_undeclared_functions(scope, file);
+				result += parse_and_check(scope, file);
 			}
 		} else {
 			undeclared_functions = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);

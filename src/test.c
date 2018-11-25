@@ -9,8 +9,7 @@
 #include "parsing_functions.h"
 #include "parsing_operations.h"
 #include "rules/no_prototype.h"
-#include "rules/undeclared_variable.h"
-#include "rules/undeclared_function.h"
+#include "rules/parsing.h"
 
 static void print_variables(arraylist_t *variables, unsigned int tabs) {
 	field_t *variable = NULL;
@@ -483,45 +482,10 @@ static void test_parse_expression() {
 	arraylist_free(file, 1);
 }
 
-static void test_rule_undeclared_variable() {
+static void test_rule_parsing() {
 
 	printf("------------------------------%s\n", FORMAT_RESET);
-	printf("%sTESTING RULE: undeclared-variable%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
-
-	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
-	arraylist_add(file, strduplicate("static int glob = 89;"));
-
-	arraylist_add(file, strduplicate("void function(int param);"));
-
-	arraylist_add(file, strduplicate("char function(int param) {"));
-	arraylist_add(file, strduplicate("\tchar c = 'c';"));
-	arraylist_add(file, strduplicate("\tprintf(\"%c %d\", c, i);"));
-	arraylist_add(file, strduplicate("}"));
-
-	arraylist_add(file, strduplicate("int main() {"));
-	arraylist_add(file, strduplicate("\tint i = 42;"));
-	arraylist_add(file, strduplicate("}"));
-
-	arraylist_add(file, strduplicate("char* test2(char v) {"));
-	arraylist_add(file, strduplicate("\tv = glob;"));
-	arraylist_add(file, strduplicate("}"));
-
-	scope_t *scope = parse_root_scope(file);
-	if(scope != NULL) {
-		printf("Return: %d\n", check_undeclared_variables(scope, file));
-		scope_free(scope);
-	} else {
-		printf("%sScope %sNULL\n%s", COLOR_YELLOW, COLOR_RED, FORMAT_RESET);
-	}	
-
-	arraylist_free(file, 1);
-
-}
-
-static void test_rule_undeclared_function() {
-
-	printf("------------------------------%s\n", FORMAT_RESET);
-	printf("%sTESTING RULE: undeclared-function%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
+	printf("%sTESTING RULES WITH PARSING%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
 
 	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 	arraylist_add(file, strduplicate("static int glob = 89;"));
@@ -552,7 +516,7 @@ static void test_rule_undeclared_function() {
 
 	scope_t *scope = parse_root_scope(file);
 	if(scope != NULL) {
-		printf("Return: %d\n", check_undeclared_functions(scope, file));
+		printf("Return: %d\n", parse_and_check(scope, file));
 		scope_free(scope);
 	} else {
 		printf("%sScope %sNULL\n%s", COLOR_YELLOW, COLOR_RED, FORMAT_RESET);
@@ -641,8 +605,7 @@ void test() {
 	test_rule_no_prototype();
 	test_function_call_parsing();
 	test_parse_expression();
-	test_rule_undeclared_variable();
-	test_rule_undeclared_function();
+	test_rule_parsing();
 	test_parsing_operations();
 
 	printf("------------------------------%s\n", FORMAT_RESET);
