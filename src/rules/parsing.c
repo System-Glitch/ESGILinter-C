@@ -25,7 +25,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file) {
 	arraylist_t *invalid_params       = NULL;
 
 	for(int i = root_scope->from_line ; i < root_scope->to_line ; i++) {
-		scope = get_child_scope(root_scope, i); //segfault?
+		scope = get_child_scope(root_scope, i);
 		if(scope != root_scope) {
 			if(i == scope->from_line) {
 				result += parse_and_check(scope, file);

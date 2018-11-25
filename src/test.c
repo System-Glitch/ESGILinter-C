@@ -10,6 +10,7 @@
 #include "parsing_operations.h"
 #include "rules/no_prototype.h"
 #include "rules/parsing.h"
+#include "rules/no_multi_declaration.h"
 
 static void print_variables(arraylist_t *variables, unsigned int tabs) {
 	field_t *variable = NULL;
@@ -597,6 +598,33 @@ static void test_parsing_operations() {
 	arraylist_free(file, 1);
 }
 
+static void test_rule_no_multi_declaration() {
+
+	printf("------------------------------%s\n", FORMAT_RESET);
+	printf("%sTESTING RULE: no-multi-declaration%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
+
+	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	arraylist_add(file, strduplicate("int glob = 89;"));
+	arraylist_add(file, strduplicate("int a = 89, b = 42;"));
+	arraylist_add(file, strduplicate("char c = 'a', b = 'd', k;"));
+	arraylist_add(file, strduplicate("int func() {"));
+	arraylist_add(file, strduplicate("\tshort var = 4;"));
+	arraylist_add(file, strduplicate("\tshort var2 = 5, var3 = 6;"));
+	arraylist_add(file, strduplicate("}"));
+
+	scope_t *scope = parse_root_scope(file);
+
+	if(scope != NULL) {
+		printf("Return: %d\n", check_no_multi_declaration(scope, file));
+		scope_free(scope);
+	} else {
+		printf("%sScope %sNULL\n%s", COLOR_YELLOW, COLOR_RED, FORMAT_RESET);
+	}
+
+	arraylist_free(file, 1);
+
+}
+
 void test() {
 
 	test_variable_parsing();
@@ -607,6 +635,7 @@ void test() {
 	test_parse_expression();
 	test_rule_parsing();
 	test_parsing_operations();
+	test_rule_no_multi_declaration();
 
 	printf("------------------------------%s\n", FORMAT_RESET);
 }
