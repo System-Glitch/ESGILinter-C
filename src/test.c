@@ -513,6 +513,8 @@ static void test_rule_parsing() {
 
 	arraylist_add(file, strduplicate("char* test2(char v) {"));
 	arraylist_add(file, strduplicate("\tv = glob;"));
+	arraylist_add(file, strduplicate("\twhile(v);"));
+	arraylist_add(file, strduplicate("\ttest2(\"/* comment */\");"));
 	arraylist_add(file, strduplicate("}"));
 
 	scope_t *scope = parse_root_scope(file);

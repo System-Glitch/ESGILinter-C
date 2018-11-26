@@ -8,6 +8,7 @@ char *str_remove_comments(char *str) {
 	size_t length = strlen(str);
 
 	//TODO check not in quotes
+	//TODO remove "//" comments (until line break)
 
 	for(unsigned i = 0 ; i < length ; i++) {
 		if(comment_start == -1) {

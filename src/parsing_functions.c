@@ -348,6 +348,8 @@ function_t *parse_function_call(int line_index, char *line) {
 	char *expr                = NULL;
 	char c;
 
+	//TODO remove comments
+
 	SKIP_WHITESPACES
 
 	start_index = index;
@@ -431,6 +433,11 @@ void check_function_call_parameters(scope_t *scope, function_t *call, function_t
 				}
 			} else if(!field->type.is_literal) {
 				arraylist_add(undeclared_variables, strduplicate(field->name));
+			} else if(function != NULL && field->type.is_literal) {
+				param = arraylist_get(function->params, i);
+				if(!type_equals(&(field->type), &(param->type))) {
+					arraylist_add(invalid, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
+				}
 			}
 		} else if(function != NULL && find_function_prototype(get_root_scope(scope), function->name)) {
 			param = arraylist_get(function->params, i);
