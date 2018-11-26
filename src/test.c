@@ -293,6 +293,8 @@ static void test_rule_max_line_numbers(){
 	check_max_line_length(file, 5);
 	check_max_line_length(file, 50);
 
+	arraylist_free(file, 1);
+
 }
 
 static void test_rule_max_file_line_numbers(){
@@ -308,6 +310,8 @@ static void test_rule_max_file_line_numbers(){
 
 	max_file_line_numbers(file, 2);
 	max_file_line_numbers(file, 50);
+
+	arraylist_free(file, 1);
 
 }
 
