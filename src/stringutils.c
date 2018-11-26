@@ -7,6 +7,8 @@ char *str_remove_comments(char *str) {
 	int comment_end   = -1;
 	size_t length = strlen(str);
 
+	//TODO check not in quotes
+
 	for(unsigned i = 0 ; i < length ; i++) {
 		if(comment_start == -1) {
 			if(str[i] == '/' && str[i+1] == '*') {

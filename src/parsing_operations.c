@@ -66,6 +66,7 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 	type_t type;
 	type_t left_operand_type;
 	type_t right_operand_type;
+	char *line_wo_comment     = str_remove_comments(line);
 	char *tmp_line            = NULL;
 	char *left_operand        = NULL;
 	char *right_operand       = NULL;
@@ -75,7 +76,7 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 	int   index_operator      =  0;
 	int   left_operand_length = -1;
 	int   right_operand_index = -1;
-	int   length              = strlen(line);
+	int   length              = strlen(line_wo_comment);
 	int   operator_length     = -1;
 	int   rank                = -1;
 	char  is_declaration      =  0;
@@ -85,9 +86,9 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 	type.is_literal = 0;
 
 	while((operator = known_operators[index_operator++]) != NULL) { //Find operator
-		tmp_line = line;
+		tmp_line = line_wo_comment;
 		operator_length = strlen(operator);
-		occurrence = strstr(line, operator);
+		occurrence = strstr(line_wo_comment, operator);
 		if(occurrence != NULL) {
 
 			if(!strcmp(operator, "*") || !strcmp(operator, "&")) {
@@ -98,16 +99,17 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 						break;
 				}
 			} else if(is_operator_first(tmp_line, length, occurrence)) {
+				free(line_wo_comment);
 				return type;
 			}
 
 			if(occurrence == NULL) continue;
 
 			//Split
-			left_operand_length = occurrence - line;
+			left_operand_length = occurrence - line_wo_comment;
 			right_operand_index = left_operand_length + strlen(operator);
-			left_operand        = strsubstr(line, 0, left_operand_length);
-			right_operand       = strsubstr(line, right_operand_index, length - right_operand_index);
+			left_operand        = strsubstr(line_wo_comment, 0, left_operand_length);
+			right_operand       = strsubstr(line_wo_comment, right_operand_index, length - right_operand_index);
 
 			//TODO Handle parenthesis
 
@@ -149,7 +151,7 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 		}
 	}
 
-	//If no operation, just function call, what should I do?
+	free(line_wo_comment);
 
 	return type;	
 }

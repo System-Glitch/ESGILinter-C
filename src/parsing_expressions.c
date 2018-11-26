@@ -133,7 +133,7 @@ static void parse_integer_literal(char *line, int length, int index, type_t *typ
 				c = line[++index];
 		}
 
-		if(index < length && c != ';') { //Syntax error
+		if(index < length && c != ';' && !is_whitespace(c)) { //Syntax error
 			free(type->name);
 			type->name = strduplicate("NULL");
 		} else if(!strcmp(type->name, "unsigned")) {
@@ -151,6 +151,7 @@ static void parse_number_literal(char *line, int length, int index, type_t *type
 	while(is_digit(c = line[index]) && index < length) {
 		index++;
 	}
+
 
 	if(c == '.') { //Float or double
 		parse_float_literal(line, length, index, type);
@@ -271,7 +272,6 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 	} else if(undeclared_variables != NULL) {
 
 		if(!is_digit(c) && c != '.') {
-
 			function = parse_function_call(line_index, line + index);
 			if(function != NULL) {
 				check_function_expression(function, line, line_index, scope, &type, undeclared_variables, undeclared_functions, invalid_params);
