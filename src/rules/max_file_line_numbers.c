@@ -5,7 +5,7 @@
 
 unsigned int max_file_line_numbers(arraylist_t *file, unsigned int n){
   if(file->size > n){
-    print_warning("fictive_file.c", n, arraylist_get(file, n), "Too much lines");
+    print_warning("fictive_file.c", n, arraylist_get(file, n), "Too many lines");
     return 1;
   }
   return 0;
