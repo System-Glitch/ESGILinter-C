@@ -3,6 +3,7 @@
 #include "rules/parsing.h"
 #include "parsing_type.h"
 #include "parsing_expressions.h"
+#include "parsing_operations.h"
 #include "arraylist.h"
 #include "display.h"
 
@@ -36,7 +37,11 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file) {
 			invalid_params       = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 
 			line = arraylist_get(file, i);
-			type = parse_expression(line, i, scope, undeclared_variables, undeclared_functions, invalid_params); //Check type equals
+			type = parse_expression(line, i, scope, undeclared_variables, undeclared_functions, invalid_params);
+			if(!strcmp(type.name, "NULL")) {
+				type = parse_operation(line, i, scope, undeclared_variables, undeclared_functions, invalid_params);
+			}
+
 			for(size_t j = 0 ; j < undeclared_functions->size ; j++) {
 				function = arraylist_get(undeclared_functions, j);
 				message = strconcat("Undeclared function: ", function->name);

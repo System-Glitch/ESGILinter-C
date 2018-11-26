@@ -497,6 +497,7 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("static int glob = 89;"));
 
 	arraylist_add(file, strduplicate("void function(int param);"));
+	arraylist_add(file, strduplicate("char* test2(char v);"));
 
 	arraylist_add(file, strduplicate("void declared() {"));
 	arraylist_add(file, strduplicate("}"));
@@ -508,7 +509,7 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\tfunction(c);"));
 	arraylist_add(file, strduplicate("\tfunction(test2(test(c2)));"));
 	arraylist_add(file, strduplicate("\tfunction(25);"));
-	arraylist_add(file, strduplicate("\tchar *ret = test2(param);")); //TODO not detected
+	arraylist_add(file, strduplicate("\tchar *ret = test2(param);"));
 	arraylist_add(file, strduplicate("\tdeclared();"));
 	arraylist_add(file, strduplicate("}"));
 

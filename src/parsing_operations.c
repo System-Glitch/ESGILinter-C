@@ -66,6 +66,7 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 	type_t type;
 	type_t left_operand_type;
 	type_t right_operand_type;
+	scope_t *root_scope       = get_root_scope(scope);
 	char *line_wo_comment     = str_remove_comments(line);
 	char *tmp_line            = NULL;
 	char *left_operand        = NULL;
@@ -92,6 +93,15 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 		if(occurrence != NULL) {
 
 			if(!strcmp(operator, "*") || !strcmp(operator, "&")) {
+
+				//Check if not function declaration
+				for(size_t i = 0 ; i < root_scope->functions->size ; i++) {
+					if(((function_t*)arraylist_get(root_scope->functions, i))->line == line_index) {
+						free(line_wo_comment);
+						return type;
+					}
+				}
+
 				while(is_operator_first(tmp_line, length, occurrence)) {
 					tmp_line = occurrence + operator_length;
 					occurrence = strstr(tmp_line, operator);
