@@ -18,10 +18,29 @@ arraylist_t *arraylist_init(unsigned int initial_capacity) {
 		if(list->array == NULL) {
 			free(list);
 			list = NULL;
+		} else {
+			arraylist_set_null(list);
 		}
-		arraylist_set_null(list);
 	}
 	return list;
+}
+
+arraylist_t *arraylist_copy(arraylist_t *list) {
+	arraylist_t *copy = malloc(sizeof(arraylist_t));
+
+	if(copy != NULL) {
+		copy->size = list->size; 
+		copy->capacity = list->capacity;
+		copy->array = malloc(copy->capacity * sizeof(void*));
+		if(copy->array == NULL) {
+			free(copy);
+			copy = NULL;
+		} else {
+			for(size_t i = 0 ; i < list->capacity ; i++)
+				copy->array[i] = list->array[i];
+		}
+	}
+	return copy;
 }
 
 static void arraylist_grow(arraylist_t *list) {
