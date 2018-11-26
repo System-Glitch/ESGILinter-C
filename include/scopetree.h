@@ -13,9 +13,9 @@ typedef struct type {
 } type_t;
 
 typedef struct field {
-	char   *name;
-	type_t  type;
-	int     line;
+	char    *name;
+	type_t   type;
+	int      line;
 } field_t;
 
 typedef struct function {

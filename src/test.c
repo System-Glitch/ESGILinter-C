@@ -402,7 +402,7 @@ static void test_expression(char *line, unsigned int line_index, scope_t *scope)
 	arraylist_t *undeclared_functions = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 	arraylist_t *undeclared_variables = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 	arraylist_t *invalid_params       = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
-	type_t type = parse_expression(line, line_index, scope, undeclared_variables, undeclared_functions, invalid_params);
+	type_t type = parse_expression(line, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, NULL, NULL);
 	printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
 	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);
 	printf("\t%sIs pointer: %s%d\n", COLOR_CYAN, FORMAT_RESET, type.is_pointer);
@@ -503,7 +503,7 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("void declared() {"));
 	arraylist_add(file, strduplicate("}"));
 
-	arraylist_add(file, strduplicate("char function(int param) {"));
+	arraylist_add(file, strduplicate("char function(int param, char param2) {"));
 	arraylist_add(file, strduplicate("\tchar c = 'c';"));
 	arraylist_add(file, strduplicate("\tprintf(\"%c %d\", c, i);"));
 	arraylist_add(file, strduplicate("\ttest2(param);"));
@@ -526,7 +526,7 @@ static void test_rule_parsing() {
 
 	scope_t *scope = parse_root_scope(file);
 	if(scope != NULL) {
-		printf("Return: %d\n", parse_and_check(scope, file));
+		printf("Return: %d\n", parse_and_check(scope, file, NULL, NULL));
 		scope_free(scope);
 	} else {
 		printf("%sScope %sNULL\n%s", COLOR_YELLOW, COLOR_RED, FORMAT_RESET);
@@ -542,7 +542,7 @@ static void test_operation(char* line, unsigned int line_index, scope_t *scope) 
 	arraylist_t *undeclared_functions = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 	arraylist_t *undeclared_variables = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 	arraylist_t *invalid_params       = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
-	type_t type = parse_operation(line, line_index, scope, undeclared_variables, undeclared_functions, invalid_params);
+	type_t type = parse_operation(line, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, NULL, NULL);
 	printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
 	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);
 	printf("\t%sIs pointer: %s%d\n", COLOR_CYAN, FORMAT_RESET, type.is_pointer);

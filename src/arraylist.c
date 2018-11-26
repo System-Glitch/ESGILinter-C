@@ -82,9 +82,18 @@ void *arraylist_remove(arraylist_t *list, size_t index) {
 	return value;
 }
 
+size_t arraylist_index_of(arraylist_t *list, void *value) {
+	for(size_t i = 0 ; i < list->size ; i++) {
+		if(value == list->array[i]) {
+			return i;
+		}
+	}
+	return -1;
+}
+
 void arraylist_free(arraylist_t *list, unsigned char free_content) {
 	if(free_content) {
-		for(unsigned int i = 0 ; i < list->size ; i++) {
+		for(size_t i = 0 ; i < list->size ; i++) {
 			if(list->array[i] != NULL)
 				free(list->array[i]);
 		}

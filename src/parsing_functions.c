@@ -393,7 +393,7 @@ function_t *parse_function_call(int line_index, char *line) {
 				for(size_t i = 0 ; i < param_list->size ; i++) {
 					expr = arraylist_get(param_list, i);
 					function->params->array[i] = field_init(expr, strduplicate("void"), 0, -1);
-					((field_t*)function->params->array[i])->type = parse_expression(expr, line_index, NULL, NULL, NULL, NULL);
+					((field_t*)function->params->array[i])->type = parse_expression(expr, line_index, NULL, NULL, NULL, NULL, NULL, NULL);
 				}
 				free(line);
 				return function;
@@ -407,7 +407,7 @@ function_t *parse_function_call(int line_index, char *line) {
 	return NULL;
 }
 
-void check_function_call_parameters(scope_t *scope, function_t *call, function_t *function, int line_index, char *line, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid) {
+void check_function_call_parameters(scope_t *scope, function_t *call, function_t *function, int line_index, char *line, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid, arraylist_t *variables_list, arraylist_t *functions_list) {
 	field_t *field            = NULL;
 	field_t *param            = NULL;
 	field_t *var_dec          = NULL;
@@ -429,11 +429,14 @@ void check_function_call_parameters(scope_t *scope, function_t *call, function_t
 			if(function_call != NULL) {
 				function_dec = find_function(scope, function_call->name, 0);
 				if(function_dec != NULL && (function_dec->line < line_index || find_function_prototype(get_root_scope(scope), function_call->name) != NULL)) {
-					check_function_call_parameters(scope, function_call, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid);
+					if(functions_list) {
+						arraylist_remove(functions_list, arraylist_index_of(functions_list, function_dec));
+					}
+					check_function_call_parameters(scope, function_call, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid, variables_list, functions_list);
 					function_free(function_call);
 				} else {
 					arraylist_add(undeclared_functions, function_call);
-					check_function_call_parameters(scope, function_call, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid);
+					check_function_call_parameters(scope, function_call, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid, variables_list, functions_list);
 				}
 			} else if(!field->type.is_literal) {
 				arraylist_add(undeclared_variables, strduplicate(field->name));
@@ -443,8 +446,11 @@ void check_function_call_parameters(scope_t *scope, function_t *call, function_t
 					arraylist_add(invalid, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
 				}
 			}
-		} else if(function != NULL && find_function_prototype(get_root_scope(scope), function->name)) {
+		} else if(function != NULL) {
 			param = arraylist_get(function->params, i);
+			if(functions_list) {
+				arraylist_remove(variables_list, arraylist_index_of(variables_list, var_dec));
+			}
 			if(!type_equals(&(field->type), &(param->type))) {
 				arraylist_add(invalid, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
 			}
