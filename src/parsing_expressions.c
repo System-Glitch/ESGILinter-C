@@ -166,19 +166,26 @@ static void parse_number_literal(char *line, int length, int index, type_t *type
 
 static void check_function_expression(function_t *function, char *line, int line_index, scope_t *scope, type_t *type, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params) {
 	function_t *function_dec = NULL;
+	function_t *prototype    = NULL;
 
 	if(scope == NULL)
 		arraylist_add(undeclared_functions, function);
 	else {
 
 		function_dec = find_function(scope, function->name, 0);
-		if(function_dec != NULL && (function_dec->line < line_index || find_function_prototype(get_root_scope(scope), function->name) != NULL)) {
-			free(type->name);
-			type->name = strduplicate(function_dec->return_type.name);
-			type->is_pointer = function_dec->return_type.is_pointer;
-			type->is_literal = 0;
-			check_function_call_parameters(scope, function, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid_params);
-			function_free(function);
+		if(function_dec != NULL && (function_dec->line < line_index)) {
+			prototype = find_function_prototype(get_root_scope(scope), function->name);
+			if(function_dec->line < line_index || (prototype != NULL && prototype->line < line_index)) {
+				free(type->name);
+				type->name = strduplicate(function_dec->return_type.name);
+				type->is_pointer = function_dec->return_type.is_pointer;
+				type->is_literal = 0;
+				check_function_call_parameters(scope, function, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid_params);
+				function_free(function);
+			} else {
+				arraylist_add(undeclared_functions, function);
+				check_function_call_parameters(scope, function, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid_params);
+			}
 		} else {
 			arraylist_add(undeclared_functions, function);
 			check_function_call_parameters(scope, function, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid_params);

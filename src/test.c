@@ -460,8 +460,10 @@ static void test_parse_expression() {
 	test_expression("(  unsigned char   ) c", 0, scope);
 	test_expression("'d'", 0, scope);
 	test_expression("\"d\"", 0, scope);
-	test_expression("function()", 0, scope);
-	test_expression("test()", 0, scope);
+	test_expression("function()", 10, scope);
+	test_expression("test2()", 20, scope);
+	test_expression("/*comment */test2()", 20, scope);
+	test_expression("/*comment */ test2(/* comment */)", 20, scope);
 	test_expression("variable", 4, scope);
 	test_expression("*& &  variable", 4, scope);
 	test_expression("--  variable", 4, scope);

@@ -342,13 +342,14 @@ function_t *parse_function_call(int line_index, char *line) {
 	int start_index           = 0;
 	int end_index             = 0;
 	unsigned int index        = 0;
-	size_t length             = strlen(line);
 	char *name                = NULL;
 	char *params              = NULL;
 	char *expr                = NULL;
+	size_t length             = 0;
 	char c;
 
-	//TODO remove comments
+	line   = str_remove_comments(line);
+	length = strlen(line);
 
 	SKIP_WHITESPACES
 
@@ -378,6 +379,7 @@ function_t *parse_function_call(int line_index, char *line) {
 			SKIP_WHITESPACES
 			if(index < length && c != ';' && !is_whitespace(c)) {
 				free(name);
+				free(line);
 				return NULL;
 			}
 
@@ -393,12 +395,14 @@ function_t *parse_function_call(int line_index, char *line) {
 					function->params->array[i] = field_init(expr, strduplicate("void"), 0, -1);
 					((field_t*)function->params->array[i])->type = parse_expression(expr, line_index, NULL, NULL, NULL, NULL);
 				}
+				free(line);
 				return function;
 			}
 		}
 	}
 
 	free(name);
+	free(line);
 
 	return NULL;
 }
