@@ -163,7 +163,7 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 			free(right_operand_type.name);
 			if(!is_declaration)
 				free(left_operand_type.name);
-			//TODO implicit return type of operation and detect forbidden operations (2 * &ptr , void + something)
+			//TODO detect forbidden operations (2 * &ptr , void + something)
 
 			//Operand case ignored : int test[] = {length, 4};
 			break;
