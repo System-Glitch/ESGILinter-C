@@ -40,14 +40,14 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file) {
 			for(size_t j = 0 ; j < undeclared_functions->size ; j++) {
 				function = arraylist_get(undeclared_functions, j);
 				message = strconcat("Undeclared function: ", function->name);
-				print_error("fictive_file.c", j, line, message);
+				print_error("fictive_file.c", i, line, message);
 				free(message);
 				result++;
 			}
 
 			for(size_t j = 0 ; j < undeclared_variables->size ; j++) {
 				message = strconcat("Undeclared variable: ", arraylist_get(undeclared_variables, j));
-				print_error("fictive_file.c", j, line, message);
+				print_error("fictive_file.c", i, line, message);
 				free(message);
 				result++;
 			}
@@ -55,7 +55,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file) {
 			for(size_t j = 0 ; j < invalid_params->size ; j++) {
 				field = arraylist_get(invalid_params, j);
 				message = strconcat("Invalid parameter type: ", field->name);
-				print_error("fictive_file.c", j, line, message);
+				print_error("fictive_file.c", i, line, message);
 				free(message);
 				result++;
 			}
