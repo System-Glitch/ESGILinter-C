@@ -6,8 +6,8 @@
 #include <string.h>
 
 typedef struct match {
-	unsigned int index_start;
-	unsigned int index_end;
+    unsigned int index_start;
+    unsigned int index_end;
 } match_t;
 
 char *str_remove_comments(char *str);
@@ -23,20 +23,16 @@ int strlastindexof(char *str, char chr);
 char *strconcat(char *str1, char *str2);
 char *strjoin(char **strings, unsigned int count, char *join);
 
+
+void strformat(char *str, size_t length);
+
+
 char *substr_match(char *source, match_t match);
+
 
 char is_whitespace(char c);
 char is_alphanumeric(char c);
 
-match_t *match_init();
-
-
-void strformat(char *str, int length);
-
-char *substr_match(char *source, match_t match);
-
-char is_whitespace(char c);
-char is_alphanumeric(char c);
 
 match_t *match_init();
 

@@ -57,7 +57,7 @@ unsigned int file_row_number(FILE *src)
  * @return arrayList*
  */
 
-arraylist_t* file_loader(char *filename, int type){
+arraylist_t* file_loader(char *filename){
 
     if(strlen(filename) <= 0) return NULL;
 
@@ -85,20 +85,23 @@ arraylist_t* file_loader(char *filename, int type){
      * Memory allocation
      */
     e = arraylist_init(length);
+    line = malloc(sizeof(char) * 1048);
+    res = malloc(sizeof(char)*1048);
 
     /*
      * Load the array
      */
     initialized = 0;
+    tmp = NULL;
+    past_length = 0;
     for(i = 0; i < length; i++){
-        line = malloc(sizeof(char) * 1048);
-        res = malloc(sizeof(char)*1048);
+
         tempo = 0;
         counter = 0;
         fgets(line, 1048, src);
 
         if(!initialized && i != 0){
-            past_length = strlen(tmp);
+            past_length = (int)strlen(tmp);
             strcat(tmp, line);
         }
 
@@ -140,7 +143,6 @@ arraylist_t* file_loader(char *filename, int type){
                     initialized = 1;
                     counter = 1;
                     break;
-
             }
         }
 
@@ -152,6 +154,8 @@ arraylist_t* file_loader(char *filename, int type){
             tmp = malloc(sizeof(char) * 1048);
             strcpy(tmp,line);
         }
+        line = malloc(sizeof(char) * 1048);
+        res = malloc(sizeof(char)*1048);
     }
 
 

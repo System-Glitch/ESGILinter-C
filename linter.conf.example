@@ -1,0 +1,11 @@
+=extends
+
+=rules
+- rule1 = on
+- rule2 = off
+- rule3 = 4
+
+=excludedFiles
+
+=recursive
+true

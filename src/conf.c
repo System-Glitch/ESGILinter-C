@@ -15,26 +15,26 @@ void load_configuration(char *filename, arraylist_t *conf) {
     FILE *src;
     char *line;
     char *tmp;
-    rule_t *e;
 
     src = fopen(filename, "rb");
     if(src == NULL) return;
 
     line = malloc(sizeof(char) * 1048);
     tmp = malloc(sizeof(char) * 1048);
-    e = malloc(sizeof(rule_t));
 
     exclude_conf_file(conf, filename);
 
     while(fgets(line, 1048, src) != NULL){
         if(strstr(line, "=extends") ==  line){
             fgets(line, 1048, src);
-            strcpy(tmp, "conf_inc_");
-            strformat(line, 1048);
-            strcat(tmp, line);
-            while(line[0] != '\n' && line[0] != '#' && find_rule_index(conf, tmp) == -1 ){
-                load_configuration(line, conf);
-                fgets(line, 1048, src);
+            if(!is_whitespace(line[0])){
+                strcpy(tmp, "conf_inc_");
+                strformat(line, 1048);
+                strcat(tmp, line);
+                while(!is_whitespace(line[0]) && line[0] != '#' && find_rule_index(conf, tmp) == -1 ){
+                    load_configuration(line, conf);
+                    fgets(line, 1048, src);
+                }
             }
         }else if(strstr(line, "=rules") == line){
             load_rules(src, conf);
@@ -258,9 +258,9 @@ int find_rule_index(arraylist_t *conf, char *name){
  * @return int
  */
 int is_recursive(arraylist_t *conf){
-    if(conf == NULL) return NULL;
+    if(conf == NULL) return -1;
     int index = find_rule_index(conf, "recursive");
-    if(index >= 0) return ((rule_t*)(arraylist_get(conf, index)))->enable;
+    if(index >= 0) return ((rule_t*)(arraylist_get(conf, (unsigned int)index)))->enable;
     return -1;
 }
 
@@ -273,6 +273,6 @@ int is_recursive(arraylist_t *conf){
 rule_t *get_rule(arraylist_t *conf, char *name){
     if(conf == NULL || strlen(name) <= 0) return NULL;
     int index = find_rule_index(conf, name);
-    if(index >= 0) return ((rule_t*)(arraylist_get(conf, index)));
+    if(index >= 0) return ((rule_t*)(arraylist_get(conf, (unsigned int)index)));
     return NULL;
 }

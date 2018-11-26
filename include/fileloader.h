@@ -12,7 +12,7 @@
 
 unsigned int file_row_number(FILE *src);
 
-arraylist_t* file_loader(char *filename, int type);
+arraylist_t* file_loader(char *filename);
 
 unsigned long file_length(FILE *src);
 
