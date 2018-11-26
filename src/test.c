@@ -612,6 +612,9 @@ static void test_rule_no_multi_declaration() {
 	arraylist_add(file, strduplicate("\tshort var2 = 5, var3 = 6;"));
 	arraylist_add(file, strduplicate("}"));
 
+	arraylist_add(file, strduplicate("void params(int param1, char param2) {"));
+	arraylist_add(file, strduplicate("}"));
+
 	scope_t *scope = parse_root_scope(file);
 
 	if(scope != NULL) {
