@@ -483,6 +483,7 @@ static void test_parse_expression() {
 	test_expression(".4l", 0, scope);
 	test_expression(".4 l", 0, scope);
 	test_expression(". 4", 0, scope);
+	test_expression("\"string \\\" quote\"", 0, scope);
 
 	scope_free(scope);
 	arraylist_free(file, 1);
@@ -582,30 +583,30 @@ static void test_parsing_operations() {
 
 	scope_t *scope = parse_root_scope(file);
 
-	test_operation("int i = 0;", 5, scope);
-	test_operation("a + b", 5, scope);
-	test_operation("b + a", 5, scope);
-	test_operation("ab += ba", 5, scope);
-	test_operation("a << b", 5, scope);
-	test_operation("a <<= ba + ca", 5, scope);
-	test_operation("a * b", 5, scope);
-	test_operation("a * *ptr", 5, scope);
-	test_operation("*ptr * a", 5, scope);
-	test_operation("a & &ptr", 5, scope);
-	test_operation("&ptr & a", 5, scope);
-	test_operation("***ptr * **d", 5, scope);
-	test_operation("***ptr***d", 5, scope);
-	test_operation("a *", 5, scope);
-	test_operation("a <<= b < c << e;", 5, scope);
-	test_operation("a <<< b", 5, scope);
+	test_operation("int i = 0;", 9, scope);
+	test_operation("a + b", 9, scope);
+	test_operation("b + a", 9, scope);
+	test_operation("ab += ba", 9, scope);
+	test_operation("a << b", 9, scope);
+	test_operation("a <<= ba + ca", 9, scope);
+	test_operation("a * b", 9, scope);
+	test_operation("a * *ptr", 9, scope);
+	test_operation("*ptr * a", 9, scope);
+	test_operation("a & &ptr", 9, scope);
+	test_operation("&ptr & a", 9, scope);
+	test_operation("***ptr * **d", 9, scope);
+	test_operation("***ptr***d", 9, scope);
+	test_operation("a *", 9, scope);
+	test_operation("a <<= b < c << e;", 9, scope);
+	test_operation("a <<< b", 9, scope);
 	test_operation("test(e) + 12.8646f;", 8, scope);
 	test_operation("a = b + test(e) + 12.8646f;", 8, scope);
-	test_operation("1 / 2f", 5, scope);
-	test_operation("/* comment */ 1 / 2f", 5, scope);
-	test_operation("/* comment */ 1 / 2f /*comment*/", 5, scope);
-	test_operation("//comment\n1d + 3", 5, scope);
-	test_operation("1d //comment\n * 3", 5, scope);
-	test_operation("1d * 3", 5, scope);
+	test_operation("1 / 2f", 9, scope);
+	test_operation("/* comment */ 1 / 2f", 9, scope);
+	test_operation("/* comment */ 1 / 2f /*comment*/", 9, scope);
+	test_operation("//comment\n1d + 3", 9, scope);
+	test_operation("1d //comment\n * 3", 9, scope);
+	test_operation("1d * 3", 9, scope);
 
 	scope_free(scope);
 	arraylist_free(file, 1);

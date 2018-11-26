@@ -257,7 +257,6 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 		//Check if something follows
 		SKIP_WHITESPACES
 		
-		//printf("test %c %d\n", c, index >= length);
 		if(index >= length || is_whitespace(c) || c == ')') {
 			return type;
 		}

@@ -66,6 +66,7 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 	type_t type;
 	type_t left_operand_type;
 	type_t right_operand_type;
+	type_t *ptr_type;
 	scope_t *root_scope       = get_root_scope(scope);
 	char *line_wo_comment     = str_remove_comments(line);
 	char *tmp_line            = NULL;
@@ -141,12 +142,20 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 			right_operand_type = parse_operand(right_operand, line_index, scope, undeclared_variables, undeclared_functions, invalid_params);
 
 			if(!is_declaration) {
-				rank = get_highest_rank(right_operand_type.name, left_operand_type.name);
-				if(rank != -1) {
-					free(type.name);
-					type.name = strduplicate((char*)type_rank[rank]);
-					//TODO pointer
+
+				if(right_operand_type.is_pointer || left_operand_type.is_pointer) {
+					ptr_type = right_operand_type.is_pointer > left_operand_type.is_pointer ? &right_operand_type : &left_operand_type;
+					type.name = strduplicate(ptr_type->name);
+					type.is_pointer = ptr_type->is_pointer;
+				} else {
+					rank = get_highest_rank(right_operand_type.name, left_operand_type.name);
+					if(rank != -1) {
+						free(type.name);
+						type.name = strduplicate((char*)type_rank[rank]);
+						type.is_pointer = 0;
+					}
 				}
+
 			} else {
 				
 			}

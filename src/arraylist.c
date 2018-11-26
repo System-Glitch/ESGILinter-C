@@ -46,3 +46,5 @@ void arraylist_free(arraylist_t *list, unsigned char free_content) {
 	free(list->array);
 	free(list);
 }
+
+//TODO implement arraylist_remove
