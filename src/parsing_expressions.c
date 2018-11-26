@@ -152,7 +152,6 @@ static void parse_number_literal(char *line, int length, int index, type_t *type
 		index++;
 	}
 
-
 	if(c == '.') { //Float or double
 		parse_float_literal(line, length, index, type);
 	} else if(is_type_identifier(c)) {

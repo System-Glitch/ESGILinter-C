@@ -602,7 +602,9 @@ static void test_parsing_operations() {
 	test_operation("1 / 2f", 5, scope);
 	test_operation("/* comment */ 1 / 2f", 5, scope);
 	test_operation("/* comment */ 1 / 2f /*comment*/", 5, scope);
-	test_operation("1d //comment", 5, scope);
+	test_operation("//comment\n1d + 3", 5, scope);
+	test_operation("1d //comment\n * 3", 5, scope);
+	test_operation("1d * 3", 5, scope);
 
 	scope_free(scope);
 	arraylist_free(file, 1);

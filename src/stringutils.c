@@ -1,15 +1,16 @@
 #include "stringutils.h"
 
+#define COMMENT_TYPE_MULTILINE 1
+#define COMMENT_TYPE_ENDLINE 2
+
 char *str_remove_comments(char *str) {
 	char *result            = NULL;
 	char *tmp               = NULL;
 	int comment_start       = -1;
 	int comment_end         = -1;
 	unsigned char in_quotes = 0;
+	unsigned char type      = 0;
 	size_t length = strlen(str);
-
-	//TODO check not in quotes
-	//TODO remove "//" comments (until line break)
 
 	for(unsigned i = 0 ; i < length ; i++) {
 		if(!in_quotes && str[i] == '\"') {
@@ -20,17 +21,28 @@ char *str_remove_comments(char *str) {
 		} else {
 			if(comment_start == -1) {
 				if(str[i] == '/' && str[i+1] == '*') {
+					type = COMMENT_TYPE_MULTILINE;
+					comment_start = i;
+					i++;
+				} else if(str[i] == '/' && str[i+1] == '/') {
+					type = COMMENT_TYPE_ENDLINE;
 					comment_start = i;
 					i++;
 				}
 			} else {
-				if(str[i] == '*' && str[i+1] == '/') {
+				if(type == COMMENT_TYPE_MULTILINE && str[i] == '*' && str[i+1] == '/') {
 					comment_end = i + 2;
+					break;
+				} else if(type == COMMENT_TYPE_ENDLINE && is_line_break(str[i])) {
+					comment_end = i;
 					break;
 				}
 			}
 		}
 	}
+
+	if(type == COMMENT_TYPE_ENDLINE && comment_end == -1)
+		comment_end = length;
 
 	if(comment_start != -1 && comment_end != -1) {
 		result = malloc((length + 1) * sizeof(char));
@@ -223,6 +235,9 @@ char is_digit(char c) {
 	return c >= '0' && c <= '9';
 }
 
+char is_line_break(char c) {
+	return c == '\n' || c == '\r';
+}
 
 match_t *match_init() {
 	match_t *match = malloc(sizeof(match_t));
