@@ -1,25 +1,33 @@
 #include "stringutils.h"
 
 char *str_remove_comments(char *str) {
-	char *result = NULL;
-	char *tmp = NULL;
-	int comment_start = -1;
-	int comment_end   = -1;
+	char *result            = NULL;
+	char *tmp               = NULL;
+	int comment_start       = -1;
+	int comment_end         = -1;
+	unsigned char in_quotes = 0;
 	size_t length = strlen(str);
 
 	//TODO check not in quotes
 	//TODO remove "//" comments (until line break)
 
 	for(unsigned i = 0 ; i < length ; i++) {
-		if(comment_start == -1) {
-			if(str[i] == '/' && str[i+1] == '*') {
-				comment_start = i;
-				i++;
-			}
+		if(!in_quotes && str[i] == '\"') {
+			in_quotes = 1;
+		} else if(in_quotes) {
+			if(str[i] == '\"' && str[i-1] != '\\')
+				in_quotes = 0;
 		} else {
-			if(str[i] == '*' && str[i+1] == '/') {
-				comment_end = i + 2;
-				break;
+			if(comment_start == -1) {
+				if(str[i] == '/' && str[i+1] == '*') {
+					comment_start = i;
+					i++;
+				}
+			} else {
+				if(str[i] == '*' && str[i+1] == '/') {
+					comment_end = i + 2;
+					break;
+				}
 			}
 		}
 	}
