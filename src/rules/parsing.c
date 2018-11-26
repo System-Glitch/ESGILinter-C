@@ -40,7 +40,6 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 
 	type_t type;
 	unsigned int result               = 0;
-	unsigned int line_index           = 0;
 	scope_t *scope                    = NULL;
 	char *line                        = NULL;
 	char *message                     = NULL;
@@ -108,9 +107,8 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 	if(root_scope->parent == NULL) {
 		for(size_t j = 0 ; j < variables->size ; j++) {
 			field = arraylist_get(variables, j);
-			line_index = field->line == -1 ? 0 : field->line; //TODO correct line
-			message = field->line == -1 ? strconcat("Unused parameter: ", field->name) : strconcat("Unused variable: ", field->name);
-			print_warning("fictive_file.c", line_index, arraylist_get(file, line_index), message);
+			message = field->is_param ? strconcat("Unused parameter: ", field->name) : strconcat("Unused variable: ", field->name);
+			print_warning("fictive_file.c", field->line, arraylist_get(file, field->line), message);
 			free(message);
 			result++;
 		}

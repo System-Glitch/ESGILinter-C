@@ -86,7 +86,7 @@ static char *parse_function_name(char *line, unsigned int *star_count_name, unsi
 	return name;
 }
 
-static arraylist_t *parse_function_parameters(char *line, unsigned char is_prototype) {
+static arraylist_t *parse_function_parameters(char *line, unsigned char is_prototype, int line_index) {
 	arraylist_t *list            = arraylist_init(5);
 	unsigned int start_index     = 0;
 	unsigned int index           = 0;
@@ -163,7 +163,8 @@ static arraylist_t *parse_function_parameters(char *line, unsigned char is_proto
 			return NULL;
 		}
 
-		field = field_init(name, type, star_count_type + star_count_name + array_count, -1);
+		field = field_init(name, type, star_count_type + star_count_name + array_count, line_index);
+		field->is_param = 1;
 		arraylist_add(list, field);
 
 		free(tmp);
@@ -254,7 +255,7 @@ function_t *get_function_from_declaration(int line_index, char *line) {
 
 				tmp_params = strsubstr(tmp_name, params_start_index, index - params_start_index);
 
-				params = parse_function_parameters(tmp_params, is_prototype);
+				params = parse_function_parameters(tmp_params, is_prototype, line_index);
 				free(tmp_params);
 				free(tmp_name);
 

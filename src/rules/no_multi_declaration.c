@@ -19,7 +19,7 @@ unsigned int check_no_multi_declaration(scope_t *root_scope, arraylist_t *file) 
 
 	for(size_t i = 0 ; i < root_scope->variables->size ; i++) {
 		variable = (field_t*)arraylist_get(root_scope->variables, i);
-		if(variable->line != -1 && !list_contains(ignores, variable->line)) {
+		if(!(variable->is_param) && !list_contains(ignores, variable->line)) {
 			if(!list_contains(lines, variable->line)) {
 				tmp = malloc(sizeof(int));
 				*tmp = variable->line;

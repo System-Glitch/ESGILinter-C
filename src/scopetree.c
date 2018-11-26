@@ -14,8 +14,8 @@ field_t *field_init(char *name, char *type, char type_is_pointer, int line_index
 		field->type.is_pointer = type_is_pointer;
 		field->type.is_literal = 0;
 		field->line            = line_index;
+		field->is_param        = 0;
 	}
-
 	return field;
 }
 
@@ -107,6 +107,7 @@ scope_t *parse_root_scope(arraylist_t *file) {
 	function_t *function  = NULL;
 	node_t     *current   = NULL;
 	field_t    *tmp_field = NULL;
+	field_t    *field     = NULL;
 
 	if(scope == NULL) return NULL;
 
@@ -131,7 +132,9 @@ scope_t *parse_root_scope(arraylist_t *file) {
 			function = find_function_from_line(scope->functions, tmp_child->from_line);
 			for(size_t i = 0 ; i < function->params->size ; i++) {
 				tmp_field = arraylist_get(function->params, i);
-				arraylist_add(tmp_child->variables, field_init(strduplicate(tmp_field->name), strduplicate(tmp_field->type.name), tmp_field->type.is_pointer, tmp_field->line));
+				field = field_init(strduplicate(tmp_field->name), strduplicate(tmp_field->type.name), tmp_field->type.is_pointer, tmp_field->line);
+				field->is_param = 1;
+				arraylist_add(tmp_child->variables, field);
 			}
 		} while ((current = current->next) != NULL);
 	}
