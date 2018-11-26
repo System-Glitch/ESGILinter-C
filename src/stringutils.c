@@ -221,11 +221,9 @@ char *substr_match(char *source, match_t match) {
 	return substr;
 }
 
-
 char is_whitespace(char c) {
 	return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\v' || c == '\f';
 }
-
 
 char is_alphanumeric(char c) {
 	return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_';
