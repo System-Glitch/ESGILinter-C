@@ -636,9 +636,9 @@ void test() {
 	test_rule_no_prototype();
 	test_function_call_parsing();
 	test_parse_expression();
-	test_rule_parsing();
 	test_parsing_operations();
 	test_rule_no_multi_declaration();
+	test_rule_parsing();
 
 	printf("------------------------------%s\n", FORMAT_RESET);
 }

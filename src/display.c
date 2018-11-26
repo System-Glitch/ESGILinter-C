@@ -10,5 +10,5 @@ void print_error(char *file, int line_index, char *line, const char *message) {
 }
 
 void print_message(char *file, int line_index, char *line, const char *message, const char *type, const char *color) {
-	printf("%s[%s]%s At %s%s:%d:%s %s\n  %s\n", color, type, FORMAT_RESET, FORMAT_BOLD, file, line_index+1, FORMAT_RESET, message, line);
+	printf("%s[%s]%s At %s%s:%d%s: %s\n  %s\n", color, type, FORMAT_RESET, COLOR_CYAN_BOLD, file, line_index+1, FORMAT_RESET, message, line);
 }
