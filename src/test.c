@@ -453,6 +453,9 @@ static void test_parse_expression() {
 	scope_t *scope = parse_root_scope(file);
 
 	test_expression("(char)c", 0, scope);
+	test_expression("(char) ", 0, scope);
+	test_expression("(char) c", 0, scope);
+	test_expression("(char) test('c')", 0, scope);
 	test_expression("b", 5, scope);
 	test_expression("(  unsigned char   ) c", 0, scope);
 	test_expression("'d'", 0, scope);

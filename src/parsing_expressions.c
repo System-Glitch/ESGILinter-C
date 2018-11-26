@@ -213,8 +213,10 @@ static void check_variable_expression(char *line, int index, int line_index, sco
 type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params) {
 	type_t type;
 	function_t *function     = NULL;
+	char       *expr         = NULL;
 	unsigned int start_index = 0;
 	unsigned int end_index   = 0;
+	unsigned int close_index = 0;
 	int index                = 0;
 	unsigned int sub_index   = 0;
 	int length               = strlen(line);
@@ -242,6 +244,20 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 			return type;
 		}
 
+		close_index = index;
+
+		index++;
+
+		//Check if something follows
+		SKIP_WHITESPACES
+		
+		//printf("test %c %d\n", c, index >= length);
+		if(index >= length || is_whitespace(c) || c == ')') {
+			return type;
+		}
+
+		index = close_index;
+
 		//Skip whitespaces backwards to find end of type
 		while(is_whitespace(c = line[index]) && index > 0) { index--; }
 
@@ -256,7 +272,10 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 		//Remove stars
 		type.name[type_length - sub_index] = '\0';
 
-		//TODO Check expression without cast
+		//Check expression without cast
+		expr = strsubstr(line, close_index + 1, length - close_index);
+		parse_expression(expr, line_index, scope, undeclared_variables, undeclared_functions, invalid_params);
+		free(expr);
 
 
 	} else if(c == '\'' && strlastindexof(line, '\'') != index) {
