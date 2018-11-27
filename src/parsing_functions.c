@@ -394,7 +394,7 @@ function_t *parse_function_call(int line_index, char *line) {
 				for(size_t i = 0 ; i < param_list->size ; i++) {
 					expr = arraylist_get(param_list, i);
 					function->params->array[i] = field_init(expr, strduplicate("void"), 0, -1);
-					((field_t*)function->params->array[i])->type = parse_expression(expr, line_index, NULL, NULL, NULL, NULL, NULL, NULL);
+					((field_t*)function->params->array[i])->type = parse_expression(expr, line_index, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 				}
 				free(line);
 				return function;
@@ -408,19 +408,22 @@ function_t *parse_function_call(int line_index, char *line) {
 	return NULL;
 }
 
-void check_function_call_parameters(scope_t *scope, function_t *call, function_t *function, int line_index, char *line, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid, arraylist_t *variables_list, arraylist_t *functions_list) {
+void check_function_call_parameters(scope_t *scope, function_t *call, function_t *function, int line_index, char *line, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid, arraylist_t *variables_list, arraylist_t *functions_list, arraylist_t *invalid_calls) {
 	field_t *field            = NULL;
 	field_t *param            = NULL;
 	field_t *var_dec          = NULL;
 	function_t* function_call = NULL;
 	function_t* function_dec  = NULL;
+	invalid_call_t *error     = NULL;
 
-	if(function != NULL && call->params->size != function->params->size) {
-		//TODO show error, missing or too many parameters
+	if(function != NULL && call->params->size != function->params->size && invalid_calls != NULL) {
+		error = malloc(sizeof(invalid_call_t));
+		error->name = strduplicate(function->name);
+		error->more = call->params->size - function->params->size;
+		arraylist_add(invalid_calls, error);
 	}
 
 	for(size_t i = 0 ; i < call->params->size ; i++) {
-		if(function != NULL && i >= function->params->size) break;
 
 		field   = arraylist_get(call->params, i);			
 		var_dec = find_variable(scope, field->name);
@@ -433,27 +436,29 @@ void check_function_call_parameters(scope_t *scope, function_t *call, function_t
 					if(functions_list) {
 						arraylist_remove(functions_list, arraylist_index_of(functions_list, function_dec));
 					}
-					check_function_call_parameters(scope, function_call, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid, variables_list, functions_list);
+					check_function_call_parameters(scope, function_call, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid, variables_list, functions_list, invalid_calls);
 					function_free(function_call);
 				} else {
 					arraylist_add(undeclared_functions, function_call);
-					check_function_call_parameters(scope, function_call, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid, variables_list, functions_list);
+					check_function_call_parameters(scope, function_call, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid, variables_list, functions_list, invalid_calls);
 				}
 			} else if(!field->type.is_literal) {
 				arraylist_add(undeclared_variables, strduplicate(field->name));
-			} else if(function != NULL && field->type.is_literal) {
+			} else if(function != NULL && field->type.is_literal && i < function->params->size) {
 				param = arraylist_get(function->params, i);
 				if(!type_equals(&(field->type), &(param->type))) {
 					arraylist_add(invalid, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
 				}
 			}
 		} else if(function != NULL) {
-			param = arraylist_get(function->params, i);
 			if(functions_list) {
 				arraylist_remove(variables_list, arraylist_index_of(variables_list, var_dec));
 			}
-			if(!type_equals(&(field->type), &(param->type))) {
-				arraylist_add(invalid, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
+			if(i < function->params->size) {
+				param = arraylist_get(function->params, i);
+				if(!type_equals(&(field->type), &(param->type))) {
+					arraylist_add(invalid, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
+				}
 			}
 		}
 	}

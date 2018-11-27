@@ -42,12 +42,12 @@ static int get_highest_rank(char *type1, char *type2) {
 	return rank1 > rank2 ? rank1 : rank2;
 }
 
-static type_t parse_operand(char *operand, int line_index, scope_t *scope, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params, arraylist_t *variables_list, arraylist_t *functions_list) {
-	type_t type = parse_operation(operand, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list);
+static type_t parse_operand(char *operand, int line_index, scope_t *scope, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params, arraylist_t *variables_list, arraylist_t *functions_list, arraylist_t *invalid_calls) {
+	type_t type = parse_operation(operand, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
 
 	if(!strcmp(type.name, "NULL")) {
 		free(type.name);
-		type = parse_expression(operand, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list);
+		type = parse_expression(operand, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
 	}
 
 	return type;
@@ -62,7 +62,7 @@ static unsigned char is_operator_first(char *line, int length, char *occurrence)
 	return occurrence == line + index; 
 }
 
-type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params, arraylist_t *variables_list, arraylist_t *functions_list) {
+type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params, arraylist_t *variables_list, arraylist_t *functions_list, arraylist_t *invalid_calls) {
 	type_t type;
 	type_t left_operand_type;
 	type_t right_operand_type;
@@ -135,11 +135,11 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 				field_list_free(declarations);
 				is_declaration = 1;
 			} else {
-				left_operand_type = parse_operand(left_operand, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list);
+				left_operand_type = parse_operand(left_operand, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
 				is_declaration = 0;
 			}
 
-			right_operand_type = parse_operand(right_operand, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list);
+			right_operand_type = parse_operand(right_operand, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
 
 			if(!is_declaration) {
 

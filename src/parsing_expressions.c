@@ -163,7 +163,7 @@ static void parse_number_literal(char *line, int length, int index, type_t *type
 	}
 }
 
-static void check_function_expression(function_t *function, char *line, int line_index, scope_t *scope, type_t *type, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params, arraylist_t *variables_list, arraylist_t *functions_list) {
+static void check_function_expression(function_t *function, char *line, int line_index, scope_t *scope, type_t *type, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params, arraylist_t *variables_list, arraylist_t *functions_list, arraylist_t *invalid_calls) {
 	function_t *function_dec = NULL;
 	function_t *prototype    = NULL;
 
@@ -182,15 +182,15 @@ static void check_function_expression(function_t *function, char *line, int line
 				if(functions_list) {
 					arraylist_remove(functions_list, arraylist_index_of(functions_list, function_dec));
 				}
-				check_function_call_parameters(scope, function, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list);
+				check_function_call_parameters(scope, function, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
 				function_free(function);
 			} else {
 				arraylist_add(undeclared_functions, function);
-				check_function_call_parameters(scope, function, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list);
+				check_function_call_parameters(scope, function, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
 			}
 		} else {
 			arraylist_add(undeclared_functions, function);
-			check_function_call_parameters(scope, function, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list);
+			check_function_call_parameters(scope, function, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
 		}
 	}
 }
@@ -221,7 +221,7 @@ static void check_variable_expression(char *line, int index, int line_index, sco
 	}
 }
 
-type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params, arraylist_t *variables_list, arraylist_t *functions_list) {
+type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params, arraylist_t *variables_list, arraylist_t *functions_list, arraylist_t *invalid_calls) {
 	type_t type;
 	function_t *function     = NULL;
 	char       *expr         = NULL;
@@ -284,7 +284,7 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 
 		//Check expression without cast
 		expr = strsubstr(line, close_index + 1, length - close_index);
-		parse_expression(expr, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list);
+		parse_expression(expr, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
 		free(expr);
 
 
@@ -303,7 +303,7 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 		if(!is_digit(c) && c != '.') {
 			function = parse_function_call(line_index, line + index);
 			if(function != NULL) {
-				check_function_expression(function, line, line_index, scope, &type, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list);
+				check_function_expression(function, line, line_index, scope, &type, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
 			} else {
 				check_variable_expression(line, index, line_index, scope, &type, undeclared_variables, variables_list);
 			}
