@@ -225,10 +225,10 @@ static char *parse_control(char *line, int index, int length) {
 	static const char *simple_controls[] = {
 		"if", "else if", "switch", "while", NULL
 	};
-	//Case, default
-	// : operator
-	//For
-	//Return
+	//TODO Case, default
+	//TODO : operator
+	//TODO For
+	//TODO Return
 	const char *word   = NULL;
 	size_t i = 0;
 	char c;
@@ -335,7 +335,6 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 
 		expr = parse_control(line, index, length);
 		if(expr != NULL) {
-			printf("CONTROL : %s\n", line+index);
 			parse_expression(expr, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
 		} else if(is_digit(c) || c == '.') {
 			parse_number_literal(line, length, index, &type);
@@ -349,9 +348,6 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 		}
 
 	}
-
-	//TODO conditional expressions and loops (before variable and function expressions)
-	//if, else if, for, switch, case, while, ternary
 
 	return type;
 }
