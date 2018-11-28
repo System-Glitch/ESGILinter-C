@@ -228,11 +228,10 @@ static char *parse_control(char *line, int index, int length) {
 	//TODO Case, default
 	//TODO : operator
 	//TODO For
-	//TODO Return
-	const char *word   = NULL;
-	size_t i = 0;
+	const char *word = NULL;
+	size_t i         = 0;
+	int last_index   = -1;
 	char c;
-	int last_index = -1;
 
 	while((word = simple_controls[i++]) != NULL) {
 		if(strstr(line + index, word) == line + index) {
@@ -251,6 +250,16 @@ static char *parse_control(char *line, int index, int length) {
 			break;
 		}
 	}
+
+	//Specific
+	if(strstr(line + index, "return") == line + index) {
+		index += 6;
+
+		SKIP_WHITESPACES
+		//TODO check return type corresponds to function type
+		return strsubstr(line, index, length - index);
+	}
+
 	return NULL;
 }
 

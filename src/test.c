@@ -519,10 +519,12 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\tchar *ret = test2(param, param3, 'c');"));
 	arraylist_add(file, strduplicate("\tdeclared();"));
 	arraylist_add(file, strduplicate("\tproto();"));
+	arraylist_add(file, strduplicate("\treturn test2(&c, b);")); //TODO undeclared variable &c (referencing/dereferencing not executed)
 	arraylist_add(file, strduplicate("}"));
 
 	arraylist_add(file, strduplicate("int main() {"));
 	arraylist_add(file, strduplicate("\tint i = 42;"));
+	arraylist_add(file, strduplicate("\treturn j;"));
 	arraylist_add(file, strduplicate("}"));
 
 	arraylist_add(file, strduplicate("char* test2(char v) {"));
@@ -550,6 +552,8 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\tdefault: printf(\"default\");"));
 	arraylist_add(file, strduplicate("\t}"));
 	arraylist_add(file, strduplicate("\ttest2(\"/* comment */\") /* test */;"));
+	arraylist_add(file, strduplicate("\treturn;"));
+	arraylist_add(file, strduplicate("\treturn 'c';"));
 	arraylist_add(file, strduplicate("}"));
 
 	scope_t *scope = parse_root_scope(file);
