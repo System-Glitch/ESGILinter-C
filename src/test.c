@@ -197,6 +197,7 @@ static void test_variable_parsing() {
 
 	test_variable_declaration_parsing("extern unsigned char c = 42;");
 	test_variable_declaration_parsing("static unsigned char b = 98;");
+	test_variable_declaration_parsing("const unsigned variable = 98;");
 
 }
 

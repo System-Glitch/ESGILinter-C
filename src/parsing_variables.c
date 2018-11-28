@@ -202,15 +202,16 @@ arraylist_t *get_variables_from_declaration(int line_index, char *line) {
 	unsigned int type_sub_index;
 	unsigned int length;
 	unsigned int type_length;
-	unsigned int names_index = 0;
+	unsigned int names_index      = 0;
 	unsigned int type_start_index = 0;
 	arraylist_t *list   = NULL;
 	field_t *variable   = NULL;
 	match_t *for_loop   = NULL;
 	match_t *match_type = NULL;
+	char *tmp_type      = NULL;
+	char *tmp_line      = NULL;
 	char *tmp_names;
 	char *type;
-	char *tmp_line = NULL;
 
 	tmp_line = str_remove_comments(line);
 
@@ -253,6 +254,10 @@ arraylist_t *get_variables_from_declaration(int line_index, char *line) {
 				arraylist_free(list, 1);
 				free(line);
 				return NULL;
+			} else if(!strcmp(type, "unsigned")) {
+				tmp_type = strconcat(type, " int");
+				free(type);
+				type = tmp_type;
 			}
 
 			do {
