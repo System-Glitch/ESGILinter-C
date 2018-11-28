@@ -62,6 +62,33 @@ static unsigned char is_operator_first(char *line, int length, char *occurrence)
 	return occurrence == line + index; 
 }
 
+static unsigned char check_quotes(char *line, char *occurrence, int length) {
+	unsigned char found_before = 0;
+
+	printf("%s %d\n", line, occurrence - line);
+
+	//Find quote before
+	for(int i = occurrence - line ; i >= 0 ; i--) {
+		if(line[i] == '"') {
+			printf("found before %d\n", i);
+			found_before = 1;
+			break;
+		}
+	}
+
+	if(!found_before) return 0;
+
+	//Find quote after
+	for(int i = occurrence - line ; i < length ; i++) {
+		if(line[i] == '"') {
+			printf("found after %d\n", i);
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params, arraylist_t *variables_list, arraylist_t *functions_list, arraylist_t *invalid_calls) {
 	type_t type;
 	type_t left_operand_type;
@@ -92,6 +119,13 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 		operator_length = strlen(operator);
 		occurrence = strstr(line_wo_comment, operator);
 		if(occurrence != NULL) {
+
+			//TODO disrupts type detection
+			//Check if inside quotes
+			/*printf("Found operator %s\n", operator);
+			printf("Quotes ? %d\n", check_quotes(line_wo_comment, occurrence, length));
+			if(!check_quotes(line_wo_comment, occurrence, length))
+				continue;*/
 
 			if(!strcmp(operator, "*") || !strcmp(operator, "&")) {
 
@@ -143,7 +177,7 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 
 			if(!is_declaration) {
 
-				if(right_operand_type.is_pointer || left_operand_type.is_pointer) {
+				if(right_operand_type.is_pointer || left_operand_type.is_pointer) { //TODO check if substract operation result is correct
 					ptr_type = right_operand_type.is_pointer > left_operand_type.is_pointer ? &right_operand_type : &left_operand_type;
 					type.name = strduplicate(ptr_type->name);
 					type.is_pointer = ptr_type->is_pointer;

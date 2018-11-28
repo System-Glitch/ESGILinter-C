@@ -5,6 +5,7 @@
 #include "parsing_functions.h"
 #include "parsing_variables.h"
 #include "parsing_expressions.h"
+#include "parsing_operations.h"
 
 function_t *function_init(char *name, unsigned char is_prototype, char *type, unsigned char type_is_pointer, arraylist_t *params, int line_index) {
 	function_t *function = malloc(sizeof(function_t));
@@ -400,7 +401,7 @@ function_t *parse_function_call(int line_index, char *line) {
 				for(size_t i = 0 ; i < param_list->size ; i++) {
 					expr = arraylist_get(param_list, i);
 					function->params->array[i] = field_init(expr, strduplicate("void"), 0, -1);
-					((field_t*)function->params->array[i])->type = parse_expression(expr, line_index, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+					//((field_t*)function->params->array[i])->type = parse_expression(expr, line_index, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 				}
 				free(line);
 				return function;
@@ -421,6 +422,7 @@ void check_function_call_parameters(scope_t *scope, function_t *call, function_t
 	function_t* function_call = NULL;
 	function_t* function_dec  = NULL;
 	invalid_call_t *error     = NULL;
+	type_t type;
 
 	if(function != NULL && call->params->size != function->params->size && invalid_calls != NULL) {
 		error = malloc(sizeof(invalid_call_t));
@@ -431,42 +433,65 @@ void check_function_call_parameters(scope_t *scope, function_t *call, function_t
 
 	for(size_t i = 0 ; i < call->params->size ; i++) {
 
-		field   = arraylist_get(call->params, i);			
-		var_dec = find_variable(scope, field->name);
+		field = arraylist_get(call->params, i);
 
-		if(var_dec == NULL) {
-			function_call = parse_function_call(line_index, field->name); //Maybe it's a function
-			if(function_call != NULL) {
-				function_dec = find_function(scope, function_call->name, 0);
-				if(function_dec != NULL && (function_dec->line < line_index || find_function_prototype(get_root_scope(scope), function_call->name) != NULL)) {
-					if(functions_list) {
-						arraylist_remove(functions_list, arraylist_index_of(functions_list, function_dec));
-					}
-					check_function_call_parameters(scope, function_call, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid, variables_list, functions_list, invalid_calls);
-					function_free(function_call);
-				} else {
-					arraylist_add(undeclared_functions, function_call);
-					check_function_call_parameters(scope, function_call, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid, variables_list, functions_list, invalid_calls);
-				}
-			} else if(!field->type.is_literal) {
-				arraylist_add(undeclared_variables, strduplicate(field->name));
-			} else if(function != NULL && field->type.is_literal && i < function->params->size) {
-				param = arraylist_get(function->params, i);
-				if(!type_equals(&(field->type), &(param->type))) {
-					arraylist_add(invalid, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
-				}
-			}
-		} else if(function != NULL) {
-			if(functions_list) {
-				arraylist_remove(variables_list, arraylist_index_of(variables_list, var_dec));
-			}
-			if(i < function->params->size) {
-				param = arraylist_get(function->params, i);
-				if(!type_equals(&(field->type), &(param->type))) {
-					arraylist_add(invalid, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
-				}
+		type = parse_expression(field->name, line_index, scope, undeclared_variables, undeclared_functions, invalid, variables_list, functions_list, invalid_calls);
+		if(!strcmp(type.name, "NULL")) {
+			type = parse_operation(field->name, line_index, scope, undeclared_variables, undeclared_functions, invalid, variables_list, functions_list, invalid_calls);
+		}
+
+		if(function != NULL && i < function->params->size) {
+			param = arraylist_get(function->params, i);
+			if(strcmp(type.name, "NULL") && !type_equals(&type, &(param->type))) {
+				arraylist_add(invalid, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
 			}
 		}
+
+		/*operation_type = parse_operation(field->name, line_index, scope, undeclared_variables, undeclared_functions, invalid, variables_list, functions_list, invalid_calls);
+		if(!strcmp(operation_type.name, "NULL")) {
+			printf("is not operation: %s\n", field->name);
+			var_dec = find_variable(scope, field->name);
+
+			if(var_dec == NULL) {
+				function_call = parse_function_call(line_index, field->name); //Maybe it's a function
+				if(function_call != NULL) {
+					function_dec = find_function(scope, function_call->name, 0);
+					if(function_dec != NULL && (function_dec->line < line_index || find_function_prototype(get_root_scope(scope), function_call->name) != NULL)) {
+						if(functions_list) {
+							arraylist_remove(functions_list, arraylist_index_of(functions_list, function_dec));
+						}
+						check_function_call_parameters(scope, function_call, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid, variables_list, functions_list, invalid_calls);
+						function_free(function_call);
+					} else {
+						arraylist_add(undeclared_functions, function_call);
+						check_function_call_parameters(scope, function_call, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid, variables_list, functions_list, invalid_calls);
+					}
+				} else if(!field->type.is_literal) {
+					arraylist_add(undeclared_variables, strduplicate(field->name));
+				} else if(function != NULL && field->type.is_literal && i < function->params->size) {
+					param = arraylist_get(function->params, i);
+					if(!type_equals(&(field->type), &(param->type))) {
+						arraylist_add(invalid, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
+					}
+				}
+			} else if(function != NULL) {
+				if(functions_list) {
+					arraylist_remove(variables_list, arraylist_index_of(variables_list, var_dec));
+				}
+				if(i < function->params->size) {
+					param = arraylist_get(function->params, i);
+					if(!type_equals(&(field->type), &(param->type))) {
+						arraylist_add(invalid, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
+					}
+				}
+			}			
+		} else if(function != NULL && i < function->params->size) {
+			printf("is operation: %s\n", field->name);
+			param = arraylist_get(function->params, i);
+			if(!type_equals(&operation_type, &(param->type))) {
+				arraylist_add(invalid, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
+			}
+		}*/
 	}
 }
 

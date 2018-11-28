@@ -519,7 +519,8 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\tchar *ret = test2(param, param3, 'c');"));
 	arraylist_add(file, strduplicate("\tdeclared();"));
 	arraylist_add(file, strduplicate("\tproto();"));
-	arraylist_add(file, strduplicate("\treturn test2(&c, b);")); //TODO undeclared variable &c (referencing/dereferencing not executed)
+	arraylist_add(file, strduplicate("\ttest2(c + a, b);"));
+	arraylist_add(file, strduplicate("\treturn test2(&c, b);")); //TODO sees undeclared function (it is)
 	arraylist_add(file, strduplicate("}"));
 
 	arraylist_add(file, strduplicate("int main() {"));
