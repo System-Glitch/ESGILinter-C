@@ -65,12 +65,9 @@ static unsigned char is_operator_first(char *line, int length, char *occurrence)
 static unsigned char check_quotes(char *line, char *occurrence, int length) {
 	unsigned char found_before = 0;
 
-	printf("%s %d\n", line, occurrence - line);
-
 	//Find quote before
 	for(int i = occurrence - line ; i >= 0 ; i--) {
 		if(line[i] == '"') {
-			printf("found before %d\n", i);
 			found_before = 1;
 			break;
 		}
@@ -81,7 +78,6 @@ static unsigned char check_quotes(char *line, char *occurrence, int length) {
 	//Find quote after
 	for(int i = occurrence - line ; i < length ; i++) {
 		if(line[i] == '"') {
-			printf("found after %d\n", i);
 			return 1;
 		}
 	}
@@ -120,12 +116,9 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 		occurrence = strstr(line_wo_comment, operator);
 		if(occurrence != NULL) {
 
-			//TODO disrupts type detection
 			//Check if inside quotes
-			/*printf("Found operator %s\n", operator);
-			printf("Quotes ? %d\n", check_quotes(line_wo_comment, occurrence, length));
-			if(!check_quotes(line_wo_comment, occurrence, length))
-				continue;*/
+			if(check_quotes(line_wo_comment, occurrence, length))
+				continue;
 
 			if(!strcmp(operator, "*") || !strcmp(operator, "&")) {
 

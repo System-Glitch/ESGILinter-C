@@ -489,6 +489,8 @@ static void test_parse_expression() {
 	test_expression(".4 l", 0, scope);
 	test_expression(". 4", 0, scope);
 	test_expression("\"string \\\" quote\"", 0, scope);
+	test_expression("\"test * something\"", 0, scope);
+	test_expression("\"/* comment */\"", 0, scope);
 
 	scope_free(scope);
 	arraylist_free(file, 1);
@@ -562,7 +564,7 @@ static void test_rule_parsing() {
 
 	scope_t *scope = parse_root_scope(file);
 	if(scope != NULL) {
-		print_scope(scope, 0);
+		//print_scope(scope, 0);
 		printf("Return: %d\n", parse_and_check(scope, file, NULL, NULL));
 		scope_free(scope);
 	} else {
