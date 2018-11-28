@@ -221,6 +221,39 @@ static void check_variable_expression(char *line, int index, int line_index, sco
 	}
 }
 
+static char *parse_control(char *line, int index, int length) {
+	static const char *simple_controls[] = {
+		"if", "else if", "switch", "while", NULL
+	};
+	//Case, default
+	// : operator
+	//For
+	//Return
+	const char *word   = NULL;
+	size_t i = 0;
+	char c;
+	int last_index = -1;
+
+	while((word = simple_controls[i++]) != NULL) {
+		if(strstr(line + index, word) == line + index) {
+			index += strlen(word);
+			c = line[index];
+
+			SKIP_WHITESPACES
+
+			if(c == '(') {
+				last_index = strlastindexof(line, ')');
+				if(last_index > index) {
+					index++;
+					return strsubstr(line, index, last_index - index);
+				}
+			}
+			break;
+		}
+	}
+	return NULL;
+}
+
 type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params, arraylist_t *variables_list, arraylist_t *functions_list, arraylist_t *invalid_calls) {
 	type_t type;
 	function_t *function     = NULL;
@@ -298,21 +331,23 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 		type.name       = strduplicate("char");
 		type.is_pointer = 1;
 		type.is_literal = 1;
-	} else if(undeclared_variables != NULL) {
+	} else {
 
-		if(!is_digit(c) && c != '.') {
+		expr = parse_control(line, index, length);
+		if(expr != NULL) {
+			printf("CONTROL : %s\n", line+index);
+			parse_expression(expr, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
+		} else if(is_digit(c) || c == '.') {
+			parse_number_literal(line, length, index, &type);
+		} else if(undeclared_variables != NULL) {
 			function = parse_function_call(line_index, line + index);
 			if(function != NULL) {
 				check_function_expression(function, line, line_index, scope, &type, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
 			} else {
 				check_variable_expression(line, index, line_index, scope, &type, undeclared_variables, variables_list);
 			}
-		} else {
-			parse_number_literal(line, length, index, &type);
 		}
 
-	} else if(is_digit(c) || c == '.') {
-		parse_number_literal(line, length, index, &type);
 	}
 
 	//TODO conditional expressions and loops (before variable and function expressions)

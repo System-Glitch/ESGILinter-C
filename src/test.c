@@ -503,6 +503,7 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("static int glob = 89;"));
 
 	arraylist_add(file, strduplicate("void function(int param);"));
+	arraylist_add(file, strduplicate("void proto();"));
 	arraylist_add(file, strduplicate("char* test2(char v);"));
 
 	arraylist_add(file, strduplicate("void declared() {"));
@@ -517,6 +518,7 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\tfunction(25);"));
 	arraylist_add(file, strduplicate("\tchar *ret = test2(param, param3, 'c');"));
 	arraylist_add(file, strduplicate("\tdeclared();"));
+	arraylist_add(file, strduplicate("\tproto();"));
 	arraylist_add(file, strduplicate("}"));
 
 	arraylist_add(file, strduplicate("int main() {"));
@@ -526,14 +528,26 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("char* test2(char v) {"));
 	arraylist_add(file, strduplicate("\tv = glob;"));
 	arraylist_add(file, strduplicate("\twhile(i);"));
-	arraylist_add(file, strduplicate("\twhile(i) {"));
+	arraylist_add(file, strduplicate("\twhile(j) {"));
 	arraylist_add(file, strduplicate("\t\t//..."));
-	arraylist_add(file, strduplicate("\t\tif(i);"));
-	arraylist_add(file, strduplicate("\t\tif(i) {"));
+	arraylist_add(file, strduplicate("\t\tif(k);"));
+	arraylist_add(file, strduplicate("\t\tif(l) {"));
 	arraylist_add(file, strduplicate("\t\t\tbreak;"));
 	arraylist_add(file, strduplicate("\t\t\tbreak();"));
-	arraylist_add(file, strduplicate("\t\t} else if(i) {"));
 	arraylist_add(file, strduplicate("\t\t}"));
+	arraylist_add(file, strduplicate("\t\telse if(m) {"));
+	arraylist_add(file, strduplicate("\t\t}"));
+	arraylist_add(file, strduplicate("\t\telse {"));
+	arraylist_add(file, strduplicate("\t\t\tif(v, k);"));
+	arraylist_add(file, strduplicate("\t\t}"));
+	arraylist_add(file, strduplicate("\t}"));
+	arraylist_add(file, strduplicate("\t do {"));
+	arraylist_add(file, strduplicate("\t}"));
+	arraylist_add(file, strduplicate("\twhile(test);"));
+	arraylist_add(file, strduplicate("\tswitch(p) {"));
+	arraylist_add(file, strduplicate("\tcase 1: printf();"));
+	arraylist_add(file, strduplicate("\tbreak;"));
+	arraylist_add(file, strduplicate("\tdefault: printf(\"default\");"));
 	arraylist_add(file, strduplicate("\t}"));
 	arraylist_add(file, strduplicate("\ttest2(\"/* comment */\") /* test */;"));
 	arraylist_add(file, strduplicate("}"));
