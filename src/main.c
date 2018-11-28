@@ -22,10 +22,11 @@ int main(int argc, char **argv) {
 
 	for(int i = 0; i < files->size; i++){
 
-		file_loader(buffer, files, "test.txt");
+		file_loader(buffer, files, "test.txt"); // replace "test.txt" by files->array[i]
 		printf("\n");
-		printf("%d\n",buffer->size);
-		printf("%s\n",get_line(buffer,1)->line);
+		for(int j = 0; j < buffer->size; j++){
+			printf("New line : %s\n",get_line(buffer,j)->line);
+		}
 		break;
 		/*
 		 *

@@ -72,6 +72,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, char *filename){
     line_t *l;
     int line_counter;
     int counter;
+    int start_for;
     FILE *src;
 
     src = fopen(filename,"rb");
@@ -95,6 +96,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, char *filename){
 
     line_counter = 0;
     real_line = 0;
+    start_for = 0;
     for(i = 0; i < length; i++){
         tempo = 0;
         counter = 0;
@@ -117,9 +119,11 @@ void file_loader(arraylist_t *e, arraylist_t *files, char *filename){
             strcpy(tmp,"");
             continue;
         }
-
+        if(strstr(line, "for(") == line){
+            start_for = 1;
+        }
         for(j = 0; j < strlen(line) ; j++){
-            if(line[j] == ';' || line[j] == '{' || line[j] == '}'){
+            if((line[j] == ';' && start_for == 0) || line[j] == '{' || line[j] == '}'){
                 real_line++;
                 l = malloc(sizeof(line_t));
                 l->source = malloc(sizeof(char) * 255);
@@ -145,11 +149,12 @@ void file_loader(arraylist_t *e, arraylist_t *files, char *filename){
                     }
                 }
                 strcpy(tmp,"");
-
                 arraylist_add(e, l);
                 tempo = j+1;
                 counter++;
                 init = j;
+                if(start_for == 1 && line[j] == '{')
+                    start_for = 0;
             }
         }
         if(!counter){
