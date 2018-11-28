@@ -4,14 +4,36 @@
 #include "fileloader.h"
 
 int main(int argc, char **argv) {
-	//arraylist_t *test;
-	//test = file_loader("test.txt");
+    char *path;
+
 	arraylist_t *conf = arraylist_init(2);
-	load_configuration("test.conf", conf);
+	arraylist_t *files = arraylist_init(2);
+	arraylist_t *buffer = arraylist_init(2);
+
+    path = malloc(sizeof(char) * 255);
+
+    strcpy(path, "."); // replace with an argument
+
+	load_configuration("test.conf", conf); // replace with an argument
+
 	if(conf == NULL) return EXIT_FAILURE;
-    printf("Rule : %s\n",((rule_t*)(arraylist_get(conf, 1)))->name); //
-    printf("Size : %zu\n",conf->size);
-	rule_t *test = get_rule(conf, "rule1");
-	printf("test %s\n", test->name);
+
+	search_files(conf, files, path);
+
+	for(int i = 0; i < files->size; i++){
+
+		file_loader(buffer, files, "test.txt");
+		printf("\n");
+		printf("%d\n",buffer->size);
+		printf("%s\n",get_line(buffer,1)->line);
+		break;
+		/*
+		 *
+		 * TREAT DATA FROM HERE
+		 *
+		 * APPLY RULES
+		 *
+		 */
+	}
 	return EXIT_SUCCESS;
 }

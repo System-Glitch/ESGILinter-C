@@ -261,7 +261,7 @@ int is_recursive(arraylist_t *conf){
     if(conf == NULL) return -1;
     int index = find_rule_index(conf, "recursive");
     if(index >= 0) return ((rule_t*)(arraylist_get(conf, (unsigned int)index)))->enable;
-    return -1;
+    return 0;
 }
 
 /**
@@ -275,4 +275,45 @@ rule_t *get_rule(arraylist_t *conf, char *name){
     int index = find_rule_index(conf, name);
     if(index >= 0) return ((rule_t*)(arraylist_get(conf, (unsigned int)index)));
     return NULL;
+}
+
+/**
+ * Exclude a filepath
+ * @param conf
+ * @param filepath
+ */
+
+void exclude_filepath(arraylist_t *conf, char *filepath){
+    if(strlen(filepath) <= 0) return;
+
+    rule_t *e;
+
+    e = malloc(sizeof(rule_t));
+    e->name = malloc(sizeof(char) * 1048);
+
+    strcpy(e->name, "incfilepath_");
+    strcat(e->name, filepath);
+
+    e->enable = 1;
+    e->value = 0;
+    arraylist_add(conf, e);
+}
+
+/**
+ * Verify if a file is already included
+ * @param conf
+ * @param path
+ * @return
+ */
+int is_excluded(arraylist_t *conf, char *path){
+    char *name;
+    name = malloc(sizeof(char) * 1048);
+
+    strcpy(name, "exfile_");
+    strcat(name, path);
+    if(get_rule(conf, name) == NULL){
+        return 0;
+    }else{
+        return 1;
+    }
 }

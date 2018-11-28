@@ -57,105 +57,110 @@ unsigned int file_row_number(FILE *src)
  * @return arrayList*
  */
 
-arraylist_t* file_loader(char *filename){
+void file_loader(arraylist_t *e, arraylist_t *files, char *filename){
 
-    if(strlen(filename) <= 0) return NULL;
+    if(strlen(filename) <= 0) return;
 
-    arraylist_t *e;
     unsigned int length;
     unsigned int i;
     unsigned int j;
     int tempo;
+    int init;
     char *line;
     char *tmp;
     char *res;
-    int initialized;
-    int past_length;
+    int real_line;
+    line_t *l;
+    int line_counter;
     int counter;
     FILE *src;
 
     src = fopen(filename,"rb");
 
     if(src == NULL){
-        return NULL;
+        return;
     }
 
     length = file_row_number(src);
     /*
      * Memory allocation
      */
-    e = arraylist_init(length);
     line = malloc(sizeof(char) * 1048);
-    res = malloc(sizeof(char)*1048);
+    tmp = malloc(sizeof(char) * 1048);
+    res = malloc(sizeof(char) * 1048);
+    strcpy(tmp, "");
 
     /*
      * Load the array
      */
-    initialized = 0;
-    tmp = NULL;
-    past_length = 0;
-    for(i = 0; i < length; i++){
 
+    line_counter = 0;
+    real_line = 0;
+    for(i = 0; i < length; i++){
         tempo = 0;
         counter = 0;
+        init = 0;
+        line_counter++;
         fgets(line, 1048, src);
-
-        if(!initialized && i != 0){
-            past_length = (int)strlen(tmp);
-            strcat(tmp, line);
+        if(strstr(line, "#include \"") == line){
+            int first_index = strindexof(line, '"');
+            int last_index = strlastindexof(line, '"');
+            tmp = strsubstr(line, first_index+1, last_index-first_index-1);
+            last_index = strlastindexof(tmp, '/');
+            if(last_index != -1){
+                tmp = strsubstr(tmp, last_index+1, strlen(tmp) - last_index);
+            }
+            for(int k = 0; k < files->size; k++){
+                if(strstr(files->array[k], tmp) != NULL){
+                    file_loader(e, files, files->array[k]);
+                }
+            }
+            strcpy(tmp,"");
+            continue;
         }
 
         for(j = 0; j < strlen(line) ; j++){
-            switch(line[j]){
-                case ';':
-                    if(!initialized && i != 0){
-                        strcpy(res,strsubstr(tmp, tempo, past_length+1));
+            if(line[j] == ';' || line[j] == '{' || line[j] == '}'){
+                real_line++;
+                l = malloc(sizeof(line_t));
+                l->source = malloc(sizeof(char) * 255);
+                l->line = malloc(sizeof(char) * 1048);
+                strcpy(l->source, filename);
+                l->start_line = i-line_counter;
+                if(l->start_line < 0){
+                    l->start_line = 1;
+                }
+                l->end_line = i+1;
+                l->real_line = real_line;
+                if(strlen(tmp) != 0){
+                    strcpy(l->line, tmp);
+                    tmp = strsubstr(line, tempo, j+1);
+                    strcat(l->line, tmp);
+                }else{
+                    if(!init){
+                        tmp = strsubstr(line, tempo, j+1);
+                        strcpy(l->line, tmp);
                     }else{
-                        strcpy(res,strsubstr(line, tempo, j+1));
+                        tmp = strsubstr(line, tempo, j-init);
+                        strcpy(l->line, tmp);
                     }
-                    tempo = j+1;
-                    past_length = 0;
-                    arraylist_add(e, res);
-                    initialized = 1;
-                    counter = 1;
-                    break;
-                case '{':
-                    if(!initialized && i != 0){
-                        strcpy(res,strsubstr(tmp, tempo, past_length+1));
-                    }else{
-                        strcpy(res,strsubstr(line, tempo, j+1));
-                    }
-                    tempo = j+1;
-                    past_length = 0;
-                    arraylist_add(e, res);
-                    initialized = 1;
-                    counter = 1;
-                    break;
-                case '}':
-                    if(!initialized && i != 0){
-                        strcpy(res,strsubstr(tmp, tempo, past_length+1));
-                    }else{
-                        strcpy(res,strsubstr(line, tempo, j+1));
-                    }
-                    tempo = j+1;
-                    past_length = 0;
-                    arraylist_add(e, res);
-                    initialized = 1;
-                    counter = 1;
-                    break;
+                }
+                strcpy(tmp,"");
+
+                arraylist_add(e, l);
+                tempo = j+1;
+                counter++;
+                init = j;
             }
         }
-
-        if(counter == 0){
-            initialized = 0;
+        if(!counter){
+            strcat(tmp,line);
+        }else if(counter && tempo){
+            res = strsubstr(line, tempo, strlen(line));
+            strcat(tmp, res);
         }
 
-        if(!initialized){
-            tmp = malloc(sizeof(char) * 1048);
-            strcpy(tmp,line);
-        }
         line = malloc(sizeof(char) * 1048);
-        res = malloc(sizeof(char)*1048);
     }
 
 
@@ -165,13 +170,74 @@ arraylist_t* file_loader(char *filename){
      */
     fclose(src);
     free(line);
-    free(res);
     free(tmp);
-
-
-    if(e->size){
-        return e;
-    }else{
-        return NULL;
-    }
+    free(res);
 }
+
+
+/**
+ * Search all the current files
+ * @param conf
+ * @param files
+ */
+void search_files(arraylist_t *conf, arraylist_t *files, char *path){
+    if(!conf) return;
+
+    struct dirent *read;
+    DIR *rep;
+    char *ext;
+    char *name;
+
+    ext = malloc(sizeof(char) * 255);
+
+
+
+    rep = opendir(path);
+    while ((read = readdir(rep))) {
+        if(read->d_type == 8){
+            strcpy(ext, strsubstr(read->d_name, strlen(read->d_name)-2,2));
+            if((strcmp(ext,".c") == 0 || strcmp(ext,".h") == 0) && is_excluded(conf, read->d_name) == 0){
+                name = malloc(sizeof(char) * 1048);
+                if(strcmp(path, ".") == 0){
+                    strcpy(name,read->d_name);
+                }else{
+                    strcpy(name, path);
+                    strcat(name,"/");
+                    strcat(name, read->d_name);
+                }
+                arraylist_add(files, name);
+            }
+        }else if(read->d_type == 4 && strcmp(read->d_name,".") != 0 && strcmp(read->d_name,"..") != 0 && is_recursive(conf) != 0){
+
+            if(strcmp(path, ".") == 0){
+                strcpy(path, read->d_name);
+            }else{
+                strcat(path, "/");
+                strcat(path, read->d_name);
+            }
+            search_files(conf, files, path);
+        }
+    }
+    if(strindexof(path, '/') != -1){
+        strcpy(path, strsubstr(path, 0, strlastindexof(path, '/')));
+    }else{
+        strcpy(path,".");
+    }
+
+    closedir(rep);
+
+    free(ext);
+}
+
+/**
+ * Return the current struct line of the file
+ * @param file
+ * @param index
+ * @return line_t*
+ */
+line_t *get_line(arraylist_t *file, int index){
+    if(!file) return NULL;
+    if(index >= 0) return ((line_t*)(arraylist_get(file, (unsigned int)index)));
+    return NULL;
+}
+
