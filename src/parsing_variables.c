@@ -18,14 +18,14 @@ static char parse_variable_value(char *line, size_t length, unsigned int *i) {
 	value_start_index = index;
 	do {
 		c = line[index];
-		if(!expect_comma && !in_content && (c == '"' || c == '{')) {
+		if(!expect_comma && !in_content && (c == '"' || c == '{' || c == '(')) {
 			in_content = c;
 			nested = 1;
 		} else if(!expect_comma && in_content) {
 
-			if(in_content == '{' && c == '{') {
+			if((in_content == '{' && c == '{') || (in_content == '(' && c == '(')) {
 				nested++;
-			} else if(in_content == '{' && c == '}') {
+			} else if((in_content == '{' && c == '}') || (in_content == '(' && c == ')')) {
 				nested--;
 				if(nested <= 0) {
 					in_content = 0;

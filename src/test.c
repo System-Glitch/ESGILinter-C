@@ -198,6 +198,8 @@ static void test_variable_parsing() {
 	test_variable_declaration_parsing("extern unsigned char c = 42;");
 	test_variable_declaration_parsing("static unsigned char b = 98;");
 	test_variable_declaration_parsing("const unsigned variable = 98;");
+	test_variable_declaration_parsing("\tchar *ret = test2(param, param3, 'c');");
+	test_variable_declaration_parsing("\tchar *ret = test2(param, param3, 'c'), ret2, ret3 = NULL;");
 
 }
 
@@ -511,7 +513,7 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\tfunction(c);"));
 	arraylist_add(file, strduplicate("\tfunction(test2(test(c2)));"));
 	arraylist_add(file, strduplicate("\tfunction(25);"));
-	arraylist_add(file, strduplicate("\tchar *ret = test2(param, param3, 'c');")); //TODO parsing error, sees multiple variable declaration
+	arraylist_add(file, strduplicate("\tchar *ret = test2(param, param3, 'c');"));
 	arraylist_add(file, strduplicate("\tdeclared();"));
 	arraylist_add(file, strduplicate("}"));
 
