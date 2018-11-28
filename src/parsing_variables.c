@@ -156,8 +156,12 @@ static field_t *get_variable_from_declaration(int line_index, char *type, int st
 		name = strsubstr(tmp, sub_index, strlen(tmp) - star_count);
 		free(tmp);
 
-		if(name != NULL)
-			variable = field_init(name, strduplicate(type), star_count + array_count + star_count_type, line_index);
+		if(name != NULL) {
+			if(is_keyword(name)) {
+				free(name);
+			} else
+				variable = field_init(name, strduplicate(type), star_count + array_count + star_count_type, line_index);
+		}
 	}
 
 	return variable;

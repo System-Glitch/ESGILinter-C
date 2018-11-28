@@ -365,6 +365,12 @@ function_t *parse_function_call(int line_index, char *line) {
 
 	name = strsubstr(line, start_index, end_index - start_index);
 
+	if(is_keyword(name)) {
+		free(name);
+		free(line);
+		return NULL;
+	}
+
 	SKIP_WHITESPACES
 
 	//Expect parenthesis

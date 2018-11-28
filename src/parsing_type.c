@@ -60,8 +60,18 @@ match_t *parse_type(char *line) {
 
 	SKIP_WHITESPACES
 
+	if(strstr(line + index, "volatile") == line + index) //Skip volatile keyword
+		index += 8;
+
+	SKIP_WHITESPACES
+
 	if(strstr(line + index, "const") == line + index) //Skip const keyword
 		index += 5;
+
+	SKIP_WHITESPACES
+
+	if(strstr(line + index, "signed") == line + index) //Skip signed keyword
+		index += 6;
 
 	SKIP_WHITESPACES
 

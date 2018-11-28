@@ -50,6 +50,7 @@ scope_t     *parse_scope(arraylist_t *file, unsigned int start_line, unsigned in
 
 unsigned char type_equals(type_t *type1, type_t *type2);
 unsigned char type_exists(char *type);
+unsigned char is_keyword(char *name);
 
 void field_free(field_t *field);
 void field_list_free(arraylist_t *list);
@@ -61,5 +62,4 @@ function_t *find_function(scope_t *scope, char *name, unsigned char allow_protot
 function_t *find_function_prototype(scope_t *root_scope, char *name);
 field_t    *find_variable(scope_t *scope, char *name);
 scope_t    *is_in_child_scope(scope_t *scope, int line);
-
 #endif

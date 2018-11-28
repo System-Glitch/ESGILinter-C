@@ -226,8 +226,8 @@ unsigned char type_equals(type_t *type1, type_t *type2) {
 }
 
 unsigned char type_exists(char *type) {
-	static const char *known_types[] = {"char","short","int","unsigned","long","signed","float","double","size_t","void"};
-	for(unsigned i = 0 ; i < 10 ; i++)
+	static const char *known_types[] = {"char","short","int","unsigned","signed","long","signed","float","double","size_t","void"};
+	for(unsigned i = 0 ; i < 11 ; i++)
 		if(!strcmp(type, known_types[i]))
 			return 1;
 
@@ -338,4 +338,23 @@ function_t *find_function_prototype(scope_t *root_scope, char *name) {
 	}
 
 	return NULL;
+}
+
+unsigned char is_keyword(char *name) {
+	static const char *keywords[] = {
+		"auto", "break", "case", "char", "const", "continue",
+		"default", "do", "double", "else", "enum", "extern",
+		"float", "for", "goto", "if", "inline", "int", "long",
+		"register", "restrict", "return", "short", "signed",
+		"sizeof", "static", "struct", "switch", "typedef", "union",
+		"unsigned", "void", "volatile", "while",
+		NULL
+	};
+	const char *word   = NULL;
+	size_t index = 0;
+	while((word = keywords[index++]) != NULL) {
+		if(!strcmp(name, word))
+			return 1;
+	}
+	return 0;
 }

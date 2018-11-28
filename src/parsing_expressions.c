@@ -201,7 +201,7 @@ static void check_variable_expression(char *line, int index, int line_index, sco
 	char is_pointer       = 0;
 
 	parse_variable_expression(line + index, &variable_name, &is_pointer);
-	if(variable_name != NULL) {
+	if(variable_name != NULL && !is_keyword(variable_name)) {
 
 		variable_dec = find_variable(scope, variable_name);
 		if(scope == NULL || variable_dec == NULL || variable_dec->line > line_index)
@@ -315,7 +315,8 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 		parse_number_literal(line, length, index, &type);
 	}
 
-	//TODO conditional expressions and loops
+	//TODO conditional expressions and loops (before variable and function expressions)
 	//if, else if, for, switch, case, while, ternary
+
 	return type;
 }

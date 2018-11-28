@@ -200,6 +200,8 @@ static void test_variable_parsing() {
 	test_variable_declaration_parsing("const unsigned variable = 98;");
 	test_variable_declaration_parsing("\tchar *ret = test2(param, param3, 'c');");
 	test_variable_declaration_parsing("\tchar *ret = test2(param, param3, 'c'), ret2, ret3 = NULL;");
+	test_variable_declaration_parsing("signed int sign;");
+	test_variable_declaration_parsing("signed int volatile;");
 
 }
 
@@ -523,7 +525,16 @@ static void test_rule_parsing() {
 
 	arraylist_add(file, strduplicate("char* test2(char v) {"));
 	arraylist_add(file, strduplicate("\tv = glob;"));
-	arraylist_add(file, strduplicate("\twhile(v);"));
+	arraylist_add(file, strduplicate("\twhile(i);"));
+	arraylist_add(file, strduplicate("\twhile(i) {"));
+	arraylist_add(file, strduplicate("\t\t//..."));
+	arraylist_add(file, strduplicate("\t\tif(i);"));
+	arraylist_add(file, strduplicate("\t\tif(i) {"));
+	arraylist_add(file, strduplicate("\t\t\tbreak;"));
+	arraylist_add(file, strduplicate("\t\t\tbreak();"));
+	arraylist_add(file, strduplicate("\t\t} else if(i) {"));
+	arraylist_add(file, strduplicate("\t\t}"));
+	arraylist_add(file, strduplicate("\t}"));
 	arraylist_add(file, strduplicate("\ttest2(\"/* comment */\") /* test */;"));
 	arraylist_add(file, strduplicate("}"));
 
