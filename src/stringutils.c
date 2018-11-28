@@ -178,12 +178,14 @@ char *strjoin(char **strings, unsigned int count, char *join) {
 }
 
 
+
 void strformat(char *str, size_t length){
 	if(strlen(str) <= 0 || length <= 0) return;
 
 	if(strlen(str) <= length){
 		str[strlen(str) - 1] = '\0';
 	}
+
 }
 
 char *substr_match(char *source, match_t match) {

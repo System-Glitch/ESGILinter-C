@@ -60,7 +60,6 @@ unsigned int file_row_number(FILE *src)
 void file_loader(arraylist_t *e, arraylist_t *files, char *filename){
 
     if(strlen(filename) <= 0) return;
-
     unsigned int length;
     unsigned int i;
     unsigned int j;
@@ -240,4 +239,3 @@ line_t *get_line(arraylist_t *file, int index){
     if(index >= 0) return ((line_t*)(arraylist_get(file, (unsigned int)index)));
     return NULL;
 }
-

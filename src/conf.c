@@ -257,10 +257,10 @@ int find_rule_index(arraylist_t *conf, char *name){
  * @param arraylist_t *conf
  * @return int
  */
-int is_recursive(arraylist_t *conf){
-    if(conf == NULL) return -1;
+int is_recursive(arraylist_t *conf) {
+    if (conf == NULL) return -1;
     int index = find_rule_index(conf, "recursive");
-    if(index >= 0) return ((rule_t*)(arraylist_get(conf, (unsigned int)index)))->enable;
+    if (index >= 0) return ((rule_t *) (arraylist_get(conf, (unsigned int) index)))->enable;
     return 0;
 }
 
