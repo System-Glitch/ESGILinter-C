@@ -415,12 +415,9 @@ function_t *parse_function_call(int line_index, char *line) {
 	return NULL;
 }
 
-void check_function_call_parameters(scope_t *scope, function_t *call, function_t *function, int line_index, char *line, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid, arraylist_t *variables_list, arraylist_t *functions_list, arraylist_t *invalid_calls) {
+void check_function_call_parameters(scope_t *scope, function_t *call, function_t *function, int line_index, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid, arraylist_t *variables_list, arraylist_t *functions_list, arraylist_t *invalid_calls) {
 	field_t *field            = NULL;
 	field_t *param            = NULL;
-	field_t *var_dec          = NULL;
-	function_t* function_call = NULL;
-	function_t* function_dec  = NULL;
 	invalid_call_t *error     = NULL;
 	type_t type;
 
@@ -446,52 +443,6 @@ void check_function_call_parameters(scope_t *scope, function_t *call, function_t
 				arraylist_add(invalid, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
 			}
 		}
-
-		/*operation_type = parse_operation(field->name, line_index, scope, undeclared_variables, undeclared_functions, invalid, variables_list, functions_list, invalid_calls);
-		if(!strcmp(operation_type.name, "NULL")) {
-			printf("is not operation: %s\n", field->name);
-			var_dec = find_variable(scope, field->name);
-
-			if(var_dec == NULL) {
-				function_call = parse_function_call(line_index, field->name); //Maybe it's a function
-				if(function_call != NULL) {
-					function_dec = find_function(scope, function_call->name, 0);
-					if(function_dec != NULL && (function_dec->line < line_index || find_function_prototype(get_root_scope(scope), function_call->name) != NULL)) {
-						if(functions_list) {
-							arraylist_remove(functions_list, arraylist_index_of(functions_list, function_dec));
-						}
-						check_function_call_parameters(scope, function_call, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid, variables_list, functions_list, invalid_calls);
-						function_free(function_call);
-					} else {
-						arraylist_add(undeclared_functions, function_call);
-						check_function_call_parameters(scope, function_call, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid, variables_list, functions_list, invalid_calls);
-					}
-				} else if(!field->type.is_literal) {
-					arraylist_add(undeclared_variables, strduplicate(field->name));
-				} else if(function != NULL && field->type.is_literal && i < function->params->size) {
-					param = arraylist_get(function->params, i);
-					if(!type_equals(&(field->type), &(param->type))) {
-						arraylist_add(invalid, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
-					}
-				}
-			} else if(function != NULL) {
-				if(functions_list) {
-					arraylist_remove(variables_list, arraylist_index_of(variables_list, var_dec));
-				}
-				if(i < function->params->size) {
-					param = arraylist_get(function->params, i);
-					if(!type_equals(&(field->type), &(param->type))) {
-						arraylist_add(invalid, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
-					}
-				}
-			}			
-		} else if(function != NULL && i < function->params->size) {
-			printf("is operation: %s\n", field->name);
-			param = arraylist_get(function->params, i);
-			if(!type_equals(&operation_type, &(param->type))) {
-				arraylist_add(invalid, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
-			}
-		}*/
 	}
 }
 

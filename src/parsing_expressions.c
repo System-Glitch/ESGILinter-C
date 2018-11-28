@@ -163,7 +163,7 @@ static void parse_number_literal(char *line, int length, int index, type_t *type
 	}
 }
 
-static void check_function_expression(function_t *function, char *line, int line_index, scope_t *scope, type_t *type, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params, arraylist_t *variables_list, arraylist_t *functions_list, arraylist_t *invalid_calls) {
+static void check_function_expression(function_t *function, int line_index, scope_t *scope, type_t *type, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params, arraylist_t *variables_list, arraylist_t *functions_list, arraylist_t *invalid_calls) {
 	function_t *function_dec = NULL;
 	function_t *prototype    = NULL;
 
@@ -172,7 +172,7 @@ static void check_function_expression(function_t *function, char *line, int line
 	else {
 
 		function_dec = find_function(scope, function->name, 0);
-		if(function_dec != NULL && (function_dec->line < line_index)) {
+		if(function_dec != NULL) {
 			prototype = find_function_prototype(get_root_scope(scope), function->name);
 			if(function_dec->line < line_index || (prototype != NULL && prototype->line < line_index)) {
 				free(type->name);
@@ -182,15 +182,15 @@ static void check_function_expression(function_t *function, char *line, int line
 				if(functions_list) {
 					arraylist_remove(functions_list, arraylist_index_of(functions_list, function_dec));
 				}
-				check_function_call_parameters(scope, function, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
+				check_function_call_parameters(scope, function, function_dec, line_index, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
 				function_free(function);
 			} else {
 				arraylist_add(undeclared_functions, function);
-				check_function_call_parameters(scope, function, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
+				check_function_call_parameters(scope, function, function_dec, line_index, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
 			}
 		} else {
 			arraylist_add(undeclared_functions, function);
-			check_function_call_parameters(scope, function, function_dec, line_index, line, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
+			check_function_call_parameters(scope, function, function_dec, line_index, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
 		}
 	}
 }
@@ -350,7 +350,7 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 		} else if(undeclared_variables != NULL) {
 			function = parse_function_call(line_index, line + index);
 			if(function != NULL) {
-				check_function_expression(function, line, line_index, scope, &type, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
+				check_function_expression(function, line_index, scope, &type, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
 			} else {
 				check_variable_expression(line, index, line_index, scope, &type, undeclared_variables, variables_list);
 			}

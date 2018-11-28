@@ -504,10 +504,13 @@ static void test_rule_parsing() {
 
 	arraylist_add(file, strduplicate("void function(int param);"));
 	arraylist_add(file, strduplicate("void proto();"));
-	arraylist_add(file, strduplicate("char* test2(char v);"));
 
 	arraylist_add(file, strduplicate("void declared() {"));
+	arraylist_add(file, strduplicate("\ttest2('c');"));
 	arraylist_add(file, strduplicate("}"));
+
+	arraylist_add(file, strduplicate("char* test2(char v);"));
+
 
 	arraylist_add(file, strduplicate("char function(int param, char param2) {"));
 	arraylist_add(file, strduplicate("\tchar c = 'c';"));
@@ -520,7 +523,7 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\tdeclared();"));
 	arraylist_add(file, strduplicate("\tproto();"));
 	arraylist_add(file, strduplicate("\ttest2(c + a, b);"));
-	arraylist_add(file, strduplicate("\treturn test2(&c, b);")); //TODO sees undeclared function (it is)
+	arraylist_add(file, strduplicate("\treturn test2(&c, b);"));
 	arraylist_add(file, strduplicate("}"));
 
 	arraylist_add(file, strduplicate("int main() {"));
@@ -559,7 +562,7 @@ static void test_rule_parsing() {
 
 	scope_t *scope = parse_root_scope(file);
 	if(scope != NULL) {
-		//print_scope(scope, 0);
+		print_scope(scope, 0);
 		printf("Return: %d\n", parse_and_check(scope, file, NULL, NULL));
 		scope_free(scope);
 	} else {
