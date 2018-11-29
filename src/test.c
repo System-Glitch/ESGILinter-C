@@ -491,6 +491,14 @@ static void test_parse_expression() {
 	test_expression("\"string \\\" quote\"", 0, scope);
 	test_expression("\"test * something\"", 0, scope);
 	test_expression("\"/* comment */\"", 0, scope);
+	test_expression("!function('c')", 20, scope);
+	test_expression("!!!function(4)", 20, scope);
+
+	test_expression("!b", 9, scope);
+	test_expression("!!b", 9, scope);
+	test_expression("!++b", 9, scope);
+	test_expression("!*&b", 9, scope);
+	test_expression("!&b", 9, scope);
 
 	scope_free(scope);
 	arraylist_free(file, 1);
@@ -616,6 +624,8 @@ static void test_parsing_operations() {
 	arraylist_add(file, strduplicate("static int **d;"));
 	arraylist_add(file, strduplicate("static unsigned char b = 98;"));
 	arraylist_add(file, strduplicate("static unsigned char ***ptr;"));
+	arraylist_add(file, strduplicate("int *ptr1;"));
+	arraylist_add(file, strduplicate("int *ptr2;"));
 	arraylist_add(file, strduplicate("char* test2(char v) {"));
 	arraylist_add(file, strduplicate("\tv = glob;"));
 	arraylist_add(file, strduplicate("}"));
@@ -646,6 +656,15 @@ static void test_parsing_operations() {
 	test_operation("//comment\n1d + 3", 9, scope);
 	test_operation("1d //comment\n * 3", 9, scope);
 	test_operation("1d * 3", 9, scope);
+	test_operation("ptr1 + ptr2", 9, scope);
+	test_operation("ptr1 - ptr2", 9, scope);
+	test_operation("b < 88.0", 9, scope);
+	test_operation("b <= 88.0", 9, scope);
+	test_operation("b >= 88.0", 9, scope);
+	test_operation("b == 88.0", 9, scope);
+	test_operation("b != 88.0", 9, scope);
+	test_operation("b ! 88.0", 9, scope);
+	test_operation("!*&b", 9, scope); //TODO shouldn't yield a result
 
 	scope_free(scope);
 	arraylist_free(file, 1);

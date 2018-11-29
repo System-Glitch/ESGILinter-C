@@ -25,6 +25,7 @@ typedef struct function {
 	unsigned char is_prototype;
 	arraylist_t  *params;
 	int           line;
+	int           negate_operator; //Not equal to 0 if function call with ! operator ("!function()")
 } function_t;
 
 typedef struct scope {

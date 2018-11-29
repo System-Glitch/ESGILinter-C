@@ -17,6 +17,7 @@ function_t *function_init(char *name, unsigned char is_prototype, char *type, un
 		function->return_type.is_pointer = type_is_pointer;
 		function->params                 = params;
 		function->line                   = line_index;
+		function->negate_operator        = 0;
 	}
 
 	return function;
@@ -347,6 +348,7 @@ function_t *parse_function_call(int line_index, char *line) {
 	char *name                = NULL;
 	char *params              = NULL;
 	char *expr                = NULL;
+	int negate                = 0;
 	size_t length             = 0;
 	char c;
 
@@ -354,6 +356,12 @@ function_t *parse_function_call(int line_index, char *line) {
 	length = strlen(line);
 
 	SKIP_WHITESPACES
+
+	//Check ! operator
+	while((c = line[index]) == '!' && index < length) {
+		negate++;
+		index++;
+	}
 
 	start_index = index;
 
@@ -397,11 +405,11 @@ function_t *parse_function_call(int line_index, char *line) {
 			free(params);
 			if(param_list != NULL) {
 				function = function_init(name, 0, strduplicate("void"), 0,  arraylist_init(param_list->size), line_index);
+				function->negate_operator = negate;
 				function->params->size = param_list->size;
 				for(size_t i = 0 ; i < param_list->size ; i++) {
 					expr = arraylist_get(param_list, i);
 					function->params->array[i] = field_init(expr, strduplicate("void"), 0, -1);
-					//((field_t*)function->params->array[i])->type = parse_expression(expr, line_index, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 				}
 				free(line);
 				return function;

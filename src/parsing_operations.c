@@ -6,9 +6,14 @@ static const char *known_operators[] = {
 	"==","<<=",">>=","<=",">=","!=","+=",
 	"-=","*=","/=","%=","&=","^=","|=","=",
 	"+","-","/","*","%","<<",">>","~",
-	"<",">","&&","||","!","&","|","^", 
+	"<",">","&&","||","&","|","^",
 	NULL
 }; //Order is important to avoid skipping the end of the operator (< and <= for example)
+
+static const char *comparison_operators[] = {
+	"==","<=",">=","!=","<",">","&&","||",
+	NULL
+};
 
 static const char *type_rank[] = {
 	"void", "char", "unsigned char",
@@ -20,6 +25,17 @@ static const char *type_rank[] = {
 	"float", "double", "long double",
 	NULL
 };
+
+static unsigned char is_comparison(const char *operator) {
+	int i = 0;
+	const char *t = NULL;
+	while((t = comparison_operators[i]) != NULL) {
+		if(!strcmp(comparison_operators[i], operator))
+			return 1;
+		i++;
+	}
+	return 0;
+}
 
 static int find_type_rank(char *type) {
 	int i = 0;
@@ -170,8 +186,13 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 
 			if(!is_declaration) {
 
-				if(right_operand_type.is_pointer || left_operand_type.is_pointer) { //TODO check if substract operation result is correct
+				if(is_comparison(operator)) { //Type is int
+					free(type.name);
+					type.name = strduplicate("int");
+					type.is_pointer = 0;
+				} else if(right_operand_type.is_pointer || left_operand_type.is_pointer) { //TODO check if substract operation result is correct
 					ptr_type = right_operand_type.is_pointer > left_operand_type.is_pointer ? &right_operand_type : &left_operand_type;
+					free(type.name);
 					type.name = strduplicate(ptr_type->name);
 					type.is_pointer = ptr_type->is_pointer;
 				} else {

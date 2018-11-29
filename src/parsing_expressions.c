@@ -2,22 +2,31 @@
 #include "parsing_functions.h"
 #include "parsing_expressions.h"
 
-static void parse_variable_expression(char *line, char **name, char *is_pointer) {
+static void parse_variable_expression(char *line, char **name, char *is_pointer, int *negate_operator) {
 	unsigned int start_index = 0;
 	unsigned int end_index   = 0;
 	int index                = 0;
 	int length               = strlen(line);
 	char c;
 
+	SKIP_WHITESPACES
+
+	//Check ! operator
+	while((c = line[index]) == '!' && index < length) {
+		index++;
+		(*negate_operator)++;
+	}
+
 	//Pre incrementing / decrementing
 	SKIP_WHITESPACES
+
 	if(strstr(line + index, "++") == line + index || strstr(line + index, "--") == line + index) {
 		//Skip operation
 		index++;	
 	} else if(index >= 0) {
 		index--;
 		c = line[index];
-	}
+	}	
 
 	//Check referencing
 	do {
@@ -176,8 +185,14 @@ static void check_function_expression(function_t *function, int line_index, scop
 			prototype = find_function_prototype(get_root_scope(scope), function->name);
 			if(function_dec->line < line_index || (prototype != NULL && prototype->line < line_index)) {
 				free(type->name);
-				type->name = strduplicate(function_dec->return_type.name);
-				type->is_pointer = function_dec->return_type.is_pointer;
+
+				if(function->negate_operator > 0) {
+					type->name = strduplicate("int");
+					type->is_pointer = 0;
+				} else {
+					type->name = strduplicate(function_dec->return_type.name);
+					type->is_pointer = function_dec->return_type.is_pointer;
+				}
 				type->is_literal = 0;
 				if(functions_list) {
 					arraylist_remove(functions_list, arraylist_index_of(functions_list, function_dec));
@@ -199,8 +214,9 @@ static void check_variable_expression(char *line, int index, int line_index, sco
 	field_t *variable_dec = NULL;
 	char *variable_name   = NULL;
 	char is_pointer       = 0;
+	int negate_operator   = 0;
 
-	parse_variable_expression(line + index, &variable_name, &is_pointer);
+	parse_variable_expression(line + index, &variable_name, &is_pointer, &negate_operator);
 	if(variable_name != NULL && !is_keyword(variable_name)) {
 
 		variable_dec = find_variable(scope, variable_name);
@@ -209,13 +225,21 @@ static void check_variable_expression(char *line, int index, int line_index, sco
 		else {
 			if(variables_list) 
 				arraylist_remove(variables_list, arraylist_index_of(variables_list, variable_dec));
-			type->is_pointer = variable_dec->type.is_pointer + is_pointer;
-			if(type->is_pointer < 0) { //More dereferencing than allowed
+
+			if(negate_operator > 0) {
+				free(type->name);
+				type->name       = strduplicate("int");
 				type->is_pointer = 0;
-				type->is_literal = 0;
 			} else {
-				type->name = strduplicate(variable_dec->type.name);
-				type->is_literal = 0;
+				type->is_pointer = variable_dec->type.is_pointer + is_pointer;
+				if(type->is_pointer < 0) { //More dereferencing than allowed
+					type->is_pointer = 0;
+					type->is_literal = 0;
+				} else {
+					free(type->name);
+					type->name       = strduplicate(variable_dec->type.name);
+					type->is_literal = 0;
+				}
 			}
 		}
 	}
