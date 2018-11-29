@@ -190,7 +190,7 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 					free(type.name);
 					type.name = strduplicate("int");
 					type.is_pointer = 0;
-				} else if(right_operand_type.is_pointer || left_operand_type.is_pointer) { //TODO check if operation result is correct
+				} else if(right_operand_type.is_pointer || left_operand_type.is_pointer) {
 					ptr_type = right_operand_type.is_pointer > left_operand_type.is_pointer ? &right_operand_type : &left_operand_type;
 					free(type.name);
 					type.name = strduplicate(ptr_type->name);
@@ -209,9 +209,9 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 			free(right_operand_type.name);
 			if(!is_declaration)
 				free(left_operand_type.name);
-			//TODO detect forbidden operations (2 * &ptr , void + something)
+			//TODO detect forbidden operations (2 * &ptr , void + something, int - ptr)
 
-			//Operand case ignored : int test[] = {length, 4};
+			//TODO Operand case ignored : int test[] = {length, 4};
 			break;
 		}
 	}

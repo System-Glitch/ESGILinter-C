@@ -657,6 +657,10 @@ static void test_parsing_operations() {
 	test_operation("1d //comment\n * 3", 9, scope);
 	test_operation("1d * 3", 9, scope);
 	test_operation("ptr1 + ptr2", 9, scope);
+	test_operation("ptr1 + 1", 9, scope);
+	test_operation("ptr1 - 1", 9, scope);
+	test_operation("1 - ptr1", 9, scope);
+	test_operation("1 + ptr1", 9, scope);
 	test_operation("ptr1 - ptr2", 9, scope);
 	test_operation("b < 88.0", 9, scope);
 	test_operation("b <= 88.0", 9, scope);
@@ -664,7 +668,7 @@ static void test_parsing_operations() {
 	test_operation("b == 88.0", 9, scope);
 	test_operation("b != 88.0", 9, scope);
 	test_operation("b ! 88.0", 9, scope);
-	test_operation("!*&b", 9, scope); //TODO shouldn't yield a result
+	test_operation("!*&b", 9, scope);
 
 	scope_free(scope);
 	arraylist_free(file, 1);
