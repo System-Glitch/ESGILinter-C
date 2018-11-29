@@ -1,6 +1,7 @@
 #include "scopetree.h"
 #include "parsing_functions.h"
 #include "parsing_expressions.h"
+#include "parsing_operations.h"
 
 static void parse_variable_expression(char *line, char **name, char *is_pointer, int *negate_operator) {
 	unsigned int start_index = 0;
@@ -244,16 +245,18 @@ static void check_variable_expression(char *line, int index, int line_index, sco
 	}
 }
 
-static char *parse_control(char *line, int index, int length) {
+static char *parse_control(char *line, int index, int length, char **following) {
 	static const char *simple_controls[] = {
 		"if", "else if", "switch", "while", NULL
 	};
 	//TODO Case, default
-	//TODO : operator
+	//TODO ?: operator
 	//TODO For
 	const char *word = NULL;
+	char *expr       = NULL;
 	size_t i         = 0;
 	int last_index   = -1;
+	int start_index  = -1;
 	char c;
 
 	while((word = simple_controls[i++]) != NULL) {
@@ -281,6 +284,34 @@ static char *parse_control(char *line, int index, int length) {
 		SKIP_WHITESPACES
 		//TODO check return type corresponds to function type
 		return strsubstr(line, index, length - index);
+	} else if(strstr(line + index, "case") == line + index) {
+		index += 4;
+
+		SKIP_WHITESPACES
+
+		//Condition
+		start_index = index;
+		while((c = line[index]) != ':' && index < length) {
+			index++;
+		}
+
+		if(c == ':') {
+			expr = strsubstr(line, start_index, index - start_index);
+			if(++index < length) {
+				*following = strsubstr(line, index, length - index);
+			}
+
+			return expr;
+		}
+
+	} else if(strstr(line + index, "default") == line + index) {
+		index += 7;
+
+		SKIP_WHITESPACES
+
+		if(c == ':' && ++index < length) {
+			return strsubstr(line, index, length - index);
+		}
 	}
 
 	return NULL;
@@ -290,6 +321,7 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 	type_t type;
 	function_t *function     = NULL;
 	char       *expr         = NULL;
+	char       *following    = NULL; //Used in parse_control "case"
 	unsigned int start_index = 0;
 	unsigned int end_index   = 0;
 	unsigned int close_index = 0;
@@ -364,9 +396,16 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 		type.is_pointer = 1;
 		type.is_literal = 1;
 	} else {
-		expr = parse_control(line, index, length);
+		expr = parse_control(line, index, length, &following);
 		if(expr != NULL) {
 			parse_expression(expr, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
+			free(expr);
+			if(following != NULL) {
+				parse_expression(following, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
+				if(!strcmp(type.name, "NULL")) {
+					parse_operation(following, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
+				}
+			}
 		} else if(is_digit(c) || c == '.') {
 			parse_number_literal(line, length, index, &type);
 		} else if(undeclared_variables != NULL) {
