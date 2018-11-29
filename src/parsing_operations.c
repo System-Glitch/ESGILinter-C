@@ -184,13 +184,13 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 
 			right_operand_type = parse_operand(right_operand, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
 
-			if(!is_declaration) {
+			if(!is_declaration && strcmp(left_operand_type.name,"NULL") && strcmp(right_operand_type.name,"NULL")) {
 
 				if(is_comparison(operator)) { //Type is int
 					free(type.name);
 					type.name = strduplicate("int");
 					type.is_pointer = 0;
-				} else if(right_operand_type.is_pointer || left_operand_type.is_pointer) { //TODO check if substract operation result is correct
+				} else if(right_operand_type.is_pointer || left_operand_type.is_pointer) { //TODO check if operation result is correct
 					ptr_type = right_operand_type.is_pointer > left_operand_type.is_pointer ? &right_operand_type : &left_operand_type;
 					free(type.name);
 					type.name = strduplicate(ptr_type->name);

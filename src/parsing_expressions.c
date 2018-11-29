@@ -218,7 +218,6 @@ static void check_variable_expression(char *line, int index, int line_index, sco
 
 	parse_variable_expression(line + index, &variable_name, &is_pointer, &negate_operator);
 	if(variable_name != NULL && !is_keyword(variable_name)) {
-
 		variable_dec = find_variable(scope, variable_name);
 		if(scope == NULL || variable_dec == NULL || variable_dec->line > line_index)
 			arraylist_add(undeclared_variables, variable_name);
@@ -365,7 +364,6 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 		type.is_pointer = 1;
 		type.is_literal = 1;
 	} else {
-
 		expr = parse_control(line, index, length);
 		if(expr != NULL) {
 			parse_expression(expr, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
