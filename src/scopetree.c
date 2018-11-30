@@ -65,7 +65,10 @@ static void parse_scope_content(arraylist_t *file, scope_t *scope) {
 	for(int i = scope->from_line ; i <= scope->to_line ; i++) {
 		if(is_in_child_scope(scope, i)) continue; //Ignore lines inside child scopes
 		line = (char*) arraylist_get(file, i);
-		variables = get_variables_from_declaration(i,line);
+		if(i != scope->from_line)
+			variables = get_variables_from_declaration(i,line);
+		else
+			variables = get_variables_from_declaration(i,line + scope->from_char);
 		if(variables != NULL) {
 			arraylist_add_all(scope->variables, variables);
 			arraylist_free(variables, 0);
@@ -114,7 +117,7 @@ scope_t *parse_root_scope(arraylist_t *file) {
 	scope->from_char = 0;
 	scope->to_char   = strlen((char*) arraylist_get(file, file->size - 1));
 
-	while((child = parse_scope(file, tmp_child != NULL ? tmp_child->to_line : 0, tmp_child != NULL ? tmp_child->to_char : 0, scope)) != NULL) {
+	while((child = parse_scope(file, tmp_child != NULL ? tmp_child->to_line : 0, tmp_child != NULL ? tmp_child->to_char : 0, 0, scope)) != NULL) {
 		linkedlist_add(scope->children, child);
 		tmp_child = child;
 	}
@@ -128,11 +131,13 @@ scope_t *parse_root_scope(arraylist_t *file) {
 		do {
 			tmp_child = current->val;
 			function = find_function_from_line(scope->functions, tmp_child->from_line);
-			for(size_t i = 0 ; i < function->params->size ; i++) {
-				tmp_field = arraylist_get(function->params, i);
-				field = field_init(strduplicate(tmp_field->name), strduplicate(tmp_field->type.name), tmp_field->type.is_pointer, tmp_field->line);
-				field->is_param = 1;
-				arraylist_add(tmp_child->variables, field);
+			if(function != NULL) {
+				for(size_t i = 0 ; i < function->params->size ; i++) {
+					tmp_field = arraylist_get(function->params, i);
+					field = field_init(strduplicate(tmp_field->name), strduplicate(tmp_field->type.name), tmp_field->type.is_pointer, tmp_field->line);
+					field->is_param = 1;
+					arraylist_add(tmp_child->variables, field);
+				}
 			}
 		} while ((current = current->next) != NULL);
 	}
@@ -140,13 +145,63 @@ scope_t *parse_root_scope(arraylist_t *file) {
 	return scope;
 }
 
-scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int from_char, scope_t *parent_scope) {
+static int check_switch_control(char *line, int index, int length) {
+
+	char c;
+
+	SKIP_WHITESPACES
+
+	if(strstr(line + index, "case") == line + index || strstr(line + index, "default") == line + index) {
+		index += c == 'c' ? 4 : 7;
+
+		SKIP_WHITESPACES
+
+		while((c = line[index]) != ':' && index < length) {
+			index++;
+		}
+
+		if(c != ':') return -1;
+
+		return index + 1;
+	}
+
+	return -1;
+
+}
+
+static unsigned char starts_with_switch(char *line, int length) {
+	int index = 0;
+	char c;
+
+	SKIP_WHITESPACES
+
+	if(strstr(line + index, "switch") == line + index) {
+		index += 6;
+
+		SKIP_WHITESPACES
+
+		if(c == '(')
+			return 1;
+	}
+
+	return 0;
+}
+
+scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int from_char, unsigned char in_case, scope_t *parent_scope) {
 	scope_t *scope              = scope_init(parent_scope);
-	unsigned int level          = 0;
+	scope_t *child              = NULL;
+	unsigned int level          = in_case ? 1 : 0;
 	unsigned int no_scope_level = 0;
+	int case_start              = 0;
 	char found                  = 0;
+	unsigned char in_switch     = 0;
 	unsigned int length;
 	char *line;
+
+	if(in_case) {
+		scope->from_line = start_line;
+		scope->from_char = from_char;
+	}
 
 	for(size_t i = start_line ; i < file->size ; i++) { //Already considers end of line as bracket
 		line   = str_remove_comments(arraylist_get(file, i));
@@ -154,6 +209,33 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int fr
 		for(size_t j = i == start_line ? from_char : 0 ; j < length ; j++) {
 
 			if(!check_quotes(line, line + j, length)) {
+
+				if(in_switch || in_case) {
+					case_start = check_switch_control(line, j, length);
+					if(case_start != -1) {
+						if(in_case) {
+							level--;
+
+							if(level == 0) {
+								scope->to_line = in_case == i ? i : i-1;
+								scope->to_char = j;
+								if(in_case != i)
+									break;
+							}
+							in_case = 0;
+							j--;
+						} else {
+							level++;
+							in_case = i;
+							j = case_start;
+							if(level == 2) {
+								child = parse_scope(file, i, j, in_case, scope);
+								if(child != NULL)
+									linkedlist_add(scope->children, child);
+							}
+						}
+					}
+				}
 
 				if(line[j] == '{') {
 
@@ -165,12 +247,13 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int fr
 						if(!found) {
 							scope->from_line = i;
 							scope->from_char = j;
+							in_switch = starts_with_switch(line, length) ? level : 0;
 						}
 
 						found = 1;
 
-						if(level == 2) {
-							scope_t *child = parse_scope(file, i, j, 0, scope);
+						if(!in_switch && level == 2) {
+							child = parse_scope(file, i, j, 0, scope);
 							if(child != NULL)
 								linkedlist_add(scope->children, child);
 						}
@@ -180,8 +263,18 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int fr
 						no_scope_level--;
 					} else {
 						level--;
+						if(in_case && level == 0) {
 
-						if(found && level == 0) {
+							in_case = 0;
+							if(level == 0) {
+								scope->to_line = i-1;
+								scope->to_char = 0;
+								break;
+							}
+							in_switch = 1;
+						}
+
+						if((found || in_switch) && level == 0) {
 							scope->to_line = i;
 							scope->to_char = j + 1;
 							break;

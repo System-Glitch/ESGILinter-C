@@ -274,16 +274,33 @@ static void test_scope_parsing() {
 
 	file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 	arraylist_add(file, strduplicate("int main() {"));
-	arraylist_add(file, strduplicate("\tswitch(variable) {"));
+	arraylist_add(file, strduplicate("\tswitch (1) {"));
 	arraylist_add(file, strduplicate("\tcase 1: test();"));
 	arraylist_add(file, strduplicate("\tint a;"));
 	arraylist_add(file, strduplicate("\tbreak;"));
-	arraylist_add(file, strduplicate("\tcase 2: int b;"));
-	arraylist_add(file, strduplicate("\tdefault: int c;"));
+	arraylist_add(file, strduplicate("\tcase 2: int b;")); //5
+	arraylist_add(file, strduplicate("\tcase 3: if(b) {"));
+	arraylist_add(file, strduplicate("\tint inner;"));
 	arraylist_add(file, strduplicate("\t}"));
+	arraylist_add(file, strduplicate("\tswitch(b) {"));
+	arraylist_add(file, strduplicate("\tint inner2;")); //10
+	arraylist_add(file, strduplicate("\t}"));
+	arraylist_add(file, strduplicate("\tcase 4: switch(b) {"));
+	arraylist_add(file, strduplicate("\tint inner3;"));
+	arraylist_add(file, strduplicate("\t}"));
+	arraylist_add(file, strduplicate("\tcase 3: case 4: int c;")); //15
+	arraylist_add(file, strduplicate("\tcase 5:"));
+	arraylist_add(file, strduplicate("\t\tif(1) {"));
+	arraylist_add(file, strduplicate("\t\tint fi;"));
+	arraylist_add(file, strduplicate("\t\t}"));
+	arraylist_add(file, strduplicate("\tdefault: int d;")); //20
+	arraylist_add(file, strduplicate("\tint e;"));
+	arraylist_add(file, strduplicate("\t}"));
+	arraylist_add(file, strduplicate("\tswitch(test) { }"));
 	arraylist_add(file, strduplicate("}"));
 
 	scope = parse_root_scope(file);
+
 	if(scope != NULL) {
 		print_scope(scope, 0);
 		scope_free(scope);
@@ -606,9 +623,9 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\tswitch(p) {"));
 	arraylist_add(file, strduplicate("\tcase 1: printf();"));
 	arraylist_add(file, strduplicate("\tbreak;"));
-	arraylist_add(file, strduplicate("\tcase 2: int i = p;")); //TODO variable declaration not parsed in scope_t
-	arraylist_add(file, strduplicate("\tcase 1: case p: case i: test();"));
-	arraylist_add(file, strduplicate("\tcase 1: case 2: default: test();"));
+	arraylist_add(file, strduplicate("\tcase 2: int i = p;")); //TODO operation not checked
+	arraylist_add(file, strduplicate("\tcase 1: case p: case i: test();")); //L.47 //TODO operation not checked
+	arraylist_add(file, strduplicate("\tcase 1: case 2: default: test();")); //TODO operation not checked
 	arraylist_add(file, strduplicate("\tbreak;"));
 	arraylist_add(file, strduplicate("\tcase test2():")); //L.50
 	arraylist_add(file, strduplicate("\tbreak;"));
