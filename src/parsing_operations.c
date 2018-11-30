@@ -103,6 +103,10 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *
 	type.is_pointer = 0;
 	type.is_literal = 0;
 
+	if(strindexof(line, ':') != -1) {
+		return type; //TODO temp fix for case and ternary operator
+	}
+
 	while((operator = known_operators[index_operator++]) != NULL) { //Find operator
 		tmp_line = line_wo_comment;
 		operator_length = strlen(operator);

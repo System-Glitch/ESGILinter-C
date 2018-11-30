@@ -405,6 +405,7 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 				if(!strcmp(type.name, "NULL")) {
 					parse_operation(following, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
 				}
+				free(following);
 			}
 		} else if(is_digit(c) || c == '.') {
 			parse_number_literal(line, length, index, &type);
