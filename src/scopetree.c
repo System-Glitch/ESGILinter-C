@@ -153,36 +153,39 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int fr
 		length = strlen(line);
 		for(size_t j = i == start_line ? from_char : 0 ; j < length ; j++) {
 
-			if(line[j] == '{') {
+			if(!check_quotes(line, line + j, length)) {
 
-				if(previous_char_is_equal(line, j)) {
-					no_scope_level++;
-				} else {
-					level++;
+				if(line[j] == '{') {
 
-					if(!found) {
-						scope->from_line = i;
-						scope->from_char = j;
+					if(previous_char_is_equal(line, j)) {
+						no_scope_level++;
+					} else {
+						level++;
+
+						if(!found) {
+							scope->from_line = i;
+							scope->from_char = j;
+						}
+
+						found = 1;
+
+						if(level > 1) {
+							scope_t *child = parse_scope(file, i, j, scope);
+							if(child != NULL)
+								linkedlist_add(scope->children, child);
+						}
 					}
+				} else if(line[j] == '}') {
+					if(no_scope_level != 0) {
+						no_scope_level--;
+					} else {
+						level--;
 
-					found = 1;
-
-					if(level > 1) {
-						scope_t *child = parse_scope(file, i, j, scope);
-						if(child != NULL)
-							linkedlist_add(scope->children, child);
-					}
-				}
-			} else if(line[j] == '}') {
-				if(no_scope_level != 0) {
-					no_scope_level--;
-				} else {
-					level--;
-
-					if(found && level == 0) {
-						scope->to_line = i;
-						scope->to_char = j + 1;
-						break;
+						if(found && level == 0) {
+							scope->to_line = i;
+							scope->to_char = j + 1;
+							break;
+						}
 					}
 				}
 			}

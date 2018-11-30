@@ -258,6 +258,7 @@ static void test_scope_parsing() {
 	arraylist_add(file, strduplicate("/* comment */ double db = 1.2;"));
 	arraylist_add(file, strduplicate("\tfor(int i = 0, j = 5 ; i < 10 ; i++) {"));
 	arraylist_add(file, strduplicate("\t\tprintf(\"%d\", i);"));
+	arraylist_add(file, strduplicate("\t\tconst char *literal = \"test { int k = 0; }\";"));
 	arraylist_add(file, strduplicate("\t}"));
 	arraylist_add(file, strduplicate("}"));
 
