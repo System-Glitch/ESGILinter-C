@@ -284,6 +284,7 @@ static char *parse_control(char *line, int index, int length, char **following) 
 		//TODO check return type corresponds to function type
 		return strsubstr(line, index, length - index);
 	} else if(strstr(line + index, "case") == line + index) {
+
 		index += 4;
 
 		SKIP_WHITESPACES

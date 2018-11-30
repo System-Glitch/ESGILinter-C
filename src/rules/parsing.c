@@ -58,7 +58,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 		fill_variables_list(root_scope, messages->variables_list);
 	}
 
-	for(int i = root_scope->from_line ; i < root_scope->to_line ; i++) {
+	for(int i = root_scope->from_line ; i <= root_scope->to_line ; i++) {
 		scope = get_child_scope(root_scope, i);
 		if(scope != root_scope) {
 			if(i == scope->from_line) {
