@@ -145,66 +145,50 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int fr
 	unsigned int level          = 0;
 	unsigned int no_scope_level = 0;
 	char found                  = 0;
-	char in_comment             = 0;
 	unsigned int length;
 	char *line;
 
 	for(size_t i = start_line ; i < file->size ; i++) { //Already considers end of line as bracket
-		line   = arraylist_get(file, i);
+		line   = str_remove_comments(arraylist_get(file, i));
 		length = strlen(line);
 		for(size_t j = i == start_line ? from_char : 0 ; j < length ; j++) {
-			
-			if(line[j] == '/' && line[j+1] == '/') {
-				//Comment until end of line, skip line
-				break;
-			}
 
-			if(in_comment) { //Close multi-line comment
-				if(line[j] == '*' && line[j+1] == '/') {
-					in_comment = 0;
-					j += 2;
-				}
-			} else {
-				if(line[j] == '/' && line[j+1] == '*') { //Open multi-line comment
-					in_comment = 1;
+			if(line[j] == '{') {
+
+				if(previous_char_is_equal(line, j)) {
+					no_scope_level++;
 				} else {
-					if(line[j] == '{') {
+					level++;
 
-						if(previous_char_is_equal(line, j)) {
-							no_scope_level++;
-						} else {
-							level++;
+					if(!found) {
+						scope->from_line = i;
+						scope->from_char = j;
+					}
 
-							if(!found) {
-								scope->from_line = i;
-								scope->from_char = j;
-							}
+					found = 1;
 
-							found = 1;
+					if(level > 1) {
+						scope_t *child = parse_scope(file, i, j, scope);
+						if(child != NULL)
+							linkedlist_add(scope->children, child);
+					}
+				}
+			} else if(line[j] == '}') {
+				if(no_scope_level != 0) {
+					no_scope_level--;
+				} else {
+					level--;
 
-							if(level > 1) {
-								scope_t *child = parse_scope(file, i, j, scope);
-								if(child != NULL)
-									linkedlist_add(scope->children, child);
-							}
-						}
-					} else if(line[j] == '}') {
-						if(no_scope_level != 0) {
-							no_scope_level--;
-						} else {
-							level--;
-
-							if(found && level == 0) {
-								scope->to_line = i;
-								scope->to_char = j + 1;
-								break;
-							}
-						}
+					if(found && level == 0) {
+						scope->to_line = i;
+						scope->to_char = j + 1;
+						break;
 					}
 				}
 			}
 		}
 
+		free(line);
 		if(scope->to_line != -1) break;
 	}
 

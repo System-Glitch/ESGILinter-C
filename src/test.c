@@ -599,7 +599,7 @@ static void test_rule_parsing() {
 
 	scope_t *scope = parse_root_scope(file);
 	if(scope != NULL) {
-		//print_scope(scope, 0);
+		print_scope(scope, 0);
 		printf("Return: %d\n", parse_and_check(scope, file, NULL, NULL));
 		scope_free(scope);
 	} else {
