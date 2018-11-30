@@ -40,23 +40,22 @@ static void fill_variables_list(scope_t *scope, arraylist_t *variables) {
 unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t *variables, arraylist_t *functions) {
 
 	type_t type;
-	unsigned int result                  = 0;
-	scope_t *scope                       = NULL;
-	char *line                           = NULL;
-	char *message                        = NULL;
-	function_t     *function             = NULL;
-	field_t        *field                = NULL;
-	invalid_call_t *call                 = NULL;
-	arraylist_t    *undeclared_functions = NULL;
-	arraylist_t    *undeclared_variables = NULL;
-	arraylist_t    *invalid_calls        = NULL;
-	arraylist_t    *invalid_params       = NULL;
+	unsigned int result      = 0;
+	scope_t *scope           = NULL;
+	char *line               = NULL;
+	char *message            = NULL;
+	function_t     *function = NULL;
+	field_t        *field    = NULL;
+	invalid_call_t *call     = NULL;
+	messages_t     *messages = malloc(sizeof(messages_t));
+
+	if(messages == NULL) exit(1);
 
 	if(functions == NULL && variables == NULL) {
-		functions = arraylist_init(root_scope->functions->size); //Function is removed when used
-		variables = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY); //Variable is removed when used
-		fill_functions_list(root_scope, functions);
-		fill_variables_list(root_scope, variables);
+		messages->functions_list = arraylist_init(root_scope->functions->size);
+		messages->variables_list = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+		fill_functions_list(root_scope, messages->functions_list);
+		fill_variables_list(root_scope, messages->variables_list);
 	}
 
 	for(int i = root_scope->from_line ; i < root_scope->to_line ; i++) {
@@ -66,34 +65,34 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				result += parse_and_check(scope, file, variables, functions);
 			}
 		} else {
-			undeclared_functions = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
-			undeclared_variables = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
-			invalid_params       = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
-			invalid_calls        = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+			messages->undeclared_functions = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+			messages->undeclared_variables = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+			messages->invalid_params       = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+			messages->invalid_calls        = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 
 			line = arraylist_get(file, i);
-			type = parse_expression(line, i, scope, undeclared_variables, undeclared_functions, invalid_params, variables, functions, invalid_calls);
+			type = parse_expression(line, i, scope, messages);
 			if(!strcmp(type.name, "NULL")) {
-				type = parse_operation(line, i, scope, undeclared_variables, undeclared_functions, invalid_params, variables, functions, invalid_calls);
+				type = parse_operation(line, i, scope, messages);
 			}
 
-			for(size_t j = 0 ; j < undeclared_functions->size ; j++) {
-				function = arraylist_get(undeclared_functions, j);
+			for(size_t j = 0 ; j < messages->undeclared_functions->size ; j++) {
+				function = arraylist_get(messages->undeclared_functions, j);
 				message = strconcat("Undeclared function: ", function->name);
 				print_error("fictive_file.c", i, line, message);
 				free(message);
 				result++;
 			}
 
-			for(size_t j = 0 ; j < undeclared_variables->size ; j++) {
-				message = strconcat("Undeclared variable: ", arraylist_get(undeclared_variables, j));
+			for(size_t j = 0 ; j < messages->undeclared_variables->size ; j++) {
+				message = strconcat("Undeclared variable: ", arraylist_get(messages->undeclared_variables, j));
 				print_error("fictive_file.c", i, line, message);
 				free(message);
 				result++;
 			}
 
-			for(size_t j = 0 ; j < invalid_calls->size ; j++) {
-				call = arraylist_get(invalid_calls, j);
+			for(size_t j = 0 ; j < messages->invalid_calls->size ; j++) {
+				call = arraylist_get(messages->invalid_calls, j);
 				message = strconcat(call->more > 0 ? "Too many arguments for function: " : "Too few arguments for function: ", call->name);
 				print_error("fictive_file.c", i, line, message);
 				free(message);
@@ -101,42 +100,44 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				result++;
 			}
 
-			for(size_t j = 0 ; j < invalid_params->size ; j++) {
-				field = arraylist_get(invalid_params, j);
+			for(size_t j = 0 ; j < messages->invalid_params->size ; j++) {
+				field = arraylist_get(messages->invalid_params, j);
 				message = strconcat("Invalid parameter type: ", field->name);
 				print_error("fictive_file.c", i, line, message);
 				free(message);
 				result++;
 			}
 
-			function_list_free(undeclared_functions);
-			field_list_free(invalid_params);
-			arraylist_free(undeclared_variables, 1);
-			arraylist_free(invalid_calls, 1);
+			function_list_free(messages->undeclared_functions);
+			field_list_free(messages->invalid_params);
+			arraylist_free(messages->undeclared_variables, 1);
+			arraylist_free(messages->invalid_calls, 1);
 			free(type.name);
 		}
 		
 	}
 
 	if(root_scope->parent == NULL) {
-		for(size_t j = 0 ; j < variables->size ; j++) {
-			field = arraylist_get(variables, j);
+		for(size_t j = 0 ; j < messages->variables_list->size ; j++) {
+			field = arraylist_get(messages->variables_list, j);
 			message = field->is_param ? strconcat("Unused parameter: ", field->name) : strconcat("Unused variable: ", field->name);
 			print_warning("fictive_file.c", field->line, arraylist_get(file, field->line), message);
 			free(message);
 			result++;
 		}
 
-		for(size_t j = 0 ; j < functions->size ; j++) {
-			function = arraylist_get(functions, j);
+		for(size_t j = 0 ; j < messages->functions_list->size ; j++) {
+			function = arraylist_get(messages->functions_list, j);
 			message = strconcat("Unused function: ", function->name);
 			print_warning("fictive_file.c", function->line, arraylist_get(file, function->line), message);
 			free(message);
 			result++;
 		}
 
-		arraylist_free(functions, 0);
-		arraylist_free(variables, 0);
+		arraylist_free(messages->functions_list, 0);
+		arraylist_free(messages->variables_list, 0);
+
+		free(messages);
 	}
 
 	return result;

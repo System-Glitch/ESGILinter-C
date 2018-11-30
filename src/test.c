@@ -420,31 +420,36 @@ static void test_function_call_parsing() {
 static void test_expression(char *line, unsigned int line_index, scope_t *scope) {
 	printf("%sInput: %s\"%s\"%s\n", COLOR_BLUE, COLOR_YELLOW, line, FORMAT_RESET);
 
-	arraylist_t *undeclared_functions = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
-	arraylist_t *undeclared_variables = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
-	arraylist_t *invalid_params       = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
-	type_t type = parse_expression(line, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, NULL, NULL, NULL);
+	messages_t *messages = malloc(sizeof(messages_t));
+	messages->undeclared_functions = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	messages->undeclared_variables = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	messages->invalid_params       = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	messages->invalid_calls        = NULL;
+	messages->variables_list       = NULL;
+	messages->functions_list       = NULL;
+	type_t type = parse_expression(line, line_index, scope, messages);
 	printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
 	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);
 	printf("\t%sIs pointer: %s%d\n", COLOR_CYAN, FORMAT_RESET, type.is_pointer);
 	
 	free(type.name);
 
-	for(size_t i = 0 ; i < undeclared_functions->size ; i++) {
-		printf("\t%sUndefined function: %s%s\n", COLOR_RED, FORMAT_RESET, ((function_t*)arraylist_get(undeclared_functions, i))->name);
+	for(size_t i = 0 ; i < messages->undeclared_functions->size ; i++) {
+		printf("\t%sUndefined function: %s%s\n", COLOR_RED, FORMAT_RESET, ((function_t*)arraylist_get(messages->undeclared_functions, i))->name);
 	}
 
-	for(size_t i = 0 ; i < undeclared_variables->size ; i++) {
-		printf("\t%sUndefined variable: %s%s\n", COLOR_RED, FORMAT_RESET, (char*)arraylist_get(undeclared_variables, i));
+	for(size_t i = 0 ; i < messages->undeclared_variables->size ; i++) {
+		printf("\t%sUndefined variable: %s%s\n", COLOR_RED, FORMAT_RESET, (char*)arraylist_get(messages->undeclared_variables, i));
 	}
 
-	for(size_t i = 0 ; i < invalid_params->size ; i++) {
-		printf("\t%sInvalid param: %s%s\n", COLOR_RED, FORMAT_RESET, ((field_t*)arraylist_get(invalid_params, i))->name);
+	for(size_t i = 0 ; i < messages->invalid_params->size ; i++) {
+		printf("\t%sInvalid param: %s%s\n", COLOR_RED, FORMAT_RESET, ((field_t*)arraylist_get(messages->invalid_params, i))->name);
 	}
 
-	function_list_free(undeclared_functions);
-	field_list_free(invalid_params);
-	arraylist_free(undeclared_variables, 1);
+	function_list_free(messages->undeclared_functions);
+	field_list_free(messages->invalid_params);
+	arraylist_free(messages->undeclared_variables, 1);
+	free(messages);
 }
 
 static void test_parse_expression() {
@@ -608,31 +613,36 @@ static void test_rule_parsing() {
 static void test_operation(char* line, unsigned int line_index, scope_t *scope) {
 	printf("%sInput: %s\"%s\"%s\n", COLOR_BLUE, COLOR_YELLOW, line, FORMAT_RESET);
 
-	arraylist_t *undeclared_functions = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
-	arraylist_t *undeclared_variables = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
-	arraylist_t *invalid_params       = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
-	type_t type = parse_operation(line, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, NULL, NULL, NULL);
+	messages_t *messages = malloc(sizeof(messages_t));
+	messages->undeclared_functions = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	messages->undeclared_variables = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	messages->invalid_params       = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	messages->invalid_calls        = NULL;
+	messages->variables_list       = NULL;
+	messages->functions_list       = NULL;
+	type_t type = parse_operation(line, line_index, scope, messages);
 	printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
 	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);
 	printf("\t%sIs pointer: %s%d\n", COLOR_CYAN, FORMAT_RESET, type.is_pointer);
 	
 	free(type.name);
 
-	for(size_t i = 0 ; i < undeclared_functions->size ; i++) {
-		printf("\t%sUndefined function: %s%s\n", COLOR_RED, FORMAT_RESET, ((function_t*)arraylist_get(undeclared_functions, i))->name);
+	for(size_t i = 0 ; i < messages->undeclared_functions->size ; i++) {
+		printf("\t%sUndefined function: %s%s\n", COLOR_RED, FORMAT_RESET, ((function_t*)arraylist_get(messages->undeclared_functions, i))->name);
 	}
 
-	for(size_t i = 0 ; i < undeclared_variables->size ; i++) {
-		printf("\t%sUndefined variable: %s%s\n", COLOR_RED, FORMAT_RESET, (char*)arraylist_get(undeclared_variables, i));
+	for(size_t i = 0 ; i < messages->undeclared_variables->size ; i++) {
+		printf("\t%sUndefined variable: %s%s\n", COLOR_RED, FORMAT_RESET, (char*)arraylist_get(messages->undeclared_variables, i));
 	}
 
-	for(size_t i = 0 ; i < invalid_params->size ; i++) {
-		printf("\t%sInvalid param: %s%s\n", COLOR_RED, FORMAT_RESET, ((field_t*)arraylist_get(invalid_params, i))->name);
+	for(size_t i = 0 ; i < messages->invalid_params->size ; i++) {
+		printf("\t%sInvalid param: %s%s\n", COLOR_RED, FORMAT_RESET, ((field_t*)arraylist_get(messages->invalid_params, i))->name);
 	}
 
-	function_list_free(undeclared_functions);
-	field_list_free(invalid_params);
-	arraylist_free(undeclared_variables, 1);
+	function_list_free(messages->undeclared_functions);
+	field_list_free(messages->invalid_params);
+	arraylist_free(messages->undeclared_variables, 1);
+	free(messages);
 }
 
 static void test_parsing_operations() {

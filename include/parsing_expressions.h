@@ -3,7 +3,8 @@
 
 #include "stringutils.h"
 #include "scopetree.h"
+#include "messages.h"
 
-type_t   parse_expression(char *line, int line_index, scope_t *scope, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params, arraylist_t *variables_list, arraylist_t *functions_list, arraylist_t *invalid_calls);
+type_t   parse_expression(char *line, int line_index, scope_t *scope, messages_t *messages);
 
 #endif
