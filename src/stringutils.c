@@ -241,3 +241,26 @@ match_t *match_init() {
 	match_t *match = malloc(sizeof(match_t));
 	return match;
 }
+
+unsigned char check_quotes(char *line, char *occurrence, int length) {
+	unsigned char found_before = 0;
+
+	//Find quote before
+	for(int i = occurrence - line ; i >= 0 ; i--) {
+		if(line[i] == '"') {
+			found_before = 1;
+			break;
+		}
+	}
+
+	if(!found_before) return 0;
+
+	//Find quote after
+	for(int i = occurrence - line ; i < length ; i++) {
+		if(line[i] == '"') {
+			return 1;
+		}
+	}
+
+	return 0;
+}

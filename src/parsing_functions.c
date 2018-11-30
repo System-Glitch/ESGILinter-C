@@ -300,12 +300,14 @@ static arraylist_t *parse_function_call_params(char *line) {
 
 		start_index = index;
 
-		//Until comma or end
-		while((c = line[index]) != ',' && index < length) {
-			index++;
-		}
+		do {
+			//Until comma or end
+			while((c = line[index]) != ',' && index < length) {
+				index++;
+			}
+		} while(check_quotes(line, line + index++, length));
 
-		end_index = index;
+		end_index = --index;
 
 		name = strsubstr(line, start_index, end_index - start_index);
 		if(type_exists(name)) {

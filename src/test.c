@@ -399,6 +399,22 @@ static void test_function_call_parsing() {
 		print_function(function, 0);
 		function_free(function);
 	}
+
+	function = parse_function_call(0 , "test(\"bla,bla\")");
+	if(function == NULL) {
+		printf("%sSyntax error%s\n", COLOR_RED, FORMAT_RESET);
+	} else {
+		print_function(function, 0);
+		function_free(function);
+	}
+
+	function = parse_function_call(0 , "test(\"bla,bla,\" , bla)");
+	if(function == NULL) {
+		printf("%sSyntax error%s\n", COLOR_RED, FORMAT_RESET);
+	} else {
+		print_function(function, 0);
+		function_free(function);
+	}
 }
 
 static void test_expression(char *line, unsigned int line_index, scope_t *scope) {

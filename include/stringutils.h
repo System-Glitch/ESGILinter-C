@@ -35,6 +35,7 @@ char is_alphanumeric(char c);
 char is_digit(char c);
 char is_line_break(char c);
 
+unsigned char check_quotes(char *line, char *occurrence, int length);
 
 match_t *match_init();
 

@@ -78,29 +78,6 @@ static unsigned char is_operator_first(char *line, int length, char *occurrence)
 	return occurrence == line + index; 
 }
 
-static unsigned char check_quotes(char *line, char *occurrence, int length) {
-	unsigned char found_before = 0;
-
-	//Find quote before
-	for(int i = occurrence - line ; i >= 0 ; i--) {
-		if(line[i] == '"') {
-			found_before = 1;
-			break;
-		}
-	}
-
-	if(!found_before) return 0;
-
-	//Find quote after
-	for(int i = occurrence - line ; i < length ; i++) {
-		if(line[i] == '"') {
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
 type_t parse_operation(char *line, int line_index, scope_t *scope, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params, arraylist_t *variables_list, arraylist_t *functions_list, arraylist_t *invalid_calls) {
 	type_t type;
 	type_t left_operand_type;
