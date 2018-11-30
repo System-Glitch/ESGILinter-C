@@ -579,8 +579,9 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\tswitch(p) {"));
 	arraylist_add(file, strduplicate("\tcase 1: printf();"));
 	arraylist_add(file, strduplicate("\tbreak;"));
-	arraylist_add(file, strduplicate("\tcase 2: int i = p;"));
-	//TODO test "case 1: case 2: case 3: test();"
+	arraylist_add(file, strduplicate("\tcase 2: int i = p;")); //TODO variable declaration not parsed in scope_t
+	arraylist_add(file, strduplicate("\tcase 1: case p: case i: test();"));
+	arraylist_add(file, strduplicate("\tcase 1: case 2: default: test();"));
 	arraylist_add(file, strduplicate("\tbreak;"));
 	arraylist_add(file, strduplicate("\tcase test2():"));
 	arraylist_add(file, strduplicate("\tbreak;"));
