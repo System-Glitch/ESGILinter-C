@@ -169,8 +169,8 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int fr
 
 						found = 1;
 
-						if(level > 1) {
-							scope_t *child = parse_scope(file, i, j, scope);
+						if(level == 2) {
+							scope_t *child = parse_scope(file, i, j, 0, scope);
 							if(child != NULL)
 								linkedlist_add(scope->children, child);
 						}

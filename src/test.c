@@ -271,6 +271,27 @@ static void test_scope_parsing() {
 	}
 
 	arraylist_free(file, 1);
+
+	file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	arraylist_add(file, strduplicate("int main() {"));
+	arraylist_add(file, strduplicate("\tswitch(variable) {"));
+	arraylist_add(file, strduplicate("\tcase 1: test();"));
+	arraylist_add(file, strduplicate("\tint a;"));
+	arraylist_add(file, strduplicate("\tbreak;"));
+	arraylist_add(file, strduplicate("\tcase 2: int b;"));
+	arraylist_add(file, strduplicate("\tdefault: int c;"));
+	arraylist_add(file, strduplicate("\t}"));
+	arraylist_add(file, strduplicate("}"));
+
+	scope = parse_root_scope(file);
+	if(scope != NULL) {
+		print_scope(scope, 0);
+		scope_free(scope);
+	} else {
+		printf("%sScope %sNULL%s, possible syntax error.\n%s", COLOR_YELLOW, COLOR_RED, COLOR_YELLOW, FORMAT_RESET);
+	}
+
+	arraylist_free(file, 1);
 }
 
 static void test_function_parsing() {
@@ -547,7 +568,7 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("char function(int param, char param2) {"));
 	arraylist_add(file, strduplicate("\tchar c = 'c';"));
 	arraylist_add(file, strduplicate("\tprintf(\"%c %d\", c, i);"));
-	arraylist_add(file, strduplicate("\ttest2(param);"));
+	arraylist_add(file, strduplicate("\ttest2(param);")); //L.10
 	arraylist_add(file, strduplicate("\tfunction(c);"));
 	arraylist_add(file, strduplicate("\tfunction(test2(test(c2)));"));
 	arraylist_add(file, strduplicate("\tfunction(25);"));
@@ -558,7 +579,7 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\treturn test2(&c, b);"));
 	arraylist_add(file, strduplicate("}"));
 
-	arraylist_add(file, strduplicate("int main() {"));
+	arraylist_add(file, strduplicate("int main() {")); //L.20
 	arraylist_add(file, strduplicate("\tint i = 42;"));
 	arraylist_add(file, strduplicate("\treturn j;"));
 	arraylist_add(file, strduplicate("}"));
@@ -569,7 +590,7 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\twhile(j) {"));
 	arraylist_add(file, strduplicate("\t\t//..."));
 	arraylist_add(file, strduplicate("\t\tif(k);"));
-	arraylist_add(file, strduplicate("\t\tif(l) {"));
+	arraylist_add(file, strduplicate("\t\tif(l) {")); //L.30
 	arraylist_add(file, strduplicate("\t\t\tbreak;"));
 	arraylist_add(file, strduplicate("\t\t\tbreak();"));
 	arraylist_add(file, strduplicate("\t\t}"));
@@ -579,7 +600,7 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\t\t\tif(v, k);"));
 	arraylist_add(file, strduplicate("\t\t}"));
 	arraylist_add(file, strduplicate("\t}"));
-	arraylist_add(file, strduplicate("\t do {"));
+	arraylist_add(file, strduplicate("\t do {")); //L.40
 	arraylist_add(file, strduplicate("\t}"));
 	arraylist_add(file, strduplicate("\twhile(test);"));
 	arraylist_add(file, strduplicate("\tswitch(p) {"));
@@ -589,7 +610,7 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\tcase 1: case p: case i: test();"));
 	arraylist_add(file, strduplicate("\tcase 1: case 2: default: test();"));
 	arraylist_add(file, strduplicate("\tbreak;"));
-	arraylist_add(file, strduplicate("\tcase test2():"));
+	arraylist_add(file, strduplicate("\tcase test2():")); //L.50
 	arraylist_add(file, strduplicate("\tbreak;"));
 	arraylist_add(file, strduplicate("\tdefault: printf(\"default\");"));
 	arraylist_add(file, strduplicate("\t}"));
