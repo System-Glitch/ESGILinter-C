@@ -33,7 +33,6 @@ typedef struct scope {
 	linkedlist_t *children;
 	arraylist_t  *functions;
 	arraylist_t  *variables;
-	arraylist_t  *defines;
 	int from_line;
 	int from_char;
 	int to_line;

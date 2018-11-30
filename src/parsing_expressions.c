@@ -249,7 +249,6 @@ static char *parse_control(char *line, int index, int length, char **following) 
 	static const char *simple_controls[] = {
 		"if", "else if", "switch", "while", NULL
 	};
-	//TODO Case, default
 	//TODO ?: operator
 	//TODO For
 	const char *word = NULL;

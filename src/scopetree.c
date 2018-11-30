@@ -3,7 +3,6 @@
 #include "stringutils.h"
 #include "parsing_variables.h"
 #include "parsing_functions.h"
-#include "parsing_defines.h"
 
 field_t *field_init(char *name, char *type, char type_is_pointer, int line_index) {
 	field_t *field = malloc(sizeof(field_t));
@@ -27,7 +26,6 @@ scope_t *scope_init(scope_t *parent) {
 		scope->children  = linkedlist_init();
 		scope->variables = arraylist_init(10);
 		scope->functions = arraylist_init(10);
-		scope->defines   = arraylist_init(10);
 		scope->from_line = -1;
 		scope->to_line   = -1;
 		scope->from_char = -1;
@@ -281,13 +279,6 @@ void scope_free(scope_t *scope) {
 
 	//Free variables
 	field_list_free(scope->variables);
-
-	//Free defines
-	for(size_t i = 0 ; i < scope->defines->size; i++) {
-		define_free(scope->defines->array[i]);
-		scope->defines->array[i] = NULL;
-	}
-	arraylist_free(scope->defines, 1);
 
 	free(scope);
 }

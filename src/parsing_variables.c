@@ -219,6 +219,8 @@ arraylist_t *get_variables_from_declaration(int line_index, char *line) {
 
 	tmp_line = str_remove_comments(line);
 
+	//TODO handle "case" and "default"
+
 	for_loop = match_for_loop(tmp_line);
 	if(for_loop != NULL) {
 		line = substr_match(tmp_line, *for_loop);
