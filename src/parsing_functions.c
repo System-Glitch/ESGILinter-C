@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include "arraylist.h"
-#include "scopetree.h"
 #include "parsing_type.h"
 #include "parsing_functions.h"
 #include "parsing_variables.h"
@@ -425,32 +424,32 @@ function_t *parse_function_call(int line_index, char *line) {
 	return NULL;
 }
 
-void check_function_call_parameters(scope_t *scope, function_t *call, function_t *function, int line_index, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid, arraylist_t *variables_list, arraylist_t *functions_list, arraylist_t *invalid_calls) {
+void check_function_call_parameters(scope_t *scope, function_t *call, function_t *function, int line_index, messages_t *messages) {
 	field_t *field            = NULL;
 	field_t *param            = NULL;
 	invalid_call_t *error     = NULL;
 	type_t type;
 
-	if(function != NULL && call->params->size != function->params->size && invalid_calls != NULL) {
+	if(function != NULL && call->params->size != function->params->size && messages->invalid_calls != NULL) {
 		error = malloc(sizeof(invalid_call_t));
 		error->name = strduplicate(function->name);
 		error->more = call->params->size - function->params->size;
-		arraylist_add(invalid_calls, error);
+		arraylist_add(messages->invalid_calls, error);
 	}
 
 	for(size_t i = 0 ; i < call->params->size ; i++) {
 
 		field = arraylist_get(call->params, i);
 
-		type = parse_expression(field->name, line_index, scope, undeclared_variables, undeclared_functions, invalid, variables_list, functions_list, invalid_calls);
+		type = parse_expression(field->name, line_index, scope, messages);
 		if(!strcmp(type.name, "NULL")) {
-			type = parse_operation(field->name, line_index, scope, undeclared_variables, undeclared_functions, invalid, variables_list, functions_list, invalid_calls);
+			type = parse_operation(field->name, line_index, scope, messages);
 		}
 
 		if(function != NULL && i < function->params->size) {
 			param = arraylist_get(function->params, i);
 			if(strcmp(type.name, "NULL") && !type_equals(&type, &(param->type))) {
-				arraylist_add(invalid, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
+				arraylist_add(messages->invalid_params, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
 			}
 		}
 	}

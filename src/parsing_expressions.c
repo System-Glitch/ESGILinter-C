@@ -173,12 +173,12 @@ static void parse_number_literal(char *line, int length, int index, type_t *type
 	}
 }
 
-static void check_function_expression(function_t *function, int line_index, scope_t *scope, type_t *type, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params, arraylist_t *variables_list, arraylist_t *functions_list, arraylist_t *invalid_calls) {
+static void check_function_expression(function_t *function, int line_index, scope_t *scope, type_t *type, messages_t *messages) {
 	function_t *function_dec = NULL;
 	function_t *prototype    = NULL;
 
 	if(scope == NULL)
-		arraylist_add(undeclared_functions, function);
+		arraylist_add(messages->undeclared_functions, function);
 	else {
 
 		function_dec = find_function(scope, function->name, 0);
@@ -195,23 +195,23 @@ static void check_function_expression(function_t *function, int line_index, scop
 					type->is_pointer = function_dec->return_type.is_pointer;
 				}
 				type->is_literal = 0;
-				if(functions_list) {
-					arraylist_remove(functions_list, arraylist_index_of(functions_list, function_dec));
+				if(messages->functions_list) {
+					arraylist_remove(messages->functions_list, arraylist_index_of(messages->functions_list, function_dec));
 				}
-				check_function_call_parameters(scope, function, function_dec, line_index, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
+				check_function_call_parameters(scope, function, function_dec, line_index, messages);
 				function_free(function);
 			} else {
-				arraylist_add(undeclared_functions, function);
-				check_function_call_parameters(scope, function, function_dec, line_index, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
+				arraylist_add(messages->undeclared_functions, function);
+				check_function_call_parameters(scope, function, function_dec, line_index, messages);
 			}
 		} else {
-			arraylist_add(undeclared_functions, function);
-			check_function_call_parameters(scope, function, function_dec, line_index, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
+			arraylist_add(messages->undeclared_functions, function);
+			check_function_call_parameters(scope, function, function_dec, line_index, messages);
 		}
 	}
 }
 
-static void check_variable_expression(char *line, int index, int line_index, scope_t *scope, type_t *type, arraylist_t *undeclared_variables, arraylist_t *variables_list) {
+static void check_variable_expression(char *line, int index, int line_index, scope_t *scope, type_t *type, messages_t *messages) {
 	field_t *variable_dec = NULL;
 	char *variable_name   = NULL;
 	char is_pointer       = 0;
@@ -221,10 +221,10 @@ static void check_variable_expression(char *line, int index, int line_index, sco
 	if(variable_name != NULL && !is_keyword(variable_name)) {
 		variable_dec = find_variable(scope, variable_name);
 		if(scope == NULL || variable_dec == NULL || variable_dec->line > line_index)
-			arraylist_add(undeclared_variables, variable_name);
+			arraylist_add(messages->undeclared_variables, variable_name);
 		else {
-			if(variables_list) 
-				arraylist_remove(variables_list, arraylist_index_of(variables_list, variable_dec));
+			if(messages->variables_list) 
+				arraylist_remove(messages->variables_list, arraylist_index_of(messages->variables_list, variable_dec));
 
 			if(negate_operator > 0) {
 				free(type->name);
@@ -316,7 +316,7 @@ static char *parse_control(char *line, int index, int length, char **following) 
 	return NULL;
 }
 
-type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t *undeclared_variables, arraylist_t *undeclared_functions, arraylist_t *invalid_params, arraylist_t *variables_list, arraylist_t *functions_list, arraylist_t *invalid_calls) {
+type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *messages) {
 	type_t type;
 	function_t *function     = NULL;
 	char       *expr         = NULL;
@@ -380,7 +380,7 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 
 		//Check expression without cast
 		expr = strsubstr(line, close_index + 1, length - close_index);
-		parse_expression(expr, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
+		parse_expression(expr, line_index, scope, messages);
 		free(expr);
 
 
@@ -397,23 +397,23 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, arraylist_t 
 	} else {
 		expr = parse_control(line, index, length, &following);
 		if(expr != NULL) {
-			parse_expression(expr, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
+			parse_expression(expr, line_index, scope, messages);
 			free(expr);
 			if(following != NULL) {
-				parse_expression(following, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
+				parse_expression(following, line_index, scope, messages);
 				if(!strcmp(type.name, "NULL")) {
-					parse_operation(following, line_index, scope, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
+					parse_operation(following, line_index, scope, messages);
 				}
 				free(following);
 			}
 		} else if(is_digit(c) || c == '.') {
 			parse_number_literal(line, length, index, &type);
-		} else if(undeclared_variables != NULL) {
+		} else if(messages->undeclared_variables != NULL) {
 			function = parse_function_call(line_index, line + index);
 			if(function != NULL) {
-				check_function_expression(function, line_index, scope, &type, undeclared_variables, undeclared_functions, invalid_params, variables_list, functions_list, invalid_calls);
+				check_function_expression(function, line_index, scope, &type, messages);
 			} else {
-				check_variable_expression(line, index, line_index, scope, &type, undeclared_variables, variables_list);
+				check_variable_expression(line, index, line_index, scope, &type, messages);
 			}
 		}
 
