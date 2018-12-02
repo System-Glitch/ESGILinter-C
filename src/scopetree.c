@@ -286,6 +286,7 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int fr
 						no_scope_level--;
 					} else {
 						level--;
+
 						if(in_case && level == 0) {
 							in_case = 0;
 							if(level == 0) {
@@ -296,9 +297,6 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int fr
 							in_switch = 1;
 						}
 
-						if(!in_case)
-							in_case = tmp;
-
 						if(((found || in_switch) && level == 0) || (!in_switch && in_case && level == 1)) {
 							if(in_switch && in_case == 0)
 								in_switch = 0;
@@ -306,6 +304,9 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int fr
 							scope->to_char = j + 1;
 							break;
 						}
+
+						if(!in_case)
+							in_case = tmp;
 					}
 				}
 			}

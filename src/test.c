@@ -282,12 +282,13 @@ static void test_scope_parsing() {
 	arraylist_add(file, strduplicate("\tcase 3: if(b) {"));
 	arraylist_add(file, strduplicate("\tint inner;"));
 	arraylist_add(file, strduplicate("\t}"));
-	/*arraylist_add(file, strduplicate("\tswitch(b) {")); //TODO nested switch not working
-	arraylist_add(file, strduplicate("\tint inner2;")); //10
-	arraylist_add(file, strduplicate("\t}"));*/
-	/*arraylist_add(file, strduplicate("\tcase 4: switch(b) {"));
+	arraylist_add(file, strduplicate("\tint innertest;"));
+	arraylist_add(file, strduplicate("\tswitch(b) {"));
+	arraylist_add(file, strduplicate("\tcase 1: int inner2;")); //10
+	arraylist_add(file, strduplicate("\t}"));
+	arraylist_add(file, strduplicate("\tcase 4: switch(b) {")); //TODO nested switch not working when directly after case
 	arraylist_add(file, strduplicate("\t\tcase 1: int inner3;"));
-	arraylist_add(file, strduplicate("\t}"));*/
+	arraylist_add(file, strduplicate("\t}"));
 	arraylist_add(file, strduplicate("\tcase 3: case 4: int c;")); //15
 	arraylist_add(file, strduplicate("\tcase 5:"));
 	arraylist_add(file, strduplicate("\t\tif(1) {"));
