@@ -79,7 +79,7 @@ static unsigned char is_operator_first(char *line, int length, char *occurrence)
 }
 
 static void add_wrong_assignment_message(messages_t *messages, type_t *type_left, type_t *type_right) {
-	wrong_assignment_t *assignment        = malloc(sizeof(wrong_assignment_t));
+	wrong_type_t *assignment              = malloc(sizeof(wrong_type_t));
 	assignment->expected_type             = malloc(sizeof(type_t));
 	assignment->expected_type->name       = strduplicate(type_left->name);
 	assignment->expected_type->is_pointer = type_left->is_pointer;

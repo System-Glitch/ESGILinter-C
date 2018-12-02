@@ -10,13 +10,14 @@ typedef struct messages {
 	arraylist_t *invalid_params;
 	arraylist_t *invalid_calls;
 	arraylist_t *wrong_assignment;
+	arraylist_t *wrong_return;
 	arraylist_t *variables_list; //Variable is removed when used
 	arraylist_t *functions_list; //Function is removed when used
 } messages_t;
 
-typedef struct wrong_assignment {
+typedef struct wrong_type {
 	type_t *expected_type;
 	type_t *actual_type;
-} wrong_assignment_t;
+} wrong_type_t;
 
 #endif

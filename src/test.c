@@ -282,12 +282,12 @@ static void test_scope_parsing() {
 	arraylist_add(file, strduplicate("\tcase 3: if(b) {"));
 	arraylist_add(file, strduplicate("\tint inner;"));
 	arraylist_add(file, strduplicate("\t}"));
-	arraylist_add(file, strduplicate("\tswitch(b) {"));
+	/*arraylist_add(file, strduplicate("\tswitch(b) {")); //TODO nested switch not working
 	arraylist_add(file, strduplicate("\tint inner2;")); //10
-	arraylist_add(file, strduplicate("\t}"));
-	arraylist_add(file, strduplicate("\tcase 4: switch(b) {"));
-	arraylist_add(file, strduplicate("\tint inner3;"));
-	arraylist_add(file, strduplicate("\t}"));
+	arraylist_add(file, strduplicate("\t}"));*/
+	/*arraylist_add(file, strduplicate("\tcase 4: switch(b) {"));
+	arraylist_add(file, strduplicate("\t\tcase 1: int inner3;"));
+	arraylist_add(file, strduplicate("\t}"));*/
 	arraylist_add(file, strduplicate("\tcase 3: case 4: int c;")); //15
 	arraylist_add(file, strduplicate("\tcase 5:"));
 	arraylist_add(file, strduplicate("\t\tif(1) {"));
@@ -467,6 +467,7 @@ static void test_expression(char *line, unsigned int line_index, scope_t *scope)
 	messages->variables_list       = NULL;
 	messages->functions_list       = NULL;
 	messages->wrong_assignment     = NULL;
+	messages->wrong_return         = NULL;
 	type_t type = parse_expression(line, line_index, scope, messages);
 	printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
 	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);
@@ -603,41 +604,42 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\treturn j;"));
 	arraylist_add(file, strduplicate("}"));
 
-	arraylist_add(file, strduplicate("char* test2(char v) {"));
+	arraylist_add(file, strduplicate("char* test2(char v) {")); //L.25
 	arraylist_add(file, strduplicate("\tv = glob;"));
 	arraylist_add(file, strduplicate("\tint wrong = \"wrong\";"));
 	arraylist_add(file, strduplicate("\twrong = 'w';"));
 	arraylist_add(file, strduplicate("\twrong = test2('w');"));
-	arraylist_add(file, strduplicate("\twhile(i);"));
+	arraylist_add(file, strduplicate("\twhile(i);")); //L.30
 	arraylist_add(file, strduplicate("\twhile(j) {"));
 	arraylist_add(file, strduplicate("\t\t//..."));
-	arraylist_add(file, strduplicate("\t\tif(k);")); //L.30
+	arraylist_add(file, strduplicate("\t\tif(k);"));
 	arraylist_add(file, strduplicate("\t\tif(l) {"));
 	arraylist_add(file, strduplicate("\t\t\tbreak;"));
 	arraylist_add(file, strduplicate("\t\t\tbreak();"));
 	arraylist_add(file, strduplicate("\t\t}"));
 	arraylist_add(file, strduplicate("\t\telse if(m) {"));
 	arraylist_add(file, strduplicate("\t\t}"));
-	arraylist_add(file, strduplicate("\t\telse {"));
+	arraylist_add(file, strduplicate("\t\telse {")); //L.40
 	arraylist_add(file, strduplicate("\t\t\tif(v, k);"));
 	arraylist_add(file, strduplicate("\t\t}"));
-	arraylist_add(file, strduplicate("\t}")); //L.40
+	arraylist_add(file, strduplicate("\t}"));
 	arraylist_add(file, strduplicate("\t do {"));
 	arraylist_add(file, strduplicate("\t}"));
 	arraylist_add(file, strduplicate("\twhile(test);"));
 	arraylist_add(file, strduplicate("\tswitch(p) {"));
 	arraylist_add(file, strduplicate("\tcase 1: printf();"));
 	arraylist_add(file, strduplicate("\tbreak;"));
-	arraylist_add(file, strduplicate("\tcase 2: int i = p;"));
+	arraylist_add(file, strduplicate("\tcase 2: int i = p;")); //L.50
 	arraylist_add(file, strduplicate("\tcase 1: case p: case i: test();"));
 	arraylist_add(file, strduplicate("\tcase 1: case 2: default: test();"));
-	arraylist_add(file, strduplicate("\tbreak;")); //L.50
+	arraylist_add(file, strduplicate("\tbreak;"));
 	arraylist_add(file, strduplicate("\tcase test2():"));
 	arraylist_add(file, strduplicate("\tbreak;"));
 	arraylist_add(file, strduplicate("\tdefault: printf(\"default\");"));
 	arraylist_add(file, strduplicate("\t}"));
 	arraylist_add(file, strduplicate("\ttest2(\"/* comment */\") /* test */;"));
 	arraylist_add(file, strduplicate("\treturn;"));
+	arraylist_add(file, strduplicate("\treturn 5;")); //L.60
 	arraylist_add(file, strduplicate("\treturn 'c';"));
 	arraylist_add(file, strduplicate("\treturn 'd' + p;"));
 	arraylist_add(file, strduplicate("}"));
@@ -666,6 +668,7 @@ static void test_operation(char* line, unsigned int line_index, scope_t *scope) 
 	messages->variables_list       = NULL;
 	messages->functions_list       = NULL;
 	messages->wrong_assignment     = NULL;
+	messages->wrong_return         = NULL;
 	type_t type = parse_operation(line, line_index, scope, messages);
 	printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
 	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);

@@ -245,7 +245,7 @@ static void check_variable_expression(char *line, int index, int line_index, sco
 	}
 }
 
-static char *parse_control(char *line, int index, int length, char **following) {
+static char *parse_control(char *line, int index, int length, char **following, unsigned char *is_return) {
 	static const char *simple_controls[] = {
 		"if", "else if", "switch", "while", NULL //TODO "else if" with any whitespace
 	};
@@ -281,7 +281,7 @@ static char *parse_control(char *line, int index, int length, char **following) 
 		index += 6;
 
 		SKIP_WHITESPACES
-		//TODO check return type corresponds to function type
+		*is_return = 1;
 		return strsubstr(line, index, length - index);
 	} else if(strstr(line + index, "case") == line + index) {
 
@@ -317,6 +317,32 @@ static char *parse_control(char *line, int index, int length, char **following) 
 	return NULL;
 }
 
+static void add_wrong_return_message(messages_t *messages, type_t *type_expected, type_t *type_actual) {
+	wrong_type_t *wrong_type              = malloc(sizeof(wrong_type_t));
+	wrong_type->expected_type             = malloc(sizeof(type_t));
+	wrong_type->expected_type->name       = strduplicate(type_expected->name);
+	wrong_type->expected_type->is_pointer = type_expected->is_pointer;
+	wrong_type->actual_type               = malloc(sizeof(type_t));
+	wrong_type->actual_type->name         = strduplicate(type_actual->name);
+	wrong_type->actual_type->is_pointer   = type_actual->is_pointer;
+	arraylist_add(messages->wrong_return, wrong_type);
+}
+
+static void check_return_type(type_t type, scope_t *scope, messages_t *messages) {
+	scope_t *root_scope = get_root_scope(scope); //TODO, get correct scope (first child or root)
+	function_t *function = NULL;
+
+	for(size_t i = 0 ; i < root_scope->functions->size ; i++) {
+		function = arraylist_get(root_scope->functions, i);
+		if(function->line == scope->from_line) {
+			if(!type_equals(&(function->return_type), &type))
+				add_wrong_return_message(messages, &(function->return_type), &type);
+			break;
+		}
+	}
+
+}
+
 type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *messages) {
 	type_t type;
 	type_t return_type;
@@ -327,6 +353,7 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *
 	unsigned int end_index   = 0;
 	unsigned int close_index = 0;
 	int last_index           = -1; //Last index or quote for char and string literal
+	unsigned char is_return  = 0;
 	int index                = 0;
 	unsigned int sub_index   = 0;
 	int length               = strlen(line);
@@ -415,11 +442,14 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *
 			type.is_literal = 1;
 		}
 	} else {
-		expr = parse_control(line, index, length, &following);
+		expr = parse_control(line, index, length, &following, &is_return);
 		if(expr != NULL) {
 			return_type = parse_expression(expr, line_index, scope, messages);
 			if(!strcmp(return_type.name, "NULL")) {
 				return_type = parse_operation(expr, line_index, scope, messages);
+			}
+			if(is_return && strcmp(return_type.name, "NULL")) {
+				check_return_type(return_type, scope, messages);
 			}
 			free(return_type.name);
 			free(expr);

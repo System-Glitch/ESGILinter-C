@@ -37,28 +37,28 @@ static void fill_variables_list(scope_t *scope, arraylist_t *variables) {
 	}
 }
 
-static char *build_wrong_assignment_message(wrong_assignment_t *assignment) {
+static char *build_wrong_type_message(wrong_type_t *wrong_type, unsigned char is_assignment) {
 	char *message = NULL;
 	char *tmp = NULL;
 	char *seq = NULL;
 
-	message = strconcat("Invalid assignment: expected ", assignment->expected_type->name);
-	seq = generate_char_sequence('*', assignment->expected_type->is_pointer);
+	message = strconcat(is_assignment ? "Invalid assignment: expected " : "Invalid return type: expected ", wrong_type->expected_type->name);
+	seq = generate_char_sequence('*', wrong_type->expected_type->is_pointer);
 	tmp = strconcat(message, seq);
 	free(seq);
 	free(message);
 
 	message = strconcat(tmp, ", actual ");
 	free(tmp);
-	tmp = strconcat(message, assignment->actual_type->name);
+	tmp = strconcat(message, wrong_type->actual_type->name);
 	free(message);
-	seq = generate_char_sequence('*', assignment->actual_type->is_pointer);
+	seq = generate_char_sequence('*', wrong_type->actual_type->is_pointer);
 	message = strconcat(tmp, seq);
 	free(seq);
 	free(tmp);
 
-	free(assignment->expected_type->name);
-	free(assignment->actual_type->name);
+	free(wrong_type->expected_type->name);
+	free(wrong_type->actual_type->name);
 
 	return message;
 }
@@ -73,7 +73,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 	function_t         *function   = NULL;
 	field_t            *field      = NULL;
 	invalid_call_t     *call       = NULL;
-	wrong_assignment_t *assignment = NULL;
+	wrong_type_t       *wrong_type = NULL;
 	messages_t         *messages   = malloc(sizeof(messages_t));
 
 	if(messages == NULL) exit(1);
@@ -97,6 +97,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 			messages->invalid_params       = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 			messages->invalid_calls        = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 			messages->wrong_assignment     = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+			messages->wrong_return         = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 
 			line = arraylist_get(file, i);
 			type = parse_expression(line, i, scope, messages);
@@ -104,7 +105,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				type = parse_operation(line, i, scope, messages);
 			}
 
-			for(size_t j = 0 ; j < messages->undeclared_functions->size ; j++) {
+			/*for(size_t j = 0 ; j < messages->undeclared_functions->size ; j++) {
 				function = arraylist_get(messages->undeclared_functions, j);
 				message = strconcat("Undeclared function: ", function->name);
 				print_error("fictive_file.c", i, line, message);
@@ -137,8 +138,16 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 			}
 
 			for(size_t j = 0 ; j < messages->wrong_assignment->size ; j++) {
-				assignment = arraylist_get(messages->wrong_assignment, j);
-				message = build_wrong_assignment_message(assignment);
+				wrong_type = arraylist_get(messages->wrong_assignment, j);
+				message = build_wrong_type_message(wrong_type, 1);
+				print_error("fictive_file.c", i, line, message);
+				free(message);
+				result++;
+			}*/
+
+			for(size_t j = 0 ; j < messages->wrong_return->size ; j++) {
+				wrong_type = arraylist_get(messages->wrong_return, j);
+				message = build_wrong_type_message(wrong_type, 0);
 				print_error("fictive_file.c", i, line, message);
 				free(message);
 				result++;
@@ -149,6 +158,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 			arraylist_free(messages->undeclared_variables, 1);
 			arraylist_free(messages->invalid_calls, 1);
 			arraylist_free(messages->wrong_assignment, 1);
+			arraylist_free(messages->wrong_return, 1);
 			free(type.name);
 		}
 		
