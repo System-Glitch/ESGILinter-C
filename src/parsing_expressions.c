@@ -329,12 +329,13 @@ static void add_wrong_return_message(messages_t *messages, type_t *type_expected
 }
 
 static void check_return_type(type_t type, scope_t *scope, messages_t *messages) {
-	scope_t *root_scope = get_root_scope(scope); //TODO, get correct scope (first child or root)
+	scope_t *function_scope = get_function_scope(scope);
+	scope_t *root_scope = function_scope->parent;
 	function_t *function = NULL;
 
 	for(size_t i = 0 ; i < root_scope->functions->size ; i++) {
 		function = arraylist_get(root_scope->functions, i);
-		if(function->line == scope->from_line) {
+		if(function->line == function_scope->from_line) {
 			if(!type_equals(&(function->return_type), &type))
 				add_wrong_return_message(messages, &(function->return_type), &type);
 			break;

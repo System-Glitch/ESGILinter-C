@@ -398,6 +398,16 @@ scope_t *get_root_scope(scope_t *scope) {
 	return scope;
 }
 
+scope_t *get_function_scope(scope_t *scope) {
+	scope_t *parent = NULL;
+	while((parent = scope->parent) != NULL) {
+		if(scope->parent->parent == NULL)
+			return scope;
+		scope = parent;
+	}
+	return scope;
+}
+
 function_t *find_function(scope_t *scope, char *name, unsigned char allow_prototypes) {
 	scope_t *root = get_root_scope(scope);
 	function_t *function = NULL;

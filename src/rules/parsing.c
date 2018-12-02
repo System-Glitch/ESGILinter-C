@@ -105,7 +105,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				type = parse_operation(line, i, scope, messages);
 			}
 
-			/*for(size_t j = 0 ; j < messages->undeclared_functions->size ; j++) {
+			for(size_t j = 0 ; j < messages->undeclared_functions->size ; j++) {
 				function = arraylist_get(messages->undeclared_functions, j);
 				message = strconcat("Undeclared function: ", function->name);
 				print_error("fictive_file.c", i, line, message);
@@ -143,7 +143,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				print_error("fictive_file.c", i, line, message);
 				free(message);
 				result++;
-			}*/
+			}
 
 			for(size_t j = 0 ; j < messages->wrong_return->size ; j++) {
 				wrong_type = arraylist_get(messages->wrong_return, j);

@@ -639,7 +639,10 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\t}"));
 	arraylist_add(file, strduplicate("\ttest2(\"/* comment */\") /* test */;"));
 	arraylist_add(file, strduplicate("\treturn;"));
-	arraylist_add(file, strduplicate("\treturn 5;")); //L.60
+	arraylist_add(file, strduplicate("\treturn 5;")); //L.60*/
+	arraylist_add(file, strduplicate("\tif(1) {"));
+	arraylist_add(file, strduplicate("\t\treturn v;"));
+	arraylist_add(file, strduplicate("\t}"));
 	arraylist_add(file, strduplicate("\treturn 'c';"));
 	arraylist_add(file, strduplicate("\treturn 'd' + p;"));
 	arraylist_add(file, strduplicate("}"));
