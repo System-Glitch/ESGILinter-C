@@ -101,6 +101,21 @@ static function_t *find_function_from_line(arraylist_t *list, int line) {
 	return NULL;
 }
 
+static void register_sizeof(scope_t *scope) {
+	arraylist_t *params       = arraylist_init(1);
+	arraylist_t *proto_params = arraylist_init(1);
+	function_t *function      = function_init(strduplicate("sizeof"), 0, strduplicate("unsigned long int"), 0, params, -1);
+	function_t *prototype     = function_init(strduplicate("sizeof"), 1, strduplicate("unsigned long int"), 0, proto_params, -1);
+	field_t *param = field_init(strduplicate("expr"), strduplicate("{ANY}"), 0, -1);
+
+	arraylist_add(proto_params, param);
+	param = field_init(strduplicate("expr"), strduplicate("{ANY}"), 0, -1);
+	arraylist_add(params, param);
+
+	arraylist_add(scope->functions, prototype);
+	arraylist_add(scope->functions, function);
+}
+
 scope_t *parse_root_scope(arraylist_t *file) {
 	scope_t    *scope     = scope_init(NULL);
 	scope_t    *child     = NULL;
@@ -141,6 +156,8 @@ scope_t *parse_root_scope(arraylist_t *file) {
 			}
 		} while ((current = current->next) != NULL);
 	}
+
+	register_sizeof(scope);
 
 	return scope;
 }
@@ -300,7 +317,7 @@ scope_t *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int fr
 
 unsigned char type_equals(type_t *type1, type_t *type2) {
 	//TODO handle synonyms such as unsigned char and uint8_t
-	return !strcmp(type1->name, type2->name) && type1->is_pointer == type2->is_pointer;
+	return !strcmp(type1->name, "{ANY}") || !strcmp(type2->name, "{ANY}") || (!strcmp(type1->name, type2->name) && type1->is_pointer == type2->is_pointer);
 }
 
 unsigned char type_exists(char *type) {
@@ -417,7 +434,7 @@ unsigned char is_keyword(char *name) {
 		"default", "do", "double", "else", "enum", "extern",
 		"float", "for", "goto", "if", "inline", "int", "long",
 		"register", "restrict", "return", "short", "signed",
-		"sizeof", "static", "struct", "switch", "typedef", "union",
+		"static", "struct", "switch", "typedef", "union",
 		"unsigned", "void", "volatile", "while",
 		NULL
 	};

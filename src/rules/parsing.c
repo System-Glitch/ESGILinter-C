@@ -17,7 +17,7 @@ static void fill_functions_list(scope_t *root_scope, arraylist_t *functions) {
 	function_t *function = NULL;
 	for(size_t i = 0 ; i < root_scope->functions->size ; i++) {
 		function = arraylist_get(root_scope->functions, i);
-		if(!(function->is_prototype)) {
+		if(!(function->is_prototype) && strcmp(function->name, "sizeof")) {
 			arraylist_add(functions, function);
 		}
 	}
