@@ -102,6 +102,15 @@ static type_t find_variable_type_from_line(scope_t *scope, int line) {
 	return type;
 }
 
+static unsigned char starts_with_return(char *line, int length) {
+	char c;
+	int index = 0;
+
+	SKIP_WHITESPACES
+
+	return strstr(line + index, "return") == line + index;
+}
+
 type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *messages) {
 	type_t type;
 	type_t left_operand_type;
@@ -127,7 +136,7 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 	type.is_pointer = 0;
 	type.is_literal = 0;
 
-	if(strindexof(line, ':') != -1) {
+	if(strindexof(line, ':') != -1 || starts_with_return(line, length)) {
 		return type; //TODO temp fix for case and ternary operator
 	}
 
@@ -230,6 +239,8 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 			//TODO detect forbidden operations (2 * &ptr , void + something, int - ptr)
 
 			//TODO Operand case ignored : int test[] = {length, 4};
+			free(left_operand);
+			free(right_operand);
 			break;
 		}
 	}

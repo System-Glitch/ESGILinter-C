@@ -639,6 +639,7 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\ttest2(\"/* comment */\") /* test */;"));
 	arraylist_add(file, strduplicate("\treturn;"));
 	arraylist_add(file, strduplicate("\treturn 'c';"));
+	arraylist_add(file, strduplicate("\treturn 'd' + p;"));
 	arraylist_add(file, strduplicate("}"));
 
 	scope_t *scope = parse_root_scope(file);

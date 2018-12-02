@@ -247,7 +247,7 @@ static void check_variable_expression(char *line, int index, int line_index, sco
 
 static char *parse_control(char *line, int index, int length, char **following) {
 	static const char *simple_controls[] = {
-		"if", "else if", "switch", "while", NULL
+		"if", "else if", "switch", "while", NULL //TODO "else if" with any whitespace
 	};
 	//TODO ?: operator
 	//TODO For
@@ -319,12 +319,14 @@ static char *parse_control(char *line, int index, int length, char **following) 
 
 type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *messages) {
 	type_t type;
+	type_t return_type;
 	function_t *function     = NULL;
 	char       *expr         = NULL;
 	char       *following    = NULL; //Used in parse_control "case"
 	unsigned int start_index = 0;
 	unsigned int end_index   = 0;
 	unsigned int close_index = 0;
+	int last_index           = -1; //Last index or quote for char and string literal
 	int index                = 0;
 	unsigned int sub_index   = 0;
 	int length               = strlen(line);
@@ -385,20 +387,41 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *
 		free(expr);
 
 
-	} else if(c == '\'' && strlastindexof(line, '\'') != index) {
-		free(type.name);
-		type.name       = strduplicate("char");
-		type.is_pointer = 0;
-		type.is_literal = 1;
-	} else if(c == '"' && strlastindexof(line, '"') != index) {
-		free(type.name);
-		type.name       = strduplicate("char");
-		type.is_pointer = 1;
-		type.is_literal = 1;
+	} else if(c == '\'' && (last_index = strlastindexof(line, '\'')) != index) {
+
+		//Check if end of expression
+		index = last_index + 1;
+
+		SKIP_WHITESPACES
+
+		if(c == ';' || is_whitespace(c) || index >= length) {
+			free(type.name);
+			type.name       = strduplicate("char");
+			type.is_pointer = 0;
+			type.is_literal = 1;
+		}
+
+	} else if(c == '"' && (last_index = strlastindexof(line, '"')) != index) {
+
+		//Check if end of expression
+		index = last_index + 1;
+
+		SKIP_WHITESPACES
+
+		if(c == ';' || is_whitespace(c) || index >= length) {
+			free(type.name);
+			type.name       = strduplicate("char");
+			type.is_pointer = 1;
+			type.is_literal = 1;
+		}
 	} else {
 		expr = parse_control(line, index, length, &following);
 		if(expr != NULL) {
-			parse_expression(expr, line_index, scope, messages);
+			return_type = parse_expression(expr, line_index, scope, messages);
+			if(!strcmp(return_type.name, "NULL")) {
+				return_type = parse_operation(expr, line_index, scope, messages);
+			}
+			free(return_type.name);
 			free(expr);
 			if(following != NULL) {
 				parse_expression(following, line_index, scope, messages);
