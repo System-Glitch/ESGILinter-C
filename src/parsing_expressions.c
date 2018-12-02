@@ -247,7 +247,7 @@ static void check_variable_expression(char *line, int index, int line_index, sco
 
 static char *parse_control(char *line, int index, int length, char **following, unsigned char *is_return) {
 	static const char *simple_controls[] = {
-		"if", "else if", "switch", "while", NULL //TODO "else if" with any whitespace
+		"if", "switch", "while", NULL
 	};
 	//TODO ?: operator
 	//TODO For
@@ -277,7 +277,27 @@ static char *parse_control(char *line, int index, int length, char **following, 
 	}
 
 	//Specific
-	if(strstr(line + index, "return") == line + index) {
+	if(strstr(line + index, "else") == line + index) {
+		index += 4;
+		last_index = index;
+
+		SKIP_WHITESPACES
+
+		if(index != last_index && strstr(line + index, "if") == line + index) {
+			index += 2;
+
+			SKIP_WHITESPACES
+
+			if(c == '(') {
+				last_index = strlastindexof(line, ')');
+				if(last_index > index) {
+					index++;
+					return strsubstr(line, index, last_index - index);
+				}
+			}
+		}
+
+	} else if(strstr(line + index, "return") == line + index) {
 		index += 6;
 
 		SKIP_WHITESPACES
