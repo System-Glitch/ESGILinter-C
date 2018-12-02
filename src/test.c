@@ -466,6 +466,7 @@ static void test_expression(char *line, unsigned int line_index, scope_t *scope)
 	messages->invalid_calls        = NULL;
 	messages->variables_list       = NULL;
 	messages->functions_list       = NULL;
+	messages->wrong_assignment     = NULL;
 	type_t type = parse_expression(line, line_index, scope, messages);
 	printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
 	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);
@@ -604,6 +605,9 @@ static void test_rule_parsing() {
 
 	arraylist_add(file, strduplicate("char* test2(char v) {"));
 	arraylist_add(file, strduplicate("\tv = glob;"));
+	arraylist_add(file, strduplicate("\tint wrong = \"wrong\";"));
+	arraylist_add(file, strduplicate("\twrong = 'w';"));
+	arraylist_add(file, strduplicate("\twrong = test2('w');"));
 	arraylist_add(file, strduplicate("\twhile(i);"));
 	arraylist_add(file, strduplicate("\twhile(j) {"));
 	arraylist_add(file, strduplicate("\t\t//..."));
@@ -660,6 +664,7 @@ static void test_operation(char* line, unsigned int line_index, scope_t *scope) 
 	messages->invalid_calls        = NULL;
 	messages->variables_list       = NULL;
 	messages->functions_list       = NULL;
+	messages->wrong_assignment     = NULL;
 	type_t type = parse_operation(line, line_index, scope, messages);
 	printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
 	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);

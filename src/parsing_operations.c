@@ -78,6 +78,30 @@ static unsigned char is_operator_first(char *line, int length, char *occurrence)
 	return occurrence == line + index; 
 }
 
+static void add_wrong_assignment_message(messages_t *messages, type_t *type_left, type_t *type_right) {
+	wrong_assignment_t *assignment        = malloc(sizeof(wrong_assignment_t));
+	assignment->expected_type             = malloc(sizeof(type_t));
+	assignment->expected_type->name       = strduplicate(type_left->name);
+	assignment->expected_type->is_pointer = type_left->is_pointer;
+	assignment->actual_type               = malloc(sizeof(type_t));
+	assignment->actual_type->name         = strduplicate(type_right->name);
+	assignment->actual_type->is_pointer   = type_right->is_pointer;
+	arraylist_add(messages->wrong_assignment, assignment);
+}
+
+static type_t find_variable_type_from_line(scope_t *scope, int line) {
+	field_t *field = NULL;
+	type_t type; //Default return;
+	for(size_t i = 0 ; i < scope->variables->size ; i++) {
+		field = arraylist_get(scope->variables, i);
+		if(field->line == line) {
+			return field->type;
+		}
+	}
+	type.name = "NULL";
+	return type;
+}
+
 type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *messages) {
 	type_t type;
 	type_t left_operand_type;
@@ -157,6 +181,10 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 				type.name = strduplicate(((field_t*)arraylist_get(declarations, 0))->type.name);
 
 				field_list_free(declarations);
+
+				//Find var declaration in scope
+				left_operand_type = find_variable_type_from_line(scope, line_index);
+
 				is_declaration = 1;
 			} else {
 				left_operand_type = parse_operand(left_operand, line_index, scope, messages);
@@ -165,26 +193,35 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 
 			right_operand_type = parse_operand(right_operand, line_index, scope, messages);
 
-			if(!is_declaration && strcmp(left_operand_type.name,"NULL") && strcmp(right_operand_type.name,"NULL")) {
+			if(strcmp(left_operand_type.name,"NULL") && strcmp(right_operand_type.name,"NULL")) {
 
-				if(is_comparison(operator)) { //Type is int
-					free(type.name);
-					type.name = strduplicate("int");
-					type.is_pointer = 0;
-				} else if(right_operand_type.is_pointer || left_operand_type.is_pointer) {
-					ptr_type = right_operand_type.is_pointer > left_operand_type.is_pointer ? &right_operand_type : &left_operand_type;
-					free(type.name);
-					type.name = strduplicate(ptr_type->name);
-					type.is_pointer = ptr_type->is_pointer;
-				} else {
-					rank = get_highest_rank(right_operand_type.name, left_operand_type.name);
-					if(rank != -1) {
-						free(type.name);
-						type.name = strduplicate((char*)type_rank[rank]);
-						type.is_pointer = 0;
-					}
+				if(messages->wrong_assignment != NULL &&
+					(is_declaration || !strcmp(operator, "=")) &&
+					!type_equals(&left_operand_type, &right_operand_type)) {
+
+					add_wrong_assignment_message(messages, &left_operand_type, &right_operand_type);
 				}
 
+				if(!is_declaration) {
+
+					if(is_comparison(operator)) { //Type is int
+						free(type.name);
+						type.name = strduplicate("int");
+						type.is_pointer = 0;
+					} else if(right_operand_type.is_pointer || left_operand_type.is_pointer) {
+						ptr_type = right_operand_type.is_pointer > left_operand_type.is_pointer ? &right_operand_type : &left_operand_type;
+						free(type.name);
+						type.name = strduplicate(ptr_type->name);
+						type.is_pointer = ptr_type->is_pointer;
+					} else {
+						rank = get_highest_rank(right_operand_type.name, left_operand_type.name);
+						if(rank != -1) {
+							free(type.name);
+							type.name = strduplicate((char*)type_rank[rank]);
+							type.is_pointer = 0;
+						}
+					}
+				}
 			}
 
 			free(right_operand_type.name);

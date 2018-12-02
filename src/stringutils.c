@@ -264,3 +264,12 @@ unsigned char check_quotes(char *line, char *occurrence, int length) {
 
 	return 0;
 }
+
+char *generate_char_sequence(char c, unsigned int count) {
+	char *seq = malloc((count + 1)*sizeof(char));
+	for(unsigned int i = 0 ; i < count ; i++) {
+		seq[i] = c;
+	}
+	seq[count] = '\0';
+	return seq;
+}
