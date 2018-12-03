@@ -275,29 +275,16 @@ static void test_scope_parsing() {
 	file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 	arraylist_add(file, strduplicate("int main() {"));
 	arraylist_add(file, strduplicate("\tswitch (1) {"));
-	arraylist_add(file, strduplicate("\tcase 1: test();"));
-	arraylist_add(file, strduplicate("\tint a;"));
-	arraylist_add(file, strduplicate("\tbreak;"));
-	arraylist_add(file, strduplicate("\tcase 2: int b;")); //5
-	arraylist_add(file, strduplicate("\tcase 3: if(b) {"));
-	arraylist_add(file, strduplicate("\tint inner;"));
+	arraylist_add(file, strduplicate("\tcase 4: int innertest;"));
+
+	arraylist_add(file, strduplicate("\tswitch(b) {")); //10
+	arraylist_add(file, strduplicate("\tcase 1: int inner2;"));
+	arraylist_add(file, strduplicate("\tcase 2: case 3: int inner3;"));
+	arraylist_add(file, strduplicate("\tcase 4: default: int inner4;"));
 	arraylist_add(file, strduplicate("\t}"));
-	arraylist_add(file, strduplicate("\tint innertest;"));
-	arraylist_add(file, strduplicate("\tswitch(b) {"));
-	arraylist_add(file, strduplicate("\tcase 1: int inner2;")); //10
+
+	arraylist_add(file, strduplicate("\tint innertest2;"));
 	arraylist_add(file, strduplicate("\t}"));
-	arraylist_add(file, strduplicate("\tcase 4: switch(b) {")); //TODO nested switch not working when directly after case
-	arraylist_add(file, strduplicate("\t\tcase 1: int inner3;"));
-	arraylist_add(file, strduplicate("\t}"));
-	arraylist_add(file, strduplicate("\tcase 3: case 4: int c;")); //15
-	arraylist_add(file, strduplicate("\tcase 5:"));
-	arraylist_add(file, strduplicate("\t\tif(1) {"));
-	arraylist_add(file, strduplicate("\t\tint fi;"));
-	arraylist_add(file, strduplicate("\t\t}"));
-	arraylist_add(file, strduplicate("\tdefault: int d;")); //20
-	arraylist_add(file, strduplicate("\tint e;"));
-	arraylist_add(file, strduplicate("\t}"));
-	arraylist_add(file, strduplicate("\tswitch(test) { }"));
 	arraylist_add(file, strduplicate("}"));
 
 	scope = parse_root_scope(file);

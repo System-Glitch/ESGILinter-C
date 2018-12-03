@@ -46,7 +46,7 @@ field_t     *get_field_from_string(char *field);
 arraylist_t *get_function_params(char *function_head);
 
 scope_t     *parse_root_scope(arraylist_t *file);
-scope_t     *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int from_char, unsigned char in_case, scope_t *parent_scope);
+scope_t     *parse_scope(arraylist_t *file, unsigned int start_line, unsigned int from_char, scope_t *parent_scope);
 
 unsigned char type_equals(type_t *type1, type_t *type2);
 unsigned char type_exists(char *type);

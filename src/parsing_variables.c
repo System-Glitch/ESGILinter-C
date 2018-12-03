@@ -201,6 +201,30 @@ static match_t *match_for_loop(char *line) {
 	return match;
 }
 
+static int skip_switch_case(char *line, int index, int length) {
+
+	char c;
+
+	SKIP_WHITESPACES
+
+	if(strstr(line + index, "case") == line + index || strstr(line + index, "default") == line + index) {
+		index += c == 'c' ? 4 : 7;
+
+		SKIP_WHITESPACES
+
+		while((c = line[index]) != ':' && index < length) {
+			index++;
+		}
+
+		if(c != ':') return -1;
+
+		return index + 1;
+	}
+
+	return -1;
+
+}
+
 arraylist_t *get_variables_from_declaration(int line_index, char *line) {
 	unsigned int star_count_type;
 	unsigned int type_sub_index;
@@ -208,6 +232,8 @@ arraylist_t *get_variables_from_declaration(int line_index, char *line) {
 	unsigned int type_length;
 	unsigned int names_index      = 0;
 	unsigned int type_start_index = 0;
+	int          start_index      = 0;
+	int          tmp_index        = 0;
 	arraylist_t *list   = NULL;
 	field_t *variable   = NULL;
 	match_t *for_loop   = NULL;
@@ -218,6 +244,17 @@ arraylist_t *get_variables_from_declaration(int line_index, char *line) {
 	char *type;
 
 	tmp_line = str_remove_comments(line);
+	length = strlen(tmp_line);
+	while(tmp_index != -1) {
+		start_index = tmp_index;
+		tmp_index = skip_switch_case(line, start_index, length);
+	}
+
+	if(start_index != -1) {
+		line = strsubstr(tmp_line, start_index, length - start_index);
+		free(tmp_line);
+		tmp_line = line;
+	}
 
 	for_loop = match_for_loop(tmp_line);
 	if(for_loop != NULL) {
