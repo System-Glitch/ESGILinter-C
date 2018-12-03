@@ -3,6 +3,7 @@
 //
 
 #include <stringutils.h>
+#include <scopetree.h>
 #include "fileloader.h"
 #include "display.h"
 
@@ -68,11 +69,15 @@ void file_loader(arraylist_t *e, arraylist_t *files, char *filename){
     char *line;
     char *tmp;
     char *res;
+    char *for_loop;
+    char c;
+    int index;
     int real_line;
     line_t *l;
     int line_counter;
     int counter;
     int start_for;
+    int literal;
     FILE *src;
 
     src = fopen(filename,"rb");
@@ -97,6 +102,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, char *filename){
     line_counter = 0;
     real_line = 0;
     start_for = 0;
+    literal = 0;
     for(i = 0; i < length; i++){
         tempo = 0;
         counter = 0;
@@ -119,11 +125,22 @@ void file_loader(arraylist_t *e, arraylist_t *files, char *filename){
             strcpy(tmp,"");
             continue;
         }
-        if(strstr(line, "for(") == line){
-            start_for = 1;
+
+        for_loop = strstr(line, "for");
+        if(for_loop != NULL){
+            for_loop += 3;
+            index = 0;
+            while(is_whitespace(c = for_loop[index]) && index < strlen(for_loop)) { index++; };
+            if(for_loop[index] == '(') start_for = 1;
         }
         for(j = 0; j < strlen(line) ; j++){
-            if((line[j] == ';' && start_for == 0) || line[j] == '{' || line[j] == '}'){
+            if(line[j] == '"' && literal == 1){
+                literal = 0;
+            }else if(line[j] == '"' && literal == 0){
+                literal = 1;
+            }
+
+            if(((line[j] == ';' && start_for == 0) || line[j] == '{' || line[j] == '}') && literal != 1){
                 real_line++;
                 l = malloc(sizeof(line_t));
                 l->source = malloc(sizeof(char) * 255);
@@ -173,6 +190,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, char *filename){
      * Free the memory
      */
     fclose(src);
+    free(for_loop);
     free(line);
     free(tmp);
     free(res);
