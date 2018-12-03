@@ -2,8 +2,8 @@
 // Created by Pierre Delmer on 23/10/2018.
 //
 
-#include <stringutils.h>
-#include <scopetree.h>
+#include "stringutils.h"
+#include "scopetree.h"
 #include "fileloader.h"
 #include "display.h"
 
@@ -78,6 +78,9 @@ void file_loader(arraylist_t *e, arraylist_t *files, char *filename){
     int counter;
     int start_for;
     int literal;
+    int file_length;
+    int start_array;
+    int array_length;
     FILE *src;
 
     src = fopen(filename,"rb");
@@ -103,12 +106,15 @@ void file_loader(arraylist_t *e, arraylist_t *files, char *filename){
     real_line = 0;
     start_for = 0;
     literal = 0;
+    start_array = 0;
+    array_length = 0;
     for(i = 0; i < length; i++){
         tempo = 0;
         counter = 0;
         init = 0;
         line_counter++;
         fgets(line, 1048, src);
+        real_line++;
         if(strstr(line, "#include \"") == line){
             int first_index = strindexof(line, '"');
             int last_index = strlastindexof(line, '"');
@@ -133,15 +139,32 @@ void file_loader(arraylist_t *e, arraylist_t *files, char *filename){
             while(is_whitespace(c = for_loop[index]) && index < strlen(for_loop)) { index++; };
             if(for_loop[index] == '(') start_for = 1;
         }
-        for(j = 0; j < strlen(line) ; j++){
+        file_length = strlen(line);
+        for(j = 0; j < file_length ; j++){
             if(line[j] == '"' && literal == 1){
                 literal = 0;
             }else if(line[j] == '"' && literal == 0){
                 literal = 1;
             }
+            if(line[j] == '=' && start_array == 0){
+                index = j+1;
+                while(is_whitespace(c = line[index]) && index < strlen(line)) { index++; };
+                if(line[index] == '{'){
+                    start_array = 1;
+                    continue;
+                }
+            }
+            if(start_array == 1 && line[j] == '{'){
+                array_length++;
+                continue;
+            }
+            if(start_array == 1 && line[j] == '}'){
+                array_length--;
+                if(array_length == 0) start_array = 0;
+                continue;
+            }
 
-            if(((line[j] == ';' && start_for == 0) || line[j] == '{' || line[j] == '}') && literal != 1){
-                real_line++;
+            if(((line[j] == ';' && start_for == 0) || (line[j] == '{' && start_array == 0) || (line[j] == '}' && start_array == 0)) && literal != 1 ){
                 l = malloc(sizeof(line_t));
                 l->source = malloc(sizeof(char) * 255);
                 l->line = malloc(sizeof(char) * 1048);
