@@ -578,6 +578,7 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\tchar c = 12.1,  d = param, e = f + g;"));
 	arraylist_add(file, strduplicate("\tc = 12.1 = param;"));
 	arraylist_add(file, strduplicate("\td = param = 1.2;"));
+	arraylist_add(file, strduplicate("\td = \"lit\";"));
 	arraylist_add(file, strduplicate("\tprintf(\"%c %d\", c, i);"));
 	arraylist_add(file, strduplicate("\ttest2(param);")); //L.10
 	arraylist_add(file, strduplicate("\tfunction(c);"));
@@ -637,6 +638,13 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\t}"));
 	arraylist_add(file, strduplicate("\treturn 'c';"));
 	arraylist_add(file, strduplicate("\treturn 'd' + p;"));
+	arraylist_add(file, strduplicate("}"));
+
+	arraylist_add(file, strduplicate("void test_for() {"));
+	arraylist_add(file, strduplicate("\tfor(int i = 0 ; j < 5 ; i += 4.2) {"));
+	arraylist_add(file, strduplicate("\t}"));
+	arraylist_add(file, strduplicate("\tfor(; condition ;) {"));
+	arraylist_add(file, strduplicate("\t}"));
 	arraylist_add(file, strduplicate("}"));
 
 	scope_t *scope = parse_root_scope(file);

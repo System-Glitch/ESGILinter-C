@@ -15,6 +15,12 @@ static const char *comparison_operators[] = {
 	NULL
 };
 
+static const char *assignation_operators[] = {
+	"<<=",">>=","!=","+=","-=","*=",
+	"/=","%=","&=","^=","|=","=",
+	NULL
+};
+
 static const char *type_rank[] = {
 	"void", "char", "unsigned char",
 	"short", "unsigned short",
@@ -26,15 +32,23 @@ static const char *type_rank[] = {
 	NULL
 };
 
-static unsigned char is_comparison(const char *operator) {
+static unsigned char is_operator_of_type(const char *operator, const char **type) {
 	int i = 0;
 	const char *t = NULL;
-	while((t = comparison_operators[i]) != NULL) {
-		if(!strcmp(comparison_operators[i], operator))
+	while((t = type[i]) != NULL) {
+		if(!strcmp(type[i], operator))
 			return 1;
 		i++;
 	}
 	return 0;
+}
+
+static unsigned char is_comparison(const char *operator) {
+	return is_operator_of_type(operator, comparison_operators);
+}
+
+static unsigned char is_assignation(const char *operator) {
+	return is_operator_of_type(operator, assignation_operators);
 }
 
 static int find_type_rank(char *type) {
@@ -218,7 +232,7 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 
 				if(strcmp(left_operand_type.name,"NULL") && strcmp(right_operand_type.name,"NULL")) {
 
-					if(messages->wrong_assignment != NULL && !strcmp(operator, "=") &&
+					if(messages->wrong_assignment != NULL && is_assignation(operator) &&
 						!type_equals(&left_operand_type, &right_operand_type)) {
 
 						add_wrong_assignment_message(messages, &left_operand_type, &right_operand_type);

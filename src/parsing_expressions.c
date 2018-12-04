@@ -245,7 +245,7 @@ static void check_variable_expression(char *line, int index, int line_index, sco
 	}
 }
 
-static char *parse_control(char *line, int index, int length, char **following, unsigned char *is_return) {
+static char *parse_control(char *line, int index, int length, char **following, unsigned char *is_return, unsigned char *is_for) {
 	static const char *simple_controls[] = {
 		"if", "switch", "while", NULL
 	};
@@ -332,6 +332,25 @@ static char *parse_control(char *line, int index, int length, char **following, 
 		if(c == ':' && ++index < length) {
 			return strsubstr(line, index, length - index);
 		}
+	} else if(strstr(line + index, "for") == line + index) {
+		index += 3;
+
+		SKIP_WHITESPACES
+
+		if(c == '(') {
+			last_index = strlastindexof(line, ')');
+			if(last_index > index) {
+				index++;
+				expr = strsubstr(line, index, last_index - index);
+				if(strcount(expr, ';') < 2) {
+					free(expr);
+					return NULL;
+				} else {
+					*is_for = 1;
+					return expr;
+				}
+			}
+		}
 	}
 
 	return NULL;
@@ -364,6 +383,55 @@ static void check_return_type(type_t type, scope_t *scope, messages_t *messages)
 
 }
 
+static int find_semi_colon(char *line, int index, int length) {
+	int sc_index = strindexof(line + index,  ';') + index;
+
+	if(sc_index != -1 && check_quotes(line, line + sc_index, length)) {
+		return find_semi_colon(line, sc_index + 1, length);
+	}
+
+	return sc_index;
+}
+
+static void check_for_arguments(char *line , int line_index, scope_t *scope, messages_t *messages) {
+	char *init      = NULL;
+	char *condition = NULL;
+	char *end       = NULL;
+	int   length    = strlen(line);
+	int   index     = 0;
+	int   sc_index  = find_semi_colon(line, 0, length); //Semi-colon index
+	type_t type;
+
+	if(sc_index != -1) {
+		init = strsubstr(line, index, sc_index - index);
+		type = parse_expression(init, line_index, scope, messages);
+		if(!strcmp(type.name, "NULL")) {
+			type = parse_operation(init, line_index, scope, messages);
+		}
+		free(type.name);
+	} else return;
+
+
+	index = sc_index + 1;
+	sc_index = find_semi_colon(line, index, length);
+
+	if(sc_index != -1) {
+		condition = strsubstr(line, index, sc_index - index);
+		type = parse_expression(condition, line_index, scope, messages);
+		if(!strcmp(type.name, "NULL")) {
+			type = parse_operation(condition, line_index, scope, messages);
+		}
+		free(type.name);
+	} else return;
+
+	end = strsubstr(line, sc_index + 1, length - sc_index - 1);
+	type = parse_expression(end, line_index, scope, messages);
+	if(!strcmp(type.name, "NULL")) {
+		type = parse_operation(end, line_index, scope, messages);
+	}
+	free(type.name);
+}
+
 type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *messages) {
 	type_t type;
 	type_t return_type;
@@ -375,6 +443,7 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *
 	unsigned int close_index = 0;
 	int last_index           = -1; //Last index or quote for char and string literal
 	unsigned char is_return  = 0;
+	unsigned char is_for     = 0;
 	int index                = 0;
 	unsigned int sub_index   = 0;
 	int length               = strlen(line);
@@ -463,7 +532,7 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *
 			type.is_literal = 1;
 		}
 	} else {
-		expr = parse_control(line, index, length, &following, &is_return);
+		expr = parse_control(line, index, length, &following, &is_return, &is_for);
 		if(expr != NULL) {
 			return_type = parse_expression(expr, line_index, scope, messages);
 			if(!strcmp(return_type.name, "NULL")) {
@@ -471,6 +540,8 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *
 			}
 			if(is_return && strcmp(return_type.name, "NULL")) {
 				check_return_type(return_type, scope, messages);
+			} else if(is_for) {
+				check_for_arguments(expr, line_index, scope, messages);
 			}
 			free(return_type.name);
 			free(expr);
