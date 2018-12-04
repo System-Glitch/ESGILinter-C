@@ -141,7 +141,7 @@ static arraylist_t *parse_function_parameters(char *line, unsigned char is_proto
 		type[type_length - type_sub_index] = '\0';
 
 		//If no name and not prototype, invalid syntax
-		match_name = parse_variable_name(tmp + type_length, &sub_index, &array_count);
+		match_name = parse_variable_name(tmp + type_length, &sub_index, &array_count, NULL);
 		if(match_name != NULL) {
 			tmp_name = substr_match(tmp + type_length, *match_name);
 			free(match_name);

@@ -73,11 +73,12 @@ static unsigned int parse_variable_array(char *line, size_t length, unsigned int
 	return array_count;
 }
 
-match_t *parse_variable_name(char *names, unsigned int *start_index, unsigned int *array_count) {
-	unsigned int index  = 0;
-	char *line          = names + *start_index;
-	unsigned int length = strlen(line);
-	match_t *match      = NULL;
+match_t *parse_variable_name(char *names, unsigned int *start_index, unsigned int *array_count, char **value) {
+	unsigned int index              = 0;
+	unsigned int value_start_index  = 0;
+	char *line                      = names + *start_index;
+	unsigned int length             = strlen(line);
+	match_t *match                  = NULL;
 	unsigned char c;
 
 	if(*start_index > strlen(names)) return NULL;
@@ -114,9 +115,12 @@ match_t *parse_variable_name(char *names, unsigned int *start_index, unsigned in
 			if(index < length) {
 				//Equal symbol?
 				if(line[index] == '=') {
+					value_start_index = index + 1;
 					if(!parse_variable_value(line, length, &index)) { //Invalid syntax or missing value before comma
 						free(match);
 						match = NULL;
+					} else if(value != NULL) {
+						*value = strsubstr(line, value_start_index, index - value_start_index - (line[index-1] == ';' || line[index-1] == ',' ? 1 : 0));
 					}
 				} else if(line[index] != ',' && line[index] != ';') { //Syntax error
 					free(match);
@@ -140,10 +144,11 @@ static field_t *get_variable_from_declaration(int line_index, char *type, int st
 	unsigned int star_count, sub_index, tmp_index;
 	char *tmp;
 	char *name;
+	char *value = NULL;
 	unsigned int array_count = 0;
 
 	tmp_index = *names_index;
-	match = parse_variable_name(declaration, names_index, &array_count);
+	match = parse_variable_name(declaration, names_index, &array_count, &value);
 
 	if(match != NULL) {
 		tmp = substr_match(declaration + tmp_index, *match);
@@ -159,8 +164,10 @@ static field_t *get_variable_from_declaration(int line_index, char *type, int st
 		if(name != NULL) {
 			if(is_keyword(name)) {
 				free(name);
-			} else
+			} else {
 				variable = field_init(name, strduplicate(type), star_count + array_count + star_count_type, line_index);
+				variable->value = value;
+			}
 		}
 	}
 

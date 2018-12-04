@@ -91,9 +91,9 @@ static void test_function_declaration_parsing(char *line) {
 static void test_variable_declaration_parsing(char *line) {
 	arraylist_t *list = NULL;
 	
-	list = get_variables_from_declaration(0, line);
 
 	printf("%sInput: %s\"%s\"%s\n", COLOR_BLUE, COLOR_YELLOW, line, FORMAT_RESET);
+	list = get_variables_from_declaration(0, line);
 	if(list != NULL) {
 		printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
 		print_variables(list, 0);
@@ -574,6 +574,7 @@ static void test_rule_parsing() {
 
 	arraylist_add(file, strduplicate("char function(int param, char param2) {"));
 	arraylist_add(file, strduplicate("\tchar c = 'c';"));
+	arraylist_add(file, strduplicate("\tchar c = 12.1,  d = param, e = f + g;"));
 	arraylist_add(file, strduplicate("\tprintf(\"%c %d\", c, i);"));
 	arraylist_add(file, strduplicate("\ttest2(param);")); //L.10
 	arraylist_add(file, strduplicate("\tfunction(c);"));
@@ -741,6 +742,9 @@ static void test_parsing_operations() {
 	test_operation("b != 88.0", 9, scope);
 	test_operation("b ! 88.0", 9, scope);
 	test_operation("!*&b", 9, scope);
+
+	test_operation("double c = e, d, f = g + 4;", 9, scope);
+	test_operation("c = a = d = e = a + 4;", 9, scope);
 
 	scope_free(scope);
 	arraylist_free(file, 1);

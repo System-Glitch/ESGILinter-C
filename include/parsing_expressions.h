@@ -5,6 +5,6 @@
 #include "scopetree.h"
 #include "messages.h"
 
-type_t   parse_expression(char *line, int line_index, scope_t *scope, messages_t *messages);
+type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *messages);
 
 #endif

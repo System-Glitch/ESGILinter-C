@@ -111,6 +111,25 @@ static unsigned char starts_with_return(char *line, int length) {
 	return strstr(line + index, "return") == line + index;
 }
 
+static void parse_declarations(arraylist_t *declarations, scope_t *scope, int line_index, messages_t *messages) {
+	field_t *declaration  = NULL;
+	type_t declaration_type;
+
+	for(size_t i = 0 ; i < declarations->size ; i++) {
+		declaration = arraylist_get(declarations, i);
+		if(declaration->value != NULL) {
+			declaration_type = parse_expression(declaration->value, line_index, scope, messages);
+			if(!strcmp(declaration_type.name, "NULL")) {
+				declaration_type = parse_operation(declaration->value, line_index, scope, messages);
+			}
+			if(messages->wrong_assignment != NULL && strcmp(declaration_type.name,"NULL") && !type_equals(&declaration->type, &declaration_type)) {
+				add_wrong_assignment_message(messages, &declaration->type, &declaration_type);
+			}
+			free(declaration_type.name);
+		}
+	}
+}
+
 type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *messages) {
 	type_t type;
 	type_t left_operand_type;
@@ -118,10 +137,10 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 	type_t *ptr_type;
 	scope_t *root_scope       = get_root_scope(scope);
 	char *line_wo_comment     = str_remove_comments(line);
+	arraylist_t *declarations = NULL;
 	char *tmp_line            = NULL;
 	char *left_operand        = NULL;
 	char *right_operand       = NULL;
-	arraylist_t *declarations = NULL;
 	const char *operator      = NULL;
 	char *occurrence          = NULL;
 	int   index_operator      =  0;
@@ -130,7 +149,6 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 	int   length              = strlen(line_wo_comment);
 	int   operator_length     = -1;
 	int   rank                = -1;
-	char  is_declaration      =  0;
 
 	type.name = strduplicate("NULL");
 	type.is_pointer = 0;
@@ -177,14 +195,13 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 			left_operand_length = occurrence - line_wo_comment;
 			right_operand_index = left_operand_length + strlen(operator);
 			left_operand        = strsubstr(line_wo_comment, 0, left_operand_length);
-			right_operand       = strsubstr(line_wo_comment, right_operand_index, length - right_operand_index);
 
 			//TODO Handle parenthesis
 
 			//If left operation is variable declaration
-			declarations = get_variables_from_declaration(line_index, left_operand);
+			declarations = get_variables_from_declaration(line_index, line);
 			if(declarations != NULL && declarations->size > 0) {
-				//Is a declaration, no need to parse expression
+				parse_declarations(declarations, scope, line_index, messages);
 
 				free(type.name);
 				type.name = strduplicate(((field_t*)arraylist_get(declarations, 0))->type.name);
@@ -194,24 +211,18 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 				//Find var declaration in scope
 				left_operand_type = find_variable_type_from_line(scope, line_index);
 
-				is_declaration = 1;
 			} else {
-				left_operand_type = parse_operand(left_operand, line_index, scope, messages);
-				is_declaration = 0;
-			}
+				right_operand      = strsubstr(line_wo_comment, right_operand_index, length - right_operand_index);
+				left_operand_type  = parse_operand(left_operand, line_index, scope, messages);
+				right_operand_type = parse_operand(right_operand, line_index, scope, messages);
 
-			right_operand_type = parse_operand(right_operand, line_index, scope, messages);
+				if(strcmp(left_operand_type.name,"NULL") && strcmp(right_operand_type.name,"NULL")) {
 
-			if(strcmp(left_operand_type.name,"NULL") && strcmp(right_operand_type.name,"NULL")) {
+					if(messages->wrong_assignment != NULL && !strcmp(operator, "=") &&
+						!type_equals(&left_operand_type, &right_operand_type)) {
 
-				if(messages->wrong_assignment != NULL &&
-					(is_declaration || !strcmp(operator, "=")) &&
-					!type_equals(&left_operand_type, &right_operand_type)) {
-
-					add_wrong_assignment_message(messages, &left_operand_type, &right_operand_type);
-				}
-
-				if(!is_declaration) {
+						add_wrong_assignment_message(messages, &left_operand_type, &right_operand_type);
+					}
 
 					if(is_comparison(operator)) { //Type is int
 						free(type.name);
@@ -231,11 +242,10 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 						}
 					}
 				}
+				free(right_operand_type.name);
+				free(left_operand_type.name);
 			}
 
-			free(right_operand_type.name);
-			if(!is_declaration)
-				free(left_operand_type.name);
 			//TODO detect forbidden operations (2 * &ptr , void + something, int - ptr)
 
 			//TODO Operand case ignored : int test[] = {length, 4};

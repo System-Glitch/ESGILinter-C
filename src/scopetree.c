@@ -14,6 +14,7 @@ field_t *field_init(char *name, char *type, char type_is_pointer, int line_index
 		field->type.is_literal = 0;
 		field->line            = line_index;
 		field->is_param        = 0;
+		field->value           = NULL;
 	}
 	return field;
 }
@@ -155,6 +156,7 @@ scope_t *parse_root_scope(arraylist_t *file) {
 	}
 
 	register_sizeof(scope);
+	//TODO parse inner scopes in switch
 
 	return scope;
 }
@@ -241,6 +243,9 @@ unsigned char type_exists(char *type) {
 
 void field_free(field_t *field) {
 	free(field->name);
+	if(field->value != NULL) {
+		free(field->value);
+	}
 	free(field->type.name);
 	free(field);
 }

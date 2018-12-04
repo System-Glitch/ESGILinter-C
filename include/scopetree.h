@@ -14,6 +14,7 @@ typedef struct type {
 
 typedef struct field {
 	char         *name;
+	char         *value;
 	type_t        type;
 	int           line;
 	unsigned char is_param;
