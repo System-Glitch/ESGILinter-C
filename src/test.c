@@ -561,6 +561,7 @@ static void test_rule_parsing() {
 
 	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 	arraylist_add(file, strduplicate("static int glob = 89;"));
+	arraylist_add(file, strduplicate("char d;"));
 
 	arraylist_add(file, strduplicate("void function(int param);"));
 	arraylist_add(file, strduplicate("void proto();"));
@@ -575,6 +576,8 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("char function(int param, char param2) {"));
 	arraylist_add(file, strduplicate("\tchar c = 'c';"));
 	arraylist_add(file, strduplicate("\tchar c = 12.1,  d = param, e = f + g;"));
+	arraylist_add(file, strduplicate("\tc = 12.1 = param;"));
+	arraylist_add(file, strduplicate("\td = param = 1.2;"));
 	arraylist_add(file, strduplicate("\tprintf(\"%c %d\", c, i);"));
 	arraylist_add(file, strduplicate("\ttest2(param);")); //L.10
 	arraylist_add(file, strduplicate("\tfunction(c);"));

@@ -72,7 +72,7 @@ static void parse_float_literal(char *line, int length, int index, type_t *type)
 			index++;
 		}
 
-		if(index >= length) {
+		if(index >= length || c == ';') {
 			type_identifier = "double";
 		} else if(is_type_identifier(c)) {
 			switch(c) {
