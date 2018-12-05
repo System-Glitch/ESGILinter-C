@@ -36,6 +36,9 @@ char is_digit(char c);
 char is_line_break(char c);
 
 unsigned char check_quotes(char *line, char *occurrence, int length);
+unsigned char check_parenthesis(char *line, char *occurrence, int length);
+
+char *remove_parenthesis(char *line, int length);
 char *generate_char_sequence(char c, unsigned int count);
 
 match_t *match_init();

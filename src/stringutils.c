@@ -265,6 +265,88 @@ unsigned char check_quotes(char *line, char *occurrence, int length) {
 	return 0;
 }
 
+unsigned char check_parenthesis(char *line, char *occurrence, int length) {
+	unsigned char found_before = 0;
+	int  level                 = -1; 
+
+	//Find parenthesis before
+	for(int i = occurrence - line ; i >= 0 ; i--) {
+		if(line[i] == ')' && !check_quotes(line, line + i, length)) {
+			level--;
+		}
+		if(line[i] == '(' && !check_quotes(line, line + i, length)) {
+			level++;
+			if(level == 0) {
+				found_before = 1;
+				break;
+			}
+		}
+	}
+
+	if(!found_before) return 0;
+	level = 1;
+
+	//Find parenthesis after
+	for(int i = occurrence - line ; i < length ; i++) {
+		if(line[i] == '(' && !check_quotes(line, line + i, length)) {
+			level++;
+		} 
+		if(line[i] == ')' && !check_quotes(line, line + i, length)) {
+			level--;
+			if(level == 0)
+				return 1;
+		}
+	}
+
+	return 0;
+}
+
+char *remove_parenthesis(char *line, int length) {
+	int level       = 0;
+	int index       = 0;
+	int start_index = 0;
+	int end_index   = 0;
+	char *sub       = NULL;
+	char *tmp       = NULL;
+	char c;
+
+	while(is_whitespace(c = line[index]) && index < length) { index++; }
+
+	if(c == '(') {
+
+		level++;
+
+		start_index = ++index;
+
+		while(index < length) {
+			c = line[index];
+			if(c == '(') level++;
+			else if(c == ')') {
+				level--;
+				if(level == 0) { //Check if end
+
+					end_index = index;
+					index++;
+
+					while(is_whitespace(c = line[index]) && index < length) { index++; }
+
+					if(index >= length) {
+						sub = strsubstr(line, start_index, end_index - start_index);
+						tmp = remove_parenthesis(sub, strlen(sub));
+						return tmp != NULL ? tmp : sub;
+					} else {
+						return NULL;
+					}
+
+				}
+			}
+			index++;
+		}
+	}
+
+	return NULL;
+}
+
 char *generate_char_sequence(char c, unsigned int count) {
 	char *seq = malloc((count + 1)*sizeof(char));
 	for(unsigned int i = 0 ; i < count ; i++) {

@@ -753,9 +753,30 @@ static void test_parsing_operations() {
 	test_operation("b != 88.0", 9, scope);
 	test_operation("b ! 88.0", 9, scope);
 	test_operation("!*&b", 9, scope);
+	test_operation("\"a+b\" + 4", 9, scope);
 
 	test_operation("double c = e, d, f = g + 4;", 9, scope);
 	test_operation("c = a = d = e = a + 4;", 9, scope);
+
+	test_operation("(a + b)", 9, scope);
+	test_operation("(a + b + 4.5)", 9, scope);
+	test_operation("a + (b - c)", 9, scope);
+	test_operation("a + (b - 4.0)", 9, scope);
+	test_operation("(a + (b - 4))", 9, scope);
+	test_operation("(a + b) - 4", 9, scope);
+	test_operation("((a + b)) - 4", 9, scope);
+	test_operation("((((a + b)))) - 4", 9, scope);
+	test_operation("(a + b) - (4.2)", 9, scope);
+	test_operation("(b) * 5", 9, scope);
+	test_operation("int c = (a + b)", 9, scope);
+	test_operation("(int c = 4)", 9, scope);
+	test_operation("int c = (((((k)))));", 9, scope);
+	test_operation("int c = (k);", 9, scope);
+	test_operation("int c = (k;", 9, scope);
+	test_operation("int c = k);", 9, scope);
+	test_operation("int c = k, f = (az), g;", 9, scope);
+	test_operation("( ( (b) * 5 ) / 6.5 )", 9, scope);
+	test_operation("( ( (b) * 5 ) / ( (4 + 2.5) + 5 ) )", 9, scope);
 
 	scope_free(scope);
 	arraylist_free(file, 1);

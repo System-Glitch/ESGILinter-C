@@ -4,10 +4,11 @@
 #include "scopetree.h"
 
 static char parse_variable_value(char *line, size_t length, unsigned int *i) {
-	unsigned int index = *i;
-	unsigned char in_content = 0;
-	unsigned char expect_comma = 0;
-	unsigned int nested = 0;
+	unsigned int index              = *i;
+	unsigned char in_content        = 0;
+	unsigned char error             = 0;
+	unsigned char expect_comma      = 0;
+	unsigned int nested             = 0;
 	unsigned char value_start_index = 0;
 	char c;
 
@@ -40,12 +41,15 @@ static char parse_variable_value(char *line, size_t length, unsigned int *i) {
 		} else if(c == ',') {
 			index++;
 			break;
+		} else if(!in_content && (c == ')' || c == '}')) {
+			error = 1;
+			break;
 		}
 		index++;
 	} while(index < length);
 
 	*i = index;
-	return !(in_content > 0 || nested > 0 || index - 1 == value_start_index); //Check for invalid syntax or missing value before comma
+	return !error && !(in_content > 0 || nested > 0 || index - 1 == value_start_index); //Check for invalid syntax or missing value before comma
 }
 
 static unsigned int parse_variable_array(char *line, size_t length, unsigned int *i) {

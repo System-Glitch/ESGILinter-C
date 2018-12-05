@@ -73,6 +73,7 @@ static int get_highest_rank(char *type1, char *type2) {
 }
 
 static type_t parse_operand(char *operand, int line_index, scope_t *scope, messages_t *messages) {
+
 	type_t type = parse_operation(operand, line_index, scope, messages);
 
 	if(!strcmp(type.name, "NULL")) {
@@ -157,6 +158,7 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 	char *right_operand       = NULL;
 	const char *operator      = NULL;
 	char *occurrence          = NULL;
+	char *tmp                 = NULL;
 	int   index_operator      =  0;
 	int   left_operand_length = -1;
 	int   right_operand_index = -1;
@@ -172,6 +174,13 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 		return type; //TODO temp fix for case and ternary operator
 	}
 
+	tmp = remove_parenthesis(line_wo_comment, length);
+	if(tmp != NULL) {
+		free(line_wo_comment);
+		line_wo_comment = tmp;
+		length = strlen(line_wo_comment);
+	}
+
 	while((operator = known_operators[index_operator++]) != NULL) { //Find operator
 		tmp_line = line_wo_comment;
 		operator_length = strlen(operator);
@@ -179,8 +188,12 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 		if(occurrence != NULL) {
 
 			//Check if inside quotes
-			if(check_quotes(line_wo_comment, occurrence, length))
-				continue;
+			while(check_quotes(line_wo_comment, occurrence, length) || check_parenthesis(line_wo_comment, occurrence, length)) {
+				occurrence = strstr(occurrence + 1, operator);
+				if(occurrence == NULL) break;
+			}
+
+			if(occurrence == NULL) continue;
 
 			if(!strcmp(operator, "*") || !strcmp(operator, "&")) {
 

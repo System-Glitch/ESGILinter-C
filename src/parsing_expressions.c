@@ -72,7 +72,7 @@ static void parse_float_literal(char *line, int length, int index, type_t *type)
 			index++;
 		}
 
-		if(index >= length || c == ';') {
+		if(index >= length || c == ';' || is_whitespace(c)) {
 			type_identifier = "double";
 		} else if(is_type_identifier(c)) {
 			switch(c) {
@@ -250,7 +250,6 @@ static char *parse_control(char *line, int index, int length, char **following, 
 		"if", "switch", "while", NULL
 	};
 	//TODO ?: operator
-	//TODO For
 	const char *word = NULL;
 	char *expr       = NULL;
 	size_t i         = 0;
@@ -438,6 +437,7 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *
 	function_t *function     = NULL;
 	char       *expr         = NULL;
 	char       *following    = NULL; //Used in parse_control "case"
+	char       *tmp          = NULL;
 	unsigned int start_index = 0;
 	unsigned int end_index   = 0;
 	unsigned int close_index = 0;
@@ -454,6 +454,12 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *
 	type.is_pointer = 0;
 	type.is_literal = 0;
 
+	tmp = remove_parenthesis(line, length);
+	if(tmp != NULL) {
+		line   = tmp;
+		length = strlen(tmp);
+	}
+
 	SKIP_WHITESPACES
 
 	if(c == '(') {
@@ -468,6 +474,7 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *
 		while((c = line[index]) != ')' && index < length) index++;
 
 		if(c != ')') { //No closing parenthesis, syntax error
+			if(tmp != NULL) free(tmp);
 			return type;
 		}
 
@@ -479,6 +486,7 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *
 		SKIP_WHITESPACES
 		
 		if(index >= length || is_whitespace(c) || c == ')') {
+			if(tmp != NULL) free(tmp);
 			return type;
 		}
 
@@ -565,5 +573,6 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *
 
 	}
 
+	if(tmp != NULL) free(tmp);
 	return type;
 }
