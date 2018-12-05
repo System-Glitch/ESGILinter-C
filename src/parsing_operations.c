@@ -223,8 +223,6 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 			right_operand_index = left_operand_length + strlen(operator);
 			left_operand        = strsubstr(line_wo_comment, 0, left_operand_length);
 
-			//TODO Handle parenthesis
-
 			//If left operation is variable declaration
 			declarations = get_variables_from_declaration(line_index, line);
 			if(declarations != NULL && declarations->size > 0) {
