@@ -627,8 +627,8 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\tcase 1: case 2: default: test();"));
 	arraylist_add(file, strduplicate("\tbreak;"));
 	arraylist_add(file, strduplicate("\tcase test2():"));
-	arraylist_add(file, strduplicate("\tcase \"a:b:c:\":"));
-	arraylist_add(file, strduplicate("\tbreak;")); //L.60
+	arraylist_add(file, strduplicate("\tcase \"a:b:c:\":")); //L.60
+	arraylist_add(file, strduplicate("\tbreak;"));
 	arraylist_add(file, strduplicate("\tdefault: printf(\"default\");"));
 	arraylist_add(file, strduplicate("\t}"));
 	arraylist_add(file, strduplicate("\ttest2(\"/* comment */\") /* test */;"));
@@ -637,11 +637,12 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\tif(1) {"));
 	arraylist_add(file, strduplicate("\t\treturn v;"));
 	arraylist_add(file, strduplicate("\t}"));
-	arraylist_add(file, strduplicate("\treturn 'c';"));
-	arraylist_add(file, strduplicate("\treturn 'd' + p;")); //L.70
+	arraylist_add(file, strduplicate("\treturn 'c';")); //L.70
+	arraylist_add(file, strduplicate("\treturn 'd' + p;"));
 	arraylist_add(file, strduplicate("}"));
 
 	arraylist_add(file, strduplicate("void test_for() {"));
+	arraylist_add(file, strduplicate("\tint test[] = {length, 4};")); //L.75
 	arraylist_add(file, strduplicate("\tfor(int i = 0 ; j < 5 ; i += 4.2) {"));
 	arraylist_add(file, strduplicate("\t}"));
 	arraylist_add(file, strduplicate("\tfor(; condition ;) {"));
