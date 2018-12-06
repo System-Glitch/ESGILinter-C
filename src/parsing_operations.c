@@ -165,20 +165,29 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 	int   length              = strlen(line_wo_comment);
 	int   operator_length     = -1;
 	int   rank                = -1;
+	int   index_colon         =  0;
+	char  has_colon           =  0;
 
 	type.name = strduplicate("NULL");
 	type.is_pointer = 0;
 	type.is_literal = 0;
 
-	if(strindexof(line, ':') != -1 || starts_with_return(line, length)) {
-		return type; //TODO temp fix for case and ternary operator
-	}
 
 	tmp = remove_parenthesis(line_wo_comment, length);
 	if(tmp != NULL) {
 		free(line_wo_comment);
 		line_wo_comment = tmp;
 		length = strlen(line_wo_comment);
+	}
+
+	while((index_colon = strindexof(line_wo_comment + index_colon + 1, ':')) != -1) {
+		if(!check_quotes(line_wo_comment, line_wo_comment + index_colon, length)) {
+			has_colon = 1;
+			break;
+		}
+	}
+	if(has_colon || starts_with_return(line_wo_comment, length)) {
+		return type; //TODO temp fix for case and ternary operator
 	}
 
 	while((operator = known_operators[index_operator++]) != NULL) { //Find operator

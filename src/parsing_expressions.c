@@ -310,17 +310,23 @@ static char *parse_control(char *line, int index, int length, char **following, 
 
 		//Condition
 		start_index = index;
-		while((c = line[index]) != ':' && index < length) {
-			index++;
-		}
 
-		if(c == ':') {
-			expr = strsubstr(line, start_index, index - start_index);
-			if(++index < length) {
-				*following = strsubstr(line, index, length - index);
+		while(index < length) {
+			while((c = line[index]) != ':' && index < length) {
+				index++;
 			}
 
-			return expr;
+			if(c == ':' && !check_quotes(line, line + index, length)) {
+
+				expr = strsubstr(line, start_index, index - start_index);
+				if(++index < length) {
+					*following = strsubstr(line, index, length - index);
+				}
+
+				return expr;
+			}
+			index++;
+
 		}
 
 	} else if(strstr(line + index, "default") == line + index) {
