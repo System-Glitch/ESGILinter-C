@@ -216,6 +216,7 @@ static void check_variable_expression(char *line, int index, int line_index, sco
 	char *variable_name   = NULL;
 	char is_pointer       = 0;
 	int negate_operator   = 0;
+	int list_index        = -1;
 
 	parse_variable_expression(line + index, &variable_name, &is_pointer, &negate_operator);
 	if(variable_name != NULL && !is_keyword(variable_name)) {
@@ -223,8 +224,11 @@ static void check_variable_expression(char *line, int index, int line_index, sco
 		if(scope == NULL || variable_dec == NULL || variable_dec->line > line_index)
 			arraylist_add(messages->undeclared_variables, variable_name);
 		else {
-			if(messages->variables_list) 
-				arraylist_remove(messages->variables_list, arraylist_index_of(messages->variables_list, variable_dec));
+			if(messages->variables_list) {
+				list_index = arraylist_index_of(messages->variables_list, variable_dec);
+				if(list_index != -1)
+					arraylist_remove(messages->variables_list, list_index);
+			}
 
 			if(negate_operator > 0) {
 				free(type->name);
@@ -249,7 +253,6 @@ static char *parse_control(char *line, int index, int length, char **following, 
 	static const char *simple_controls[] = {
 		"if", "switch", "while", NULL
 	};
-	//TODO ?: operator
 	const char *word = NULL;
 	char *expr       = NULL;
 	size_t i         = 0;

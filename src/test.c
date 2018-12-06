@@ -456,6 +456,7 @@ static void test_expression(char *line, unsigned int line_index, scope_t *scope)
 	messages->functions_list       = NULL;
 	messages->wrong_assignment     = NULL;
 	messages->wrong_return         = NULL;
+	messages->ternary_types        = NULL;
 	type_t type = parse_expression(line, line_index, scope, messages);
 	printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
 	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);
@@ -552,6 +553,7 @@ static void test_parse_expression() {
 
 	test_expression("((char)variable )", 9, scope);
 	test_expression("a /* test */", 9, scope);
+	test_expression("\"a:b\"", 9, scope);
 
 	scope_free(scope);
 	arraylist_free(file, 1);
@@ -650,6 +652,9 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\t}"));
 	arraylist_add(file, strduplicate("\tfor(; condition ;) {"));
 	arraylist_add(file, strduplicate("\t}"));
+	arraylist_add(file, strduplicate("\tchar tern = i < 5 ? (5 == 4 ? glob : glob * 4.2) : 'a';")); //TODO result of inner ternary is not int
+	arraylist_add(file, strduplicate("\tchar tern2 = glob < 5 ? 2.2 : 2.3;")); //TODO Wrong (type is int because condition is "char tern2 = glob < 5" )
+	arraylist_add(file, strduplicate("\tchar tern3 = (glob < 5 ? 2.2 : 2.3);"));
 	arraylist_add(file, strduplicate("}"));
 
 	scope_t *scope = parse_root_scope(file);
@@ -677,6 +682,7 @@ static void test_operation(char* line, unsigned int line_index, scope_t *scope) 
 	messages->functions_list       = NULL;
 	messages->wrong_assignment     = NULL;
 	messages->wrong_return         = NULL;
+	messages->ternary_types        = NULL;
 	type_t type = parse_operation(line, line_index, scope, messages);
 	printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
 	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);
@@ -782,6 +788,19 @@ static void test_parsing_operations() {
 	test_operation("int c = k, f = (az), g;", 9, scope);
 	test_operation("( ( (b) * 5 ) / 6.5 )", 9, scope);
 	test_operation("( ( (b) * 5 ) / ( (4 + 2.5) + 5 ) )", 9, scope);
+
+	test_operation("condition ? left : right", 9, scope);
+	test_operation("condition ? \"ab\" : d", 9, scope);
+	test_operation("condition ? \"a:b\" : d", 9, scope);
+	test_operation("1 ? a : 4", 9, scope);
+	test_operation("condition ? condition2 ? a : b : d", 9, scope);
+	test_operation("condition ? (condition2 ? a : b) : d", 9, scope);
+	test_operation("(condition2 ? a : b) ? a : b", 9, scope);
+	test_operation("(condition2 ? a : 4) ? (char*)(((a + 5))) : (test2(a < 5 ? (char)0 : (char)5))", 9, scope);
+	test_operation("a + condition ? 4 : 5", 9, scope);
+	test_operation("a + (condition ? 4 : 5)", 9, scope);
+	test_operation("int k = condition ? 4.5 : 5.5", 9, scope);
+	test_operation("int k = (condition ? 4.5 : 5.5)", 9, scope);
 
 	scope_free(scope);
 	arraylist_free(file, 1);

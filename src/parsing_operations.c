@@ -93,7 +93,7 @@ static unsigned char is_operator_first(char *line, int length, char *occurrence)
 	return occurrence == line + index; 
 }
 
-static void add_wrong_assignment_message(messages_t *messages, type_t *type_left, type_t *type_right) {
+static void add_wrong_type_message(arraylist_t *messages, type_t *type_left, type_t *type_right) {
 	wrong_type_t *assignment              = malloc(sizeof(wrong_type_t));
 	assignment->expected_type             = malloc(sizeof(type_t));
 	assignment->expected_type->name       = strduplicate(type_left->name);
@@ -101,7 +101,7 @@ static void add_wrong_assignment_message(messages_t *messages, type_t *type_left
 	assignment->actual_type               = malloc(sizeof(type_t));
 	assignment->actual_type->name         = strduplicate(type_right->name);
 	assignment->actual_type->is_pointer   = type_right->is_pointer;
-	arraylist_add(messages->wrong_assignment, assignment);
+	arraylist_add(messages, assignment);
 }
 
 static type_t find_variable_type_from_line(scope_t *scope, int line) {
@@ -138,11 +138,112 @@ static void parse_declarations(arraylist_t *declarations, scope_t *scope, int li
 				declaration_type = parse_operation(declaration->value, line_index, scope, messages);
 			}
 			if(messages->wrong_assignment != NULL && strcmp(declaration_type.name,"NULL") && !type_equals(&declaration->type, &declaration_type)) {
-				add_wrong_assignment_message(messages, &declaration->type, &declaration_type);
+				add_wrong_type_message(messages->wrong_assignment, &declaration->type, &declaration_type);
 			}
 			free(declaration_type.name);
 		}
 	}
+}
+
+static type_t parse_ternary_condition(char *line, int length, int line_index, scope_t *scope, messages_t *messages) {
+	type_t type;
+	type_t condition_type;
+	type_t left_operand_type;
+	type_t right_operand_type;
+	int rank                = 0;
+	int index_operator      = 0;
+	char has_question_mark  = 0;
+	char has_colon          = 0;
+	int index_question_mark = -1;
+	int index_colon         = -1;
+	char *question_mark     = NULL;
+	char *colon             = NULL;
+	char *condition         = NULL;
+	char *left_operand      = NULL;
+	char *right_operand     = NULL;
+	char* occurrence        = NULL;
+	const char* operator    = NULL;
+
+	type.name = strduplicate("NULL");
+	type.is_pointer = 0;
+	type.is_literal = 0;
+
+	//Condition until '?'
+	question_mark = line;
+	while((question_mark = strstr(question_mark, "?")) != NULL) {
+		if(!check_quotes(line, question_mark, length) && !check_parenthesis(line, question_mark, length)) {
+			has_question_mark = 1;
+			break;
+		}
+		question_mark++;
+	}
+	if(!has_question_mark) return type;
+
+	//Left operand until ':'
+	colon = question_mark;
+	while((colon = strstr(colon, ":")) != NULL) {
+		if(!check_quotes(line, colon, length) && !check_parenthesis(line, colon, length)) {
+			has_colon = 1;
+			break;
+		}
+		colon++;
+	}
+	if(!has_colon) return type;
+
+	index_question_mark = question_mark - line;
+	index_colon         = colon - line;
+
+	condition = strsubstr(line, 0, index_question_mark - 1);
+
+	//If condition is assignation, isn't ternary condition
+	while((operator = assignation_operators[index_operator++]) != NULL) {
+		occurrence = strstr(line, operator);
+		if(occurrence != NULL && *(occurrence + 1) != '=') {
+
+			//Check if inside quotes
+			while(check_quotes(line, occurrence, length) || check_parenthesis(line, occurrence, length)) {
+				occurrence = strstr(occurrence + 1, operator);
+				if(occurrence == NULL) break;
+			}
+
+			if(occurrence == NULL) continue;
+			else {
+				free(condition);
+				return type;
+			}
+		}
+	}
+
+	left_operand  = strsubstr(line, index_question_mark + 1, index_colon - index_question_mark - 1);
+	right_operand = strsubstr(line, index_colon + 1, length - index_colon - 1);
+
+	left_operand_type  = parse_operand(left_operand, line_index, scope, messages);
+	right_operand_type = parse_operand(right_operand, line_index, scope, messages);
+
+	if(strcmp(left_operand_type.name,"NULL") && strcmp(right_operand_type.name,"NULL")) {
+		condition_type = parse_operand(condition, line_index, scope, messages);
+
+		rank = get_highest_rank(right_operand_type.name, left_operand_type.name);
+		if(rank != -1) {
+			free(type.name);
+			type.name       = strduplicate((char*)type_rank[rank]);
+			type.is_pointer = right_operand_type.is_pointer > left_operand_type.is_pointer ? 
+									right_operand_type.is_pointer : left_operand_type.is_pointer;
+		}
+		if(!type_equals(&left_operand_type, &right_operand_type) && messages->ternary_types) {
+			add_wrong_type_message(messages->ternary_types, &left_operand_type, &right_operand_type);
+		}
+
+		free(condition_type.name);
+	}
+
+	free(right_operand_type.name);
+	free(left_operand_type.name);
+	free(condition);
+	free(left_operand);
+	free(right_operand);
+
+	return type;
 }
 
 type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *messages) {
@@ -186,9 +287,17 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 			break;
 		}
 	}
-	if(has_colon || starts_with_return(line_wo_comment, length)) {
+
+	if(has_colon) {
+		//Maybe it's ternary condition
+		type = parse_ternary_condition(line_wo_comment, length, line_index, scope, messages);
+		if(strcmp(type.name, "NULL")) {
+			free(line_wo_comment);
+			return type;
+		}
+	} else if(starts_with_return(line_wo_comment, length)) {
 		free(line_wo_comment);
-		return type; //TODO temp fix for case and ternary operator
+		return type;
 	}
 
 	while((operator = known_operators[index_operator++]) != NULL) { //Find operator
@@ -256,7 +365,7 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 					if(messages->wrong_assignment != NULL && is_assignation(operator) &&
 						!type_equals(&left_operand_type, &right_operand_type)) {
 
-						add_wrong_assignment_message(messages, &left_operand_type, &right_operand_type);
+						add_wrong_type_message(messages->wrong_assignment, &left_operand_type, &right_operand_type);
 					}
 
 					if(is_comparison(operator)) { //Type is int

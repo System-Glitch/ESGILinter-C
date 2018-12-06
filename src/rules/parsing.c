@@ -24,10 +24,12 @@ static void fill_functions_list(scope_t *root_scope, arraylist_t *functions) {
 }
 
 static void fill_variables_list(scope_t *scope, arraylist_t *variables) {
-	node_t * current = scope->children->head;
-	
+	node_t  *current = scope->children->head;
+	field_t *field   = NULL;
+
 	for(size_t i = 0 ; i < scope->variables->size ; i++) {
-		arraylist_add(variables, arraylist_get(scope->variables, i));
+		field = arraylist_get(scope->variables, i);
+		arraylist_add(variables, field);
 	}
 
 	if(current != NULL) {
@@ -37,18 +39,23 @@ static void fill_variables_list(scope_t *scope, arraylist_t *variables) {
 	}
 }
 
-static char *build_wrong_type_message(wrong_type_t *wrong_type, unsigned char is_assignment) {
+static char *build_wrong_type_message(wrong_type_t *wrong_type, unsigned char message_type) {
+	static const char* message_types[] = {
+		"Invalid assignment: expected ",
+		"Invalid return type: expected ",
+		"Ternary condition operands must have the same type: left is "
+	};
 	char *message = NULL;
 	char *tmp = NULL;
 	char *seq = NULL;
 
-	message = strconcat(is_assignment ? "Invalid assignment: expected " : "Invalid return type: expected ", wrong_type->expected_type->name);
+	message = strconcat((char*)message_types[message_type] , wrong_type->expected_type->name);
 	seq = generate_char_sequence('*', wrong_type->expected_type->is_pointer);
 	tmp = strconcat(message, seq);
 	free(seq);
 	free(message);
 
-	message = strconcat(tmp, ", actual ");
+	message = strconcat(tmp, (char*)(message_type == WRONG_TYPE_TERNARY ? ", right is " : ", actual "));
 	free(tmp);
 	tmp = strconcat(message, wrong_type->actual_type->name);
 	free(message);
@@ -57,13 +64,24 @@ static char *build_wrong_type_message(wrong_type_t *wrong_type, unsigned char is
 	free(seq);
 	free(tmp);
 
-	free(wrong_type->expected_type->name);
-	free(wrong_type->actual_type->name);
-
 	return message;
 }
 
-unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t *variables, arraylist_t *functions) {
+static void free_wrong_type_list(arraylist_t *list) {
+	wrong_type_t *wrong_type = NULL;
+
+	for(size_t i = 0 ; i < list->size ; i++) {
+		wrong_type = arraylist_get(list, i);
+		free(wrong_type->expected_type->name);
+		free(wrong_type->expected_type);
+		free(wrong_type->actual_type->name);
+		free(wrong_type->actual_type);
+	}
+
+	arraylist_free(list, 1);
+}
+
+unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t *functions, arraylist_t *variables) {
 
 	type_t type;
 	unsigned int result            = 0;
@@ -78,18 +96,21 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 
 	if(messages == NULL) exit(1);
 
-	if(functions == NULL && variables == NULL) {
+	if(root_scope->parent == NULL) {
 		messages->functions_list = arraylist_init(root_scope->functions->size);
 		messages->variables_list = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 		fill_functions_list(root_scope, messages->functions_list);
 		fill_variables_list(root_scope, messages->variables_list);
+	} else {
+		messages->functions_list = functions;
+		messages->variables_list = variables;
 	}
 
 	for(int i = root_scope->from_line ; i <= root_scope->to_line ; i++) {
 		scope = get_child_scope(root_scope, i);
 		if(scope != root_scope) {
 			if(i == scope->from_line) {
-				result += parse_and_check(scope, file, variables, functions);
+				result += parse_and_check(scope, file, messages->functions_list, messages->variables_list);
 			}
 		} else {
 			messages->undeclared_functions = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
@@ -98,6 +119,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 			messages->invalid_calls        = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 			messages->wrong_assignment     = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 			messages->wrong_return         = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+			messages->ternary_types        = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 
 			line = arraylist_get(file, i);
 			type = parse_expression(line, i, scope, messages);
@@ -139,7 +161,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 
 			for(size_t j = 0 ; j < messages->wrong_assignment->size ; j++) {
 				wrong_type = arraylist_get(messages->wrong_assignment, j);
-				message = build_wrong_type_message(wrong_type, 1);
+				message = build_wrong_type_message(wrong_type, WRONG_TYPE_ASSIGNMENT);
 				print_error("fictive_file.c", i, line, message);
 				free(message);
 				result++;
@@ -147,7 +169,15 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 
 			for(size_t j = 0 ; j < messages->wrong_return->size ; j++) {
 				wrong_type = arraylist_get(messages->wrong_return, j);
-				message = build_wrong_type_message(wrong_type, 0);
+				message = build_wrong_type_message(wrong_type, WRONG_TYPE_RETURN);
+				print_error("fictive_file.c", i, line, message);
+				free(message);
+				result++;
+			}
+
+			for(size_t j = 0 ; j < messages->ternary_types->size ; j++) {
+				wrong_type = arraylist_get(messages->ternary_types, j);
+				message = build_wrong_type_message(wrong_type, WRONG_TYPE_TERNARY);
 				print_error("fictive_file.c", i, line, message);
 				free(message);
 				result++;
@@ -158,7 +188,8 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 			arraylist_free(messages->undeclared_variables, 1);
 			arraylist_free(messages->invalid_calls, 1);
 			arraylist_free(messages->wrong_assignment, 1);
-			arraylist_free(messages->wrong_return, 1);
+			free_wrong_type_list(messages->wrong_return);
+			free_wrong_type_list(messages->ternary_types);
 			free(type.name);
 		}
 		
