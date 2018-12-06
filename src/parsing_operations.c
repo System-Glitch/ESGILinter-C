@@ -133,6 +133,7 @@ static void parse_declarations(arraylist_t *declarations, scope_t *scope, int li
 	for(size_t i = 0 ; i < declarations->size ; i++) {
 		declaration = arraylist_get(declarations, i);
 		if(declaration->value != NULL) {
+			//TODO parse inline array ("int test[] = {length, 4};")
 			declaration_type = parse_expression(declaration->value, line_index, scope, messages);
 			if(!strcmp(declaration_type.name, "NULL")) {
 				declaration_type = parse_operation(declaration->value, line_index, scope, messages);
@@ -392,7 +393,6 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 
 			//TODO detect forbidden operations (2 * &ptr , void + something, int - ptr)
 
-			//TODO Operand case ignored : int test[] = {length, 4};
 			free(left_operand);
 			free(right_operand);
 			break;

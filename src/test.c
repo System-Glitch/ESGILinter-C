@@ -652,8 +652,8 @@ static void test_rule_parsing() {
 	arraylist_add(file, strduplicate("\t}"));
 	arraylist_add(file, strduplicate("\tfor(; condition ;) {"));
 	arraylist_add(file, strduplicate("\t}"));
-	arraylist_add(file, strduplicate("\tchar tern = i < 5 ? (5 == 4 ? glob : glob * 4.2) : 'a';")); //TODO result of inner ternary is not int
-	arraylist_add(file, strduplicate("\tchar tern2 = glob < 5 ? 2.2 : 2.3;")); //TODO Wrong (type is int because condition is "char tern2 = glob < 5" )
+	arraylist_add(file, strduplicate("\tchar tern = i < 5 ? (5 == 4 ? glob : glob * 4.2) : 'a';")); //L.80
+	arraylist_add(file, strduplicate("\tchar tern2 = glob < 5 ? 2.2 : 2.3;"));
 	arraylist_add(file, strduplicate("\tchar tern3 = (glob < 5 ? 2.2 : 2.3);"));
 	arraylist_add(file, strduplicate("}"));
 
