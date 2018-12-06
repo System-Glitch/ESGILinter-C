@@ -452,7 +452,7 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *
 	unsigned char is_for     = 0;
 	int index                = 0;
 	unsigned int sub_index   = 0;
-	int length               = strlen(line);
+	int length               = 0;
 	int type_length;
 	char c;
 
@@ -460,8 +460,11 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *
 	type.is_pointer = 0;
 	type.is_literal = 0;
 
-	tmp = remove_parenthesis(line, length);
+	line   = str_remove_comments(line);
+	length = strlen(line);
+	tmp    = remove_parenthesis(line, length);
 	if(tmp != NULL) {
+		free(line);
 		line   = tmp;
 		length = strlen(tmp);
 	}
@@ -481,6 +484,7 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *
 
 		if(c != ')') { //No closing parenthesis, syntax error
 			if(tmp != NULL) free(tmp);
+			else free(line);
 			return type;
 		}
 
@@ -493,6 +497,7 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *
 		
 		if(index >= length || is_whitespace(c) || c == ')') {
 			if(tmp != NULL) free(tmp);
+			else free(line);
 			return type;
 		}
 
@@ -580,5 +585,6 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *
 	}
 
 	if(tmp != NULL) free(tmp);
+	else free(line);
 	return type;
 }

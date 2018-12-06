@@ -550,6 +550,9 @@ static void test_parse_expression() {
 	test_expression("!*&b", 9, scope);
 	test_expression("!&b", 9, scope);
 
+	test_expression("((char)variable )", 9, scope);
+	test_expression("a /* test */", 9, scope);
+
 	scope_free(scope);
 	arraylist_free(file, 1);
 }
