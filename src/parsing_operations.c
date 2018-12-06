@@ -187,6 +187,7 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 		}
 	}
 	if(has_colon || starts_with_return(line_wo_comment, length)) {
+		free(line_wo_comment);
 		return type; //TODO temp fix for case and ternary operator
 	}
 
