@@ -5,4 +5,4 @@
 #include <string.h>
 
 int no_trailing_spaces(arraylist_t *file);
-int no_trailing_spaces_check(line_t *line)
+int no_trailing_spaces_check(char *line)
