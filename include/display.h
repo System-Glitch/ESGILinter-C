@@ -37,4 +37,8 @@
 #define BACKGROUND_BLACK     "\e[40m"
 #define BACKGROUND_DEFAULT   "\e[49m"
 
+void print_warning(char *file, int line_index, char *line, const char *message);
+void print_error(char *file, int line_index, char *line, const char *message);
+void print_message(char *file, int line_index, char *line, const char *message, const char *type, const char *color);
+
 #endif

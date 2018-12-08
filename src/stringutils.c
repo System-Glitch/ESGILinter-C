@@ -1,25 +1,48 @@
 #include "stringutils.h"
 
+#define COMMENT_TYPE_MULTILINE 1
+#define COMMENT_TYPE_ENDLINE 2
+
 char *str_remove_comments(char *str) {
-	char *result = NULL;
-	char *tmp = NULL;
-	int comment_start = -1;
-	int comment_end   = -1;
+	char *result            = NULL;
+	char *tmp               = NULL;
+	int comment_start       = -1;
+	int comment_end         = -1;
+	unsigned char in_quotes = 0;
+	unsigned char type      = 0;
 	size_t length = strlen(str);
 
 	for(unsigned i = 0 ; i < length ; i++) {
-		if(comment_start == -1) {
-			if(str[i] == '/' && str[i+1] == '*') {
-				comment_start = i;
-				i++;
-			}
+		if(!in_quotes && str[i] == '\"') {
+			in_quotes = 1;
+		} else if(in_quotes) {
+			if(str[i] == '\"' && str[i-1] != '\\')
+				in_quotes = 0;
 		} else {
-			if(str[i] == '*' && str[i+1] == '/') {
-				comment_end = i + 2;
-				break;
+			if(comment_start == -1) {
+				if(str[i] == '/' && str[i+1] == '*') {
+					type = COMMENT_TYPE_MULTILINE;
+					comment_start = i;
+					i++;
+				} else if(str[i] == '/' && str[i+1] == '/') {
+					type = COMMENT_TYPE_ENDLINE;
+					comment_start = i;
+					i++;
+				}
+			} else {
+				if(type == COMMENT_TYPE_MULTILINE && str[i] == '*' && str[i+1] == '/') {
+					comment_end = i + 2;
+					break;
+				} else if(type == COMMENT_TYPE_ENDLINE && is_line_break(str[i])) {
+					comment_end = i;
+					break;
+				}
 			}
 		}
 	}
+
+	if(type == COMMENT_TYPE_ENDLINE && comment_end == -1)
+		comment_end = length;
 
 	if(comment_start != -1 && comment_end != -1) {
 		result = malloc((length + 1) * sizeof(char));
@@ -198,18 +221,137 @@ char *substr_match(char *source, match_t match) {
 	return substr;
 }
 
-
 char is_whitespace(char c) {
 	return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\v' || c == '\f';
 }
-
 
 char is_alphanumeric(char c) {
 	return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_';
 }
 
+char is_digit(char c) {
+	return c >= '0' && c <= '9';
+}
+
+char is_line_break(char c) {
+	return c == '\n' || c == '\r';
+}
 
 match_t *match_init() {
 	match_t *match = malloc(sizeof(match_t));
 	return match;
+}
+
+unsigned char check_quotes(char *line, char *occurrence, int length) {
+	unsigned char found_before = 0;
+
+	//Find quote before
+	for(int i = occurrence - line ; i >= 0 ; i--) {
+		if(line[i] == '"') {
+			found_before = 1;
+			break;
+		}
+	}
+
+	if(!found_before) return 0;
+
+	//Find quote after
+	for(int i = occurrence - line ; i < length ; i++) {
+		if(line[i] == '"') {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+unsigned char check_parenthesis(char *line, char *occurrence, int length) {
+	unsigned char found_before = 0;
+	int  level                 = -1; 
+
+	//Find parenthesis before
+	for(int i = occurrence - line ; i >= 0 ; i--) {
+		if(line[i] == ')' && !check_quotes(line, line + i, length)) {
+			level--;
+		}
+		if(line[i] == '(' && !check_quotes(line, line + i, length)) {
+			level++;
+			if(level == 0) {
+				found_before = 1;
+				break;
+			}
+		}
+	}
+
+	if(!found_before) return 0;
+	level = 1;
+
+	//Find parenthesis after
+	for(int i = occurrence - line ; i < length ; i++) {
+		if(line[i] == '(' && !check_quotes(line, line + i, length)) {
+			level++;
+		} 
+		if(line[i] == ')' && !check_quotes(line, line + i, length)) {
+			level--;
+			if(level == 0)
+				return 1;
+		}
+	}
+
+	return 0;
+}
+
+char *remove_parenthesis(char *line, int length) {
+	int level       = 0;
+	int index       = 0;
+	int start_index = 0;
+	int end_index   = 0;
+	char *sub       = NULL;
+	char *tmp       = NULL;
+	char c;
+
+	while(is_whitespace(c = line[index]) && index < length) { index++; }
+
+	if(c == '(') {
+
+		level++;
+
+		start_index = ++index;
+
+		while(index < length) {
+			c = line[index];
+			if(c == '(') level++;
+			else if(c == ')') {
+				level--;
+				if(level == 0) { //Check if end
+
+					end_index = index;
+					index++;
+
+					while(is_whitespace(c = line[index]) && index < length) { index++; }
+
+					if(index >= length) {
+						sub = strsubstr(line, start_index, end_index - start_index);
+						tmp = remove_parenthesis(sub, strlen(sub));
+						return tmp != NULL ? tmp : sub;
+					} else {
+						return NULL;
+					}
+
+				}
+			}
+			index++;
+		}
+	}
+
+	return NULL;
+}
+
+char *generate_char_sequence(char c, unsigned int count) {
+	char *seq = malloc((count + 1)*sizeof(char));
+	for(unsigned int i = 0 ; i < count ; i++) {
+		seq[i] = c;
+	}
+	seq[count] = '\0';
+	return seq;
 }
