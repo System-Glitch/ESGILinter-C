@@ -740,6 +740,8 @@ static void test_parsing_operations() {
 	test_operation("&ptr & a", 9, scope);
 	test_operation("***ptr * **d", 9, scope);
 	test_operation("***ptr***d", 9, scope);
+	test_operation("*&&ptr**&d", 9, scope);
+	test_operation("*&ptr**&d", 9, scope);
 	test_operation("a *", 9, scope);
 	test_operation("a <<= b < c << e;", 9, scope);
 	test_operation("a <<< b", 9, scope);
