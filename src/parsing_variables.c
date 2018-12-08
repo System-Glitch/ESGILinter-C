@@ -4,10 +4,11 @@
 #include "scopetree.h"
 
 static char parse_variable_value(char *line, size_t length, unsigned int *i) {
-	unsigned int index = *i;
-	unsigned char in_content = 0;
-	unsigned char expect_comma = 0;
-	unsigned int nested = 0;
+	unsigned int index              = *i;
+	unsigned char in_content        = 0;
+	unsigned char error             = 0;
+	unsigned char expect_comma      = 0;
+	unsigned int nested             = 0;
 	unsigned char value_start_index = 0;
 	char c;
 
@@ -18,14 +19,14 @@ static char parse_variable_value(char *line, size_t length, unsigned int *i) {
 	value_start_index = index;
 	do {
 		c = line[index];
-		if(!expect_comma && !in_content && (c == '"' || c == '{')) {
+		if(!expect_comma && !in_content && (c == '"' || c == '{' || c == '(')) {
 			in_content = c;
 			nested = 1;
 		} else if(!expect_comma && in_content) {
 
-			if(in_content == '{' && c == '{') {
+			if((in_content == '{' && c == '{') || (in_content == '(' && c == '(')) {
 				nested++;
-			} else if(in_content == '{' && c == '}') {
+			} else if((in_content == '{' && c == '}') || (in_content == '(' && c == ')')) {
 				nested--;
 				if(nested <= 0) {
 					in_content = 0;
@@ -40,12 +41,15 @@ static char parse_variable_value(char *line, size_t length, unsigned int *i) {
 		} else if(c == ',') {
 			index++;
 			break;
+		} else if(!in_content && (c == ')' || c == '}')) {
+			error = 1;
+			break;
 		}
 		index++;
 	} while(index < length);
 
 	*i = index;
-	return !(in_content > 0 || nested > 0 || index - 1 == value_start_index); //Check for invalid syntax or missing value before comma
+	return !error && !(in_content > 0 || nested > 0 || index - 1 == value_start_index); //Check for invalid syntax or missing value before comma
 }
 
 static unsigned int parse_variable_array(char *line, size_t length, unsigned int *i) {
@@ -73,11 +77,12 @@ static unsigned int parse_variable_array(char *line, size_t length, unsigned int
 	return array_count;
 }
 
-match_t *parse_variable_name(char *names, unsigned int *start_index, unsigned int *array_count) {
-	unsigned int index  = 0;
-	char *line          = names + *start_index;
-	unsigned int length = strlen(line);
-	match_t *match      = NULL;
+match_t *parse_variable_name(char *names, unsigned int *start_index, unsigned int *array_count, char **value) {
+	unsigned int index              = 0;
+	unsigned int value_start_index  = 0;
+	char *line                      = names + *start_index;
+	unsigned int length             = strlen(line);
+	match_t *match                  = NULL;
 	unsigned char c;
 
 	if(*start_index > strlen(names)) return NULL;
@@ -114,9 +119,12 @@ match_t *parse_variable_name(char *names, unsigned int *start_index, unsigned in
 			if(index < length) {
 				//Equal symbol?
 				if(line[index] == '=') {
+					value_start_index = index + 1;
 					if(!parse_variable_value(line, length, &index)) { //Invalid syntax or missing value before comma
 						free(match);
 						match = NULL;
+					} else if(value != NULL) {
+						*value = strsubstr(line, value_start_index, index - value_start_index - (line[index-1] == ';' || line[index-1] == ',' ? 1 : 0));
 					}
 				} else if(line[index] != ',' && line[index] != ';') { //Syntax error
 					free(match);
@@ -133,17 +141,18 @@ match_t *parse_variable_name(char *names, unsigned int *start_index, unsigned in
 	return match;
 }
 
-static field_t *get_variable_from_declaration(char *type, int star_count_type, char *declaration, unsigned int *names_index) {
+static field_t *get_variable_from_declaration(int line_index, char *type, int star_count_type, char *declaration, unsigned int *names_index) {
 
 	field_t *variable = NULL;
 	match_t *match = NULL;
 	unsigned int star_count, sub_index, tmp_index;
 	char *tmp;
 	char *name;
+	char *value = NULL;
 	unsigned int array_count = 0;
 
 	tmp_index = *names_index;
-	match = parse_variable_name(declaration, names_index, &array_count);
+	match = parse_variable_name(declaration, names_index, &array_count, &value);
 
 	if(match != NULL) {
 		tmp = substr_match(declaration + tmp_index, *match);
@@ -156,8 +165,14 @@ static field_t *get_variable_from_declaration(char *type, int star_count_type, c
 		name = strsubstr(tmp, sub_index, strlen(tmp) - star_count);
 		free(tmp);
 
-		if(name != NULL)
-			variable = field_init(name, strduplicate(type), star_count + array_count + star_count_type);
+		if(name != NULL) {
+			if(is_keyword(name)) {
+				free(name);
+			} else {
+				variable = field_init(name, strduplicate(type), star_count + array_count + star_count_type, line_index);
+				variable->value = value;
+			}
+		}
 	}
 
 	return variable;
@@ -197,22 +212,60 @@ static match_t *match_for_loop(char *line) {
 	return match;
 }
 
-arraylist_t *get_variables_from_declaration(char *line) {
+static int skip_switch_case(char *line, int index, int length) {
+
+	char c;
+
+	SKIP_WHITESPACES
+
+	if(strstr(line + index, "case") == line + index || strstr(line + index, "default") == line + index) {
+		index += c == 'c' ? 4 : 7;
+
+		SKIP_WHITESPACES
+
+		while((c = line[index]) != ':' && index < length) {
+			index++;
+		}
+
+		if(c != ':') return -1;
+
+		return index + 1;
+	}
+
+	return -1;
+
+}
+
+arraylist_t *get_variables_from_declaration(int line_index, char *line) {
 	unsigned int star_count_type;
 	unsigned int type_sub_index;
 	unsigned int length;
 	unsigned int type_length;
-	unsigned int names_index = 0;
+	unsigned int names_index      = 0;
 	unsigned int type_start_index = 0;
+	int          start_index      = 0;
+	int          tmp_index        = 0;
 	arraylist_t *list   = NULL;
 	field_t *variable   = NULL;
 	match_t *for_loop   = NULL;
 	match_t *match_type = NULL;
+	char *tmp_type      = NULL;
+	char *tmp_line      = NULL;
 	char *tmp_names;
 	char *type;
-	char *tmp_line = NULL;
 
 	tmp_line = str_remove_comments(line);
+	length = strlen(tmp_line);
+	while(tmp_index != -1) {
+		start_index = tmp_index;
+		tmp_index = skip_switch_case(line, start_index, length);
+	}
+
+	if(start_index != -1) {
+		line = strsubstr(tmp_line, start_index, length - start_index);
+		free(tmp_line);
+		tmp_line = line;
+	}
 
 	for_loop = match_for_loop(tmp_line);
 	if(for_loop != NULL) {
@@ -253,10 +306,14 @@ arraylist_t *get_variables_from_declaration(char *line) {
 				arraylist_free(list, 1);
 				free(line);
 				return NULL;
+			} else if(!strcmp(type, "unsigned")) {
+				tmp_type = strconcat(type, " int");
+				free(type);
+				type = tmp_type;
 			}
 
 			do {
-				variable = get_variable_from_declaration(type, star_count_type, tmp_names, &names_index);
+				variable = get_variable_from_declaration(line_index, type, star_count_type, tmp_names, &names_index);
 				if(variable != NULL)
 					arraylist_add(list, variable);
 			} while(variable != NULL && names_index < length);

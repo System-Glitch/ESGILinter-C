@@ -1,4 +1,6 @@
 .vagrant/
 *.log
+*.conf
+*.h.gch
 .cmake-build-debug/
 CMakeLists.txt

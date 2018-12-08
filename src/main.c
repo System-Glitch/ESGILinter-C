@@ -1,23 +1,32 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <conf.h>
+#include <errno.h>
+#include "conf.h"
+#include "display.h"
 #include "fileloader.h"
+#include "test.h"
 
 int main(int argc, char **argv) {
-    char *path;
+  char *path;
+  arraylist_t *conf = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+  arraylist_t *files = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+  arraylist_t *buffer = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+  arraylist_t *real_file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 
-	arraylist_t *conf = arraylist_init(2);
-	arraylist_t *files = arraylist_init(2);
-	arraylist_t *buffer = arraylist_init(2);
-	arraylist_t *real_file = arraylist_init(2);
+  if(conf == NULL || files == NULL || buffer == NULL || real_file == NULL) {
+		printf("%s[ERROR]%s %s%s\n", COLOR_RED, COLOR_YELLOW, strerror(errno), FORMAT_RESET);
+		return EXIT_FAILURE;
+	}
+  
+  path = malloc(sizeof(char) * 255);
 
-    path = malloc(sizeof(char) * 255);
-
-    strcpy(path, "."); // replace with an argument
-
-	load_configuration("test.conf", conf); // replace with an argument
-
-	if(conf == NULL) return EXIT_FAILURE;
+  strcpy(path, "."); // replace with an argument
+  
+  if(load_configuration("linter.conf", conf)) { //replace with argument
+		printf("%s[ERROR]%s Failed to load config: %s%s\n", COLOR_RED, COLOR_YELLOW, strerror(errno), FORMAT_RESET);
+		arraylist_free(conf, 0);
+		return EXIT_FAILURE;
+	}
 
 	search_files(conf, files, path);
 
@@ -37,5 +46,7 @@ int main(int argc, char **argv) {
 		 *
 		 */
 	}
+	
+  //test();
 	return EXIT_SUCCESS;
 }
