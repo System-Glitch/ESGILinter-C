@@ -94,56 +94,57 @@ void load_rules(FILE *src, arraylist_t *conf){
         free(name);
         return;
     }
-    while(!is_whitespace(line[0]) && line[0] != '#'){
+    while(!is_whitespace(line[0])){
+        if(line[0] != '#'){
+            tmp = strtok(line, equal);
+            if(tmp == NULL) return;
 
-        tmp = strtok(line, equal);
-        if(tmp == NULL) return;
-
-        if(line[1] == ' '){
-            strcpy(name, tmp+2);
-        }else{
-            strcpy(name, tmp+1);
-        }
-
-        if(name[strlen(name) -1 ] == ' '){
-            name[strlen(name) -1 ] = '\0';
-        }
-
-        tmp = strtok(NULL, equal);
-        if(tmp == NULL) return;
-
-        if(tmp[0] == ' ') tmp = tmp+1;
-        sum = 0;
-        enable = 0;
-        length = strlen(tmp);
-        for(size_t i = 0; i  < length ; i++){
-            if(tmp[i] >= 48 && tmp[i] <= 57){
-                sum += (tmp[i]-48);
-                if(i != strlen(tmp) -2){
-                    sum *= 10;
-                }
-                enable = 1;
+            if(line[1] == ' '){
+                strcpy(name, tmp+2);
+            }else{
+                strcpy(name, tmp+1);
             }
-            if(sum == 0 && tmp[i] == 'o'){
-                if(strstr(tmp, " on")) {
+
+            if(name[strlen(name) -1 ] == ' '){
+                name[strlen(name) -1 ] = '\0';
+            }
+
+            tmp = strtok(NULL, equal);
+            if(tmp == NULL) return;
+
+            if(tmp[0] == ' ') tmp = tmp+1;
+            sum = 0;
+            enable = 0;
+            length = strlen(tmp);
+            for(size_t i = 0; i  < length ; i++){
+                if(tmp[i] >= 48 && tmp[i] <= 57){
+                    sum += (tmp[i]-48);
+                    if(i != strlen(tmp) -2){
+                        sum *= 10;
+                    }
                     enable = 1;
-                    break;
-                }else{
-                    break;
+                }
+                if(sum == 0 && tmp[i] == 'o'){
+                    if(strstr(tmp, "on")) {
+                        enable = 1;
+                        break;
+                    }else{
+                        break;
+                    }
                 }
             }
-        }
-        found = find_rule_index(conf, name);
-        if(found >= 0){
-            ((rule_t*)(conf->array[found]))->value = sum;
-            ((rule_t*)(conf->array[found]))->enable= enable;
-        }else if(found == -1){
-            e = malloc(sizeof(rule_t));
-            e->name = malloc(sizeof(char) * 255);
-            strcpy(e->name, name);
-            e->value = sum;
-            e->enable = enable;
-            arraylist_add(conf, e);
+            found = find_rule_index(conf, name);
+            if(found >= 0){
+                ((rule_t*)(conf->array[found]))->value = sum;
+                ((rule_t*)(conf->array[found]))->enable= enable;
+            }else if(found == -1){
+                e = malloc(sizeof(rule_t));
+                e->name = malloc(sizeof(char) * 255);
+                strcpy(e->name, name);
+                e->value = sum;
+                e->enable = enable;
+                arraylist_add(conf, e);
+            }
         }
         get = fgets(line, 1048, src);
         if(get == NULL) break;
