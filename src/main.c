@@ -9,6 +9,7 @@ int main(int argc, char **argv) {
 	arraylist_t *conf = arraylist_init(2);
 	arraylist_t *files = arraylist_init(2);
 	arraylist_t *buffer = arraylist_init(2);
+	arraylist_t *real_file = arraylist_init(2);
 
     path = malloc(sizeof(char) * 255);
 

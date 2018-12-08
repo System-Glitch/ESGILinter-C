@@ -58,7 +58,7 @@ unsigned int file_row_number(FILE *src)
  * @return arrayList*
  */
 
-void file_loader(arraylist_t *e, arraylist_t *files, char *filename){
+void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, char *filename){
 
     if(strlen(filename) <= 0) return;
     unsigned int length;
@@ -70,6 +70,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, char *filename){
     char *tmp;
     char *res;
     char *for_loop;
+    char *real;
     char c;
     int index;
     int real_line;
@@ -114,6 +115,9 @@ void file_loader(arraylist_t *e, arraylist_t *files, char *filename){
         init = 0;
         line_counter++;
         fgets(line, 1048, src);
+        real = malloc(sizeof(char) * 1048);
+        strcpy(real, line);
+        arraylist_add(real_line, real);
         real_line++;
         if(strstr(line, "#include \"") == line){
             int first_index = strindexof(line, '"');
@@ -213,7 +217,10 @@ void file_loader(arraylist_t *e, arraylist_t *files, char *filename){
      * Free the memory
      */
     fclose(src);
-    free(for_loop);
+    if(for_loop)
+        free(for_loop);
+    if(real)
+        free(real);
     free(line);
     free(tmp);
     free(res);
