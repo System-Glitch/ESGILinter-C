@@ -2,11 +2,7 @@
 #define PARSING_TYPE_H
 
 #include "stringutils.h"
-
-typedef struct type {
-	char          *name;
-	unsigned char  is_pointer;
-} type_t;
+#include "scopetree.h"
 
 match_t *parse_type(char *line);
 

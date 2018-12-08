@@ -19,7 +19,7 @@ typedef struct rule {
     int   value;
 } rule_t;
 
-void load_configuration(char *filename, arraylist_t *conf);
+char load_configuration(char *filename, arraylist_t *conf);
 
 void load_rules(FILE *src, arraylist_t *conf);
 
