@@ -6,8 +6,8 @@
 #include <string.h>
 
 typedef struct match {
-	unsigned int index_start;
-	unsigned int index_end;
+    unsigned int index_start;
+    unsigned int index_end;
 } match_t;
 
 char *str_remove_comments(char *str);

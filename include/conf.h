@@ -35,4 +35,8 @@ rule_t *get_rule(arraylist_t *conf, char *name);
 
 void exclude_conf_file(arraylist_t *conf, char *name);
 
+int is_excluded(arraylist_t *conf, char *path);
+
+void exclude_filepath(arraylist_t *conf, char *filepath);
+
 #endif //ESGILINTER_C_CONF_H

@@ -200,13 +200,13 @@ char *strjoin(char **strings, unsigned int count, char *join) {
 	return result;
 }
 
-
 void strformat(char *str, size_t length){
-    if(strlen(str) <= 0 || length <= 0) return;
+	if(strlen(str) <= 0 || length <= 0) return;
 
-    if(strlen(str) <= length){
-        str[strlen(str) - 1] = '\0';
-    }
+	if(strlen(str) <= length){
+		str[strlen(str) - 1] = '\0';
+	}
+
 }
 
 char *substr_match(char *source, match_t match) {
@@ -241,6 +241,7 @@ match_t *match_init() {
 	match_t *match = malloc(sizeof(match_t));
 	return match;
 }
+
 
 unsigned char check_quotes(char *line, char *occurrence, int length) {
 	unsigned char found_before = 0;
