@@ -219,8 +219,6 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
     fclose(src);
     if(for_loop)
         free(for_loop);
-    if(real)
-        free(real);
     free(line);
     free(tmp);
     free(res);
