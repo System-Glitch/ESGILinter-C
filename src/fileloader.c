@@ -117,7 +117,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
         fgets(line, 1048, src);
         real = malloc(sizeof(char) * 1048);
         strcpy(real, line);
-        arraylist_add(real_line, real);
+        arraylist_add(real_file, real);
         real_line++;
         if(strstr(line, "#include \"") == line){
             int first_index = strindexof(line, '"');
@@ -129,7 +129,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
             }
             for(int k = 0; k < files->size; k++){
                 if(strstr(files->array[k], tmp) != NULL){
-                    file_loader(e, files, files->array[k]);
+                    file_loader(e, files, real_file,files->array[k]);
                 }
             }
             strcpy(tmp,"");
@@ -217,8 +217,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
      * Free the memory
      */
     fclose(src);
-    if(for_loop)
-        free(for_loop);
+    free(for_loop);
     free(line);
     free(tmp);
     free(res);
