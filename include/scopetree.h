@@ -9,12 +9,15 @@
 typedef struct type {
 	char *name;
 	char  is_pointer;
+	unsigned char is_literal;
 } type_t;
 
 typedef struct field {
-	char   *name;
-	type_t  type;
-	int     line;
+	char         *name;
+	char         *value;
+	type_t        type;
+	int           line;
+	unsigned char is_param;
 } field_t;
 
 typedef struct function {
@@ -23,6 +26,7 @@ typedef struct function {
 	unsigned char is_prototype;
 	arraylist_t  *params;
 	int           line;
+	int           negate_operator; //Not equal to 0 if function call with ! operator ("!function()")
 } function_t;
 
 typedef struct scope {
@@ -30,7 +34,6 @@ typedef struct scope {
 	linkedlist_t *children;
 	arraylist_t  *functions;
 	arraylist_t  *variables;
-	arraylist_t  *defines;
 	int from_line;
 	int from_char;
 	int to_line;
@@ -48,12 +51,17 @@ scope_t     *parse_scope(arraylist_t *file, unsigned int start_line, unsigned in
 
 unsigned char type_equals(type_t *type1, type_t *type2);
 unsigned char type_exists(char *type);
+unsigned char is_keyword(char *name);
 
 void field_free(field_t *field);
 void field_list_free(arraylist_t *list);
+void function_list_free(arraylist_t *list);
 void scope_free(scope_t *scope);
 
-function_t *find_function(scope_t *scope, char *name);
+scope_t    *get_root_scope(scope_t *scope);
+scope_t    *get_function_scope(scope_t *scope);
+function_t *find_function(scope_t *scope, char *name, unsigned char allow_prototypes);
+function_t *find_function_prototype(scope_t *root_scope, char *name);
 field_t    *find_variable(scope_t *scope, char *name);
-
+scope_t    *is_in_child_scope(scope_t *scope, int line);
 #endif

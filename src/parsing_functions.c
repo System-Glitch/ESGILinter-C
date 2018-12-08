@@ -1,9 +1,10 @@
 #include <stdlib.h>
 #include "arraylist.h"
-#include "scopetree.h"
 #include "parsing_type.h"
 #include "parsing_functions.h"
 #include "parsing_variables.h"
+#include "parsing_expressions.h"
+#include "parsing_operations.h"
 
 function_t *function_init(char *name, unsigned char is_prototype, char *type, unsigned char type_is_pointer, arraylist_t *params, int line_index) {
 	function_t *function = malloc(sizeof(function_t));
@@ -15,6 +16,7 @@ function_t *function_init(char *name, unsigned char is_prototype, char *type, un
 		function->return_type.is_pointer = type_is_pointer;
 		function->params                 = params;
 		function->line                   = line_index;
+		function->negate_operator        = 0;
 	}
 
 	return function;
@@ -85,7 +87,7 @@ static char *parse_function_name(char *line, unsigned int *star_count_name, unsi
 	return name;
 }
 
-static arraylist_t *parse_function_parameters(char *line, unsigned char is_prototype) {
+static arraylist_t *parse_function_parameters(char *line, unsigned char is_prototype, int line_index) {
 	arraylist_t *list            = arraylist_init(5);
 	unsigned int start_index     = 0;
 	unsigned int index           = 0;
@@ -139,7 +141,7 @@ static arraylist_t *parse_function_parameters(char *line, unsigned char is_proto
 		type[type_length - type_sub_index] = '\0';
 
 		//If no name and not prototype, invalid syntax
-		match_name = parse_variable_name(tmp + type_length, &sub_index, &array_count);
+		match_name = parse_variable_name(tmp + type_length, &sub_index, &array_count, NULL);
 		if(match_name != NULL) {
 			tmp_name = substr_match(tmp + type_length, *match_name);
 			free(match_name);
@@ -162,7 +164,8 @@ static arraylist_t *parse_function_parameters(char *line, unsigned char is_proto
 			return NULL;
 		}
 
-		field = field_init(name, type, star_count_type + star_count_name + array_count, -1);
+		field = field_init(name, type, star_count_type + star_count_name + array_count, line_index);
+		field->is_param = 1;
 		arraylist_add(list, field);
 
 		free(tmp);
@@ -253,7 +256,7 @@ function_t *get_function_from_declaration(int line_index, char *line) {
 
 				tmp_params = strsubstr(tmp_name, params_start_index, index - params_start_index);
 
-				params = parse_function_parameters(tmp_params, is_prototype);
+				params = parse_function_parameters(tmp_params, is_prototype, line_index);
 				free(tmp_params);
 				free(tmp_name);
 
@@ -296,12 +299,14 @@ static arraylist_t *parse_function_call_params(char *line) {
 
 		start_index = index;
 
-		//Until comma or end
-		while((c = line[index]) != ',' && index < length) {
-			index++;
-		}
+		do {
+			//Until comma or end
+			while((c = line[index]) != ',' && index < length) {
+				index++;
+			}
+		} while(check_quotes(line, line + index++, length));
 
-		end_index = index;
+		end_index = --index;
 
 		name = strsubstr(line, start_index, end_index - start_index);
 		if(type_exists(name)) {
@@ -341,12 +346,23 @@ function_t *parse_function_call(int line_index, char *line) {
 	int start_index           = 0;
 	int end_index             = 0;
 	unsigned int index        = 0;
-	size_t length             = strlen(line);
 	char *name                = NULL;
 	char *params              = NULL;
+	char *expr                = NULL;
+	int negate                = 0;
+	size_t length             = 0;
 	char c;
 
+	line   = str_remove_comments(line);
+	length = strlen(line);
+
 	SKIP_WHITESPACES
+
+	//Check ! operator
+	while((c = line[index]) == '!' && index < length) {
+		negate++;
+		index++;
+	}
 
 	start_index = index;
 
@@ -359,6 +375,12 @@ function_t *parse_function_call(int line_index, char *line) {
 
 	name = strsubstr(line, start_index, end_index - start_index);
 
+	if(is_keyword(name)) {
+		free(name);
+		free(line);
+		return NULL;
+	}
+
 	SKIP_WHITESPACES
 
 	//Expect parenthesis
@@ -367,22 +389,70 @@ function_t *parse_function_call(int line_index, char *line) {
 		start_index = index + 1;
 		end_index = strlastindexof(line, ')');
 		if(end_index != -1 && end_index >= start_index) {
+
+			index = end_index + 1;
+
+			//Check if parenthesis is followed by anything
+			SKIP_WHITESPACES
+			if(index < length && c != ';' && !is_whitespace(c)) {
+				free(name);
+				free(line);
+				return NULL;
+			}
+
+
 			params = strsubstr(line, start_index, end_index - start_index);
 			param_list = parse_function_call_params(params);
 			free(params);
 			if(param_list != NULL) {
 				function = function_init(name, 0, strduplicate("void"), 0,  arraylist_init(param_list->size), line_index);
+				function->negate_operator = negate;
 				function->params->size = param_list->size;
-				for(size_t i = 0 ; i < param_list->size ; i++)
-					function->params->array[i] = field_init(arraylist_get(param_list, i), strduplicate("void"), 0, -1);
+				for(size_t i = 0 ; i < param_list->size ; i++) {
+					expr = arraylist_get(param_list, i);
+					function->params->array[i] = field_init(expr, strduplicate("void"), 0, -1);
+				}
+				free(line);
 				return function;
 			}
 		}
 	}
 
 	free(name);
+	free(line);
 
 	return NULL;
+}
+
+void check_function_call_parameters(scope_t *scope, function_t *call, function_t *function, int line_index, messages_t *messages) {
+	field_t *field            = NULL;
+	field_t *param            = NULL;
+	invalid_call_t *error     = NULL;
+	type_t type;
+
+	if(function != NULL && call->params->size != function->params->size && messages->invalid_calls != NULL) {
+		error = malloc(sizeof(invalid_call_t));
+		error->name = strduplicate(function->name);
+		error->more = call->params->size - function->params->size;
+		arraylist_add(messages->invalid_calls, error);
+	}
+
+	for(size_t i = 0 ; i < call->params->size ; i++) {
+
+		field = arraylist_get(call->params, i);
+
+		type = parse_expression(field->name, line_index, scope, messages);
+		if(!strcmp(type.name, "NULL")) {
+			type = parse_operation(field->name, line_index, scope, messages);
+		}
+
+		if(function != NULL && i < function->params->size) {
+			param = arraylist_get(function->params, i);
+			if(strcmp(type.name, "NULL") && !type_equals(&type, &(param->type))) {
+				arraylist_add(messages->invalid_params, field_init(strduplicate(field->name), strduplicate(field->type.name), field->type.is_pointer, field->line));
+			}
+		}
+	}
 }
 
 void function_free(function_t *function) {
