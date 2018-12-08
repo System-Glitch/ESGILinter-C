@@ -342,18 +342,19 @@ void exclude_filepath(arraylist_t *conf, char *filepath){
  * @param path
  * @return
  */
-int is_excluded(arraylist_t *conf, char *path){
+int is_excluded(arraylist_t *conf, char *path) {
     char *name;
     name = malloc(sizeof(char) * 1048);
 
     strcpy(name, "exfile_");
     strcat(name, path);
-    if(get_rule(conf, name) == NULL){
+    if(get_rule(conf, name) == NULL) {
+        free(name);
         return 0;
-    }else{
+    } else {
+        free(name);
         return 1;
     }
-    free(name);
 }
 
 /**
@@ -361,11 +362,16 @@ int is_excluded(arraylist_t *conf, char *path){
  * @param conf
  */
 
-void free_conf(arraylist_t *conf){
+void free_conf(arraylist_t *conf) {
     if(!conf) return;
     for(size_t i = 0; i < conf->size; i++){
         free(((rule_t*)(arraylist_get(conf,i)))->name);
         free(conf->array[i]);
     }
     arraylist_free(conf, 0);
+}
+
+unsigned char check_rule(arraylist_t *conf, char *rule_name) {
+    rule_t *rule = get_rule(conf, rule_name);
+    return rule != NULL && rule->enable;
 }
