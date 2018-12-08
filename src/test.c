@@ -9,6 +9,8 @@
 #include "parsing_functions.h"
 #include "parsing_operations.h"
 #include "rules/no_prototype.h"
+#include "rules/max_line_numbers.h"
+#include "rules/max_file_line_numbers.h"
 #include "rules/parsing.h"
 #include "rules/no_multi_declaration.h"
 
@@ -90,7 +92,6 @@ static void test_function_declaration_parsing(char *line) {
 
 static void test_variable_declaration_parsing(char *line) {
 	arraylist_t *list = NULL;
-	
 
 	printf("%sInput: %s\"%s\"%s\n", COLOR_BLUE, COLOR_YELLOW, line, FORMAT_RESET);
 	list = get_variables_from_declaration(0, line);
@@ -103,7 +104,7 @@ static void test_variable_declaration_parsing(char *line) {
 }
 
 static void print_scope(scope_t *scope, unsigned int level) {
-	
+
 	node_t *current;
 
 	if(scope == NULL) return;
@@ -149,7 +150,7 @@ static void print_scope(scope_t *scope, unsigned int level) {
 static void test_variable_parsing() {
 	printf("------------------------------%s\n", FORMAT_RESET);
 	printf("%sTESTING PARSE VARIABLE DECLARATION%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
-	
+
 	test_variable_declaration_parsing("int i;");
 	test_variable_declaration_parsing("\tint i = 5;");
 	test_variable_declaration_parsing("int t i = 5;");
@@ -317,6 +318,39 @@ static void test_function_parsing() {
 	test_function_declaration_parsing("void test2(int* array[15]) {");
 }
 
+static void test_rule_max_line_numbers(){
+	printf("------------------------------%s\n", FORMAT_RESET);
+
+	printf("%sTESTING RULE: max-line-numbers%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
+
+	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	arraylist_add(file, strduplicate("static int glob = 89;"));
+
+	check_max_line_length(file, 5);
+	check_max_line_length(file, 50);
+
+	arraylist_free(file, 1);
+
+}
+
+static void test_rule_max_file_line_numbers(){
+	printf("------------------------------%s\n", FORMAT_RESET);
+
+	printf("%sTESTING RULE: max-file-line-numbers%s\n", COLOR_GREEN_BOLD, FORMAT_RESET);
+
+	arraylist_t *file = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+	arraylist_add(file, strduplicate("static int glob = 89;"));
+	arraylist_add(file, strduplicate("static int glob = 89;"));
+	arraylist_add(file, strduplicate("static int glob = 89;"));
+	arraylist_add(file, strduplicate("static int glob = 89;"));
+
+	max_file_line_numbers(file, 2);
+	max_file_line_numbers(file, 50);
+
+	arraylist_free(file, 1);
+
+}
+
 static void test_rule_no_prototype() {
 
 	printf("------------------------------%s\n", FORMAT_RESET);
@@ -461,7 +495,7 @@ static void test_expression(char *line, unsigned int line_index, scope_t *scope)
 	printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
 	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);
 	printf("\t%sIs pointer: %s%d\n", COLOR_CYAN, FORMAT_RESET, type.is_pointer);
-	
+
 	free(type.name);
 
 	for(size_t i = 0 ; i < messages->undeclared_functions->size ; i++) {
@@ -843,6 +877,8 @@ void test() {
 	test_variable_parsing();
 	test_function_parsing();
 	test_scope_parsing();
+	test_rule_max_line_numbers();
+	test_rule_max_file_line_numbers();
 	test_rule_no_prototype();
 	test_function_call_parsing();
 	test_parse_expression();
