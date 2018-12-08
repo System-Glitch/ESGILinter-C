@@ -1,7 +1,7 @@
 //
 // Created by Pierre Delmer on 23/10/2018.
 //
-
+#include <errno.h>
 #include "stringutils.h"
 #include "scopetree.h"
 #include "fileloader.h"
@@ -64,22 +64,23 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
     unsigned int length;
     unsigned int i;
     unsigned int j;
+    unsigned int index;
     int tempo;
     int init;
     char *line;
     char *tmp;
     char *res;
-    char *for_loop;
+    char *for_loop = NULL;
     char *real;
     char c;
-    int index;
     int real_line;
     line_t *l;
     int line_counter;
     int counter;
     int start_for;
     int literal;
-    int file_length;
+    size_t file_length;
+    size_t for_loop_length;
     int start_array;
     int array_length;
     FILE *src;
@@ -114,10 +115,13 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
         counter = 0;
         init = 0;
         line_counter++;
-        fgets(line, 1048, src);
+        if(!fgets(line, 1048, src)) {
+            printf("%s[ERROR]%s %s%s\n", COLOR_RED, COLOR_YELLOW, strerror(errno), FORMAT_RESET);
+            exit(EXIT_FAILURE);
+        }
         real = malloc(sizeof(char) * 1048);
         strcpy(real, line);
-        arraylist_add(real_line, real);
+        arraylist_add(real_file, real);
         real_line++;
         if(strstr(line, "#include \"") == line){
             int first_index = strindexof(line, '"');
@@ -127,9 +131,9 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
             if(last_index != -1){
                 tmp = strsubstr(tmp, last_index+1, strlen(tmp) - last_index);
             }
-            for(int k = 0; k < files->size; k++){
+            for(size_t k = 0; k < files->size; k++){
                 if(strstr(files->array[k], tmp) != NULL){
-                    file_loader(e, files, files->array[k]);
+                    file_loader(e, files, real_file, files->array[k]);
                 }
             }
             strcpy(tmp,"");
@@ -140,7 +144,8 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
         if(for_loop != NULL){
             for_loop += 3;
             index = 0;
-            while(is_whitespace(c = for_loop[index]) && index < strlen(for_loop)) { index++; };
+            for_loop_length = strlen(for_loop);
+            while(is_whitespace(c = for_loop[index]) && index < for_loop_length) { index++; };
             if(for_loop[index] == '(') start_for = 1;
         }
         file_length = strlen(line);
@@ -152,7 +157,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
             }
             if(line[j] == '=' && start_array == 0){
                 index = j+1;
-                while(is_whitespace(c = line[index]) && index < strlen(line)) { index++; };
+                while(is_whitespace(c = line[index]) && index < file_length) { index++; };
                 if(line[index] == '{'){
                     start_array = 1;
                     continue;
