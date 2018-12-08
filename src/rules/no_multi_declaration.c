@@ -1,5 +1,6 @@
 #include "rules/no_multi_declaration.h"
 #include "display.h"
+#include "fileloader.h"
 
 static unsigned char list_contains(arraylist_t *list, int value) {
 	for(size_t i = 0 ; i < list->size ; i++) {
@@ -11,6 +12,7 @@ static unsigned char list_contains(arraylist_t *list, int value) {
 
 unsigned int check_no_multi_declaration(scope_t *root_scope, arraylist_t *file) {
 	node_t  *current     = NULL;
+	line_t  *line        = NULL;
 	field_t *variable    = NULL;
 	int *tmp             = NULL;
 	arraylist_t *lines   = arraylist_init(root_scope->variables->size);
@@ -25,7 +27,8 @@ unsigned int check_no_multi_declaration(scope_t *root_scope, arraylist_t *file) 
 				*tmp = variable->line;
 				arraylist_add(lines, tmp);
 			} else {
-				print_warning("fictive_file.c", variable->line, arraylist_get(file, variable->line), "Variable multiple declaration");
+				line = get_line(file, variable->line);
+				print_warning(line->source, line->real_line, trim_heading_whitespaces(line->line), "Variable multiple declaration");
 				tmp = malloc(sizeof(int));
 				*tmp = variable->line;
 				arraylist_add(ignores, tmp);

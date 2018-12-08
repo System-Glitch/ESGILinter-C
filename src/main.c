@@ -8,6 +8,7 @@
 
 #include "scopetree.h"
 #include "rules/no_prototype.h"
+#include "rules/no_multi_declaration.h"
 
 static unsigned char check_rule(arraylist_t *conf, char *rule_name) {
 	rule_t *rule = get_rule(conf, rule_name);
@@ -70,6 +71,9 @@ int main(int argc, char **argv) {
 		if(scope != NULL) {
 			if(check_rule(conf, "no-prototype")) {
 				check_no_prototype(scope, buffer);
+			}
+			if(check_rule(conf, "no-multi-declaration")) {
+				check_no_multi_declaration(scope, buffer);
 			}
 
 		} else {
