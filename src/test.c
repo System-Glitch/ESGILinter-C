@@ -495,10 +495,10 @@ static void test_expression(char *line, unsigned int line_index, scope_t *scope)
 	printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
 	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);
 	printf("\t%sIs pointer: %s%d\n", COLOR_CYAN, FORMAT_RESET, type.is_pointer);
-  
-  free(type.name);
-  
-  for(size_t i = 0 ; i < messages->undeclared_functions->size ; i++) {
+
+	free(type.name);
+
+	for(size_t i = 0 ; i < messages->undeclared_functions->size ; i++) {
 		printf("\t%sUndefined function: %s%s\n", COLOR_RED, FORMAT_RESET, ((function_t*)arraylist_get(messages->undeclared_functions, i))->name);
 	}
 
