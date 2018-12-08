@@ -79,6 +79,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
     int counter;
     int start_for;
     int literal;
+    size_t start_buffer;
     size_t file_length;
     size_t for_loop_length;
     int start_array;
@@ -95,11 +96,12 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
     /*
      * Memory allocation
      */
+
     line = malloc(sizeof(char) * 1048);
     tmp = malloc(sizeof(char) * 1048);
     res = malloc(sizeof(char) * 1048);
-    strcpy(tmp, "");
 
+    strcpy(tmp, "");
     /*
      * Load the array
      */
@@ -110,6 +112,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
     literal = 0;
     start_array = 0;
     array_length = 0;
+    start_buffer = 0;
     for(i = 0; i < length; i++){
         tempo = 0;
         counter = 0;
@@ -119,10 +122,8 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
             printf("%s[ERROR]%s %s%s\n", COLOR_RED, COLOR_YELLOW, strerror(errno), FORMAT_RESET);
             exit(EXIT_FAILURE);
         }
-        real = malloc(sizeof(char) * 1048);
-        strcpy(real, line);
-        arraylist_add(real_file, real);
-        real_line++;
+
+
         if(strstr(line, "#include \"") == line){
             int first_index = strindexof(line, '"');
             int last_index = strlastindexof(line, '"');
@@ -134,11 +135,16 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
             for(size_t k = 0; k < files->size; k++){
                 if(strstr(files->array[k], tmp) != NULL){
                     file_loader(e, files, real_file, files->array[k]);
+                    start_buffer = real_file->size;
                 }
             }
             strcpy(tmp,"");
             continue;
         }
+
+        real = malloc(sizeof(char) * 1048);
+        strcpy(real, line);
+        arraylist_add(real_file, real);
 
         for_loop = strstr(line, "for");
         if(for_loop != NULL){
@@ -148,6 +154,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
             while(is_whitespace(c = for_loop[index]) && index < for_loop_length) { index++; };
             if(for_loop[index] == '(') start_for = 1;
         }
+
         file_length = strlen(line);
         for(j = 0; j < file_length ; j++){
             if(line[j] == '"' && literal == 1){
@@ -178,12 +185,12 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
                 l->source = malloc(sizeof(char) * 255);
                 l->line = malloc(sizeof(char) * 1048);
                 strcpy(l->source, filename);
-                l->start_line = i-line_counter;
-                if(l->start_line < 0){
-                    l->start_line = 1;
+                l->start_line_in_buffer = start_buffer+real_line;
+                l->start_real_line = real_line;
+                if(line[j+1] == '\n'){
+                    real_line = i + 1;
                 }
-                l->end_line = i+1;
-                l->real_line = real_line;
+                real_line = i+1;
                 if(strlen(tmp) != 0){
                     strcpy(l->line, tmp);
                     tmp = strsubstr(line, tempo, j+1);
@@ -206,27 +213,24 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
                     start_for = 0;
             }
         }
+
         if(!counter){
             strcat(tmp,line);
         }else if(counter && tempo){
             res = strsubstr(line, tempo, strlen(line));
             strcat(tmp, res);
         }
-
-        line = malloc(sizeof(char) * 1048);
     }
-
 
 
     /*
      * Free the memory
      */
     fclose(src);
-    if(for_loop)
-        free(for_loop);
+    free(for_loop);
+    free(res);
     free(line);
     free(tmp);
-    free(res);
 }
 
 
@@ -244,8 +248,6 @@ void search_files(arraylist_t *conf, arraylist_t *files, char *path){
     char *name;
 
     ext = malloc(sizeof(char) * 255);
-
-
 
     rep = opendir(path);
     while ((read = readdir(rep))) {
@@ -280,7 +282,6 @@ void search_files(arraylist_t *conf, arraylist_t *files, char *path){
     }
 
     closedir(rep);
-
     free(ext);
 }
 
@@ -294,4 +295,19 @@ line_t *get_line(arraylist_t *file, int index){
     if(!file) return NULL;
     if(index >= 0) return ((line_t*)(arraylist_get(file, (unsigned int)index)));
     return NULL;
+}
+
+/**
+ * Free the buffer
+ * @param buffer
+ */
+
+void free_buffer(arraylist_t *buffer){
+    if(!buffer) return;
+    for(int i = 0; i < buffer->size; i++){
+        free(get_line(buffer, i)->line);
+        free(get_line(buffer, i)->source);
+        free(buffer->array[i]);
+    }
+    arraylist_free(buffer, 0);
 }

@@ -353,4 +353,19 @@ int is_excluded(arraylist_t *conf, char *path){
     }else{
         return 1;
     }
+    free(name);
+}
+
+/**
+ * Free conf
+ * @param conf
+ */
+
+void free_conf(arraylist_t *conf){
+    if(!conf) return;
+    for(int i = 0; i < conf->size; i++){
+        free(((rule_t*)(arraylist_get(conf,i)))->name);
+        free(conf->array[i]);
+    }
+    arraylist_free(conf, 0);
 }

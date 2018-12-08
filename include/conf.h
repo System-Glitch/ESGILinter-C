@@ -39,4 +39,6 @@ int is_excluded(arraylist_t *conf, char *path);
 
 void exclude_filepath(arraylist_t *conf, char *filepath);
 
+void free_conf(arraylist_t *conf);
+
 #endif //ESGILINTER_C_CONF_H

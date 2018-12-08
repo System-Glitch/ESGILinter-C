@@ -15,9 +15,8 @@
 typedef struct line {
     char *line;
     char *source;
-    int   start_line;
-    int   end_line;
-    int   real_line;
+    int   start_real_line;
+    int   start_line_in_buffer;
 } line_t;
 
 unsigned int file_row_number(FILE *src);
@@ -29,6 +28,8 @@ char* file_to_buffer(FILE *src);
 void search_files(arraylist_t *conf, arraylist_t *files, char *path);
 
 line_t *get_line(arraylist_t *file, int index);
+
+void free_buffer(arraylist_t *buffer);
 
 #endif //ESGILINTER_C_FILELOADER_H
 
