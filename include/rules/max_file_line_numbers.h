@@ -3,6 +3,6 @@
 
 #include "scopetree.h"
 
-unsigned int max_file_line_numbers(arraylist_t *file, unsigned int n);
+unsigned int max_file_line_numbers(arraylist_t *file, unsigned int n, char *filename);
 
 #endif
