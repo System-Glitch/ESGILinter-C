@@ -3,7 +3,7 @@
 #include "stringutils.h"
 #include "display.h"
 
-unsigned int max_file_line_numbers(arraylist_t *file, unsigned int n){
+unsigned int max_file_line_numbers(arraylist_t *file, unsigned int n, char *filename){
 
   if(file->size > n){
     char size_string[12];
@@ -16,7 +16,7 @@ unsigned int max_file_line_numbers(arraylist_t *file, unsigned int n){
     free(tmp0);
     tmp0 = strconcat(tmp1, n_string);
 
-    print_warning("fictive_file.c", n, arraylist_get(file, n), tmp0);
+    print_warning(filename, n, NULL, tmp0);
 
     free(tmp1);
     free(tmp0);

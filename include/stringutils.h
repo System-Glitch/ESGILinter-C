@@ -39,6 +39,7 @@ unsigned char check_quotes(char *line, char *occurrence, int length);
 unsigned char check_parenthesis(char *line, char *occurrence, int length);
 
 char *trim_heading_whitespaces(char *line);
+char *trim(char *line);
 char *remove_parenthesis(char *line, int length);
 char *generate_char_sequence(char c, unsigned int count);
 

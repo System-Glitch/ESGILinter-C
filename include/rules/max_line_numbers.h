@@ -3,7 +3,6 @@
 
 #include "scopetree.h"
 
-unsigned int check_max_line_length(arraylist_t *file, unsigned int n);
-unsigned int line_length_check(char *line, unsigned int n, unsigned int line_index);
+unsigned int check_max_line_length(arraylist_t *file, unsigned int n, char *filename);
 
 #endif

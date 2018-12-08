@@ -235,6 +235,21 @@ char *trim_heading_whitespaces(char *line) {
 	return trimmed;
 }
 
+char *trim(char *line) {
+	char *trimmed = strduplicate(trim_heading_whitespaces(line));
+	size_t index  = 0;
+	size_t length = strlen(trimmed);
+
+	index = length - 1;
+	while(is_whitespace(trimmed[index]) && index < length) {
+		index--;
+	}
+
+	trimmed[index + 1] = '\0';
+
+	return trimmed;
+}
+
 char is_whitespace(char c) {
 	return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\v' || c == '\f';
 }

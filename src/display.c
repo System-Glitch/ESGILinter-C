@@ -10,5 +10,8 @@ void print_error(char *file, int line_index, char *line, const char *message) {
 }
 
 void print_message(char *file, int line_index, char *line, const char *message, const char *type, const char *color) {
-	printf("%s[%s]%s At %s%s:%d%s: %s\n  %s\n", color, type, FORMAT_RESET, COLOR_CYAN_BOLD, file, line_index, FORMAT_RESET, message, line);
+	if(line == NULL)
+		printf("%s[%s]%s At %s%s:%d%s: %s\n", color, type, FORMAT_RESET, COLOR_CYAN_BOLD, file, line_index, FORMAT_RESET, message);
+	else
+		printf("%s[%s]%s At %s%s:%d%s: %s\n  %s\n", color, type, FORMAT_RESET, COLOR_CYAN_BOLD, file, line_index, FORMAT_RESET, message, line);
 }

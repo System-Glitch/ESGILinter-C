@@ -10,6 +10,8 @@
 #include "rules/no_prototype.h"
 #include "rules/no_multi_declaration.h"
 #include "rules/parsing.h"
+#include "rules/max_file_line_numbers.h"
+#include "rules/max_line_numbers.h"
 
 static arraylist_t *get_lines_list(arraylist_t *buffer) {
 	arraylist_t *lines = arraylist_init(buffer->size);
@@ -30,6 +32,7 @@ int main(int argc, char **argv) {
 	arraylist_t *real_file = NULL;
 	arraylist_t *lines = NULL;
 	scope_t *scope = NULL;
+	rule_t *rule = NULL;
 
 	if(conf == NULL || files == NULL) {
 		printf("%s[ERROR]%s %s%s\n", COLOR_RED, COLOR_YELLOW, strerror(errno), FORMAT_RESET);
@@ -65,6 +68,14 @@ int main(int argc, char **argv) {
 		scope = parse_root_scope(lines);
 
 		if(scope != NULL) {
+			if(check_rule(conf, "max-file-line-numbers")) {
+				rule = get_rule(conf, "max-file-line-numbers");
+				max_file_line_numbers(real_file, rule->value, file); //TODO handle includes
+			}
+			if(check_rule(conf, "max-line-numbers")) {
+				rule = get_rule(conf, "max-line-numbers");
+				check_max_line_length(real_file, rule->value, file);
+			}
 			if(check_rule(conf, "no-prototype")) {
 				check_no_prototype(scope, buffer);
 			}
