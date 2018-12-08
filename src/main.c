@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
 	path = malloc(sizeof(char) * 255);
 	strcpy(path, "."); // replace with an argument
 
-	if(load_configuration("linter.conf", conf)) { //replace with argument
+	if(load_configuration("test.conf", conf)) { //replace with argument
 		printf("%s[ERROR]%s Failed to load config: %s%s\n", COLOR_RED, COLOR_YELLOW, strerror(errno), FORMAT_RESET);
 		arraylist_free(conf, 0);
 		return EXIT_FAILURE;
@@ -30,12 +30,19 @@ int main(int argc, char **argv) {
 	search_files(conf, files, path);
 
 	for(int i = 0; i < files->size; i++){
-
-		file_loader(buffer, files, real_file, arraylist_get(files, i)); // replace "test.txt" by files->array[i]
+		file_loader(buffer, files, real_file, "test.txt"); // replace "test.txt" by files->array[i]
 		printf("\n");
 		for(int j = 0; j < buffer->size; j++){
 			printf("New line : %s\n",get_line(buffer,j)->line);
 		}
+
+
+
+
+
+		arraylist_free(real_file, 1);
+		free_buffer(buffer);
+
 		break;
 		/*
 		 *
@@ -45,7 +52,11 @@ int main(int argc, char **argv) {
 		 *
 		 */
 	}
-	
+
+	arraylist_free(files, 1);
+
+	free_conf(conf);
+
 	//test();
 	return EXIT_SUCCESS;
 }
