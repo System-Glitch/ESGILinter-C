@@ -9,11 +9,7 @@
 #include "scopetree.h"
 #include "rules/no_prototype.h"
 #include "rules/no_multi_declaration.h"
-
-static unsigned char check_rule(arraylist_t *conf, char *rule_name) {
-	rule_t *rule = get_rule(conf, rule_name);
-	return rule != NULL && rule->enable;
-}
+#include "rules/parsing.h"
 
 static arraylist_t *get_lines_list(arraylist_t *buffer) {
 	arraylist_t *lines = arraylist_init(buffer->size);
@@ -75,7 +71,7 @@ int main(int argc, char **argv) {
 			if(check_rule(conf, "no-multi-declaration")) {
 				check_no_multi_declaration(scope, buffer);
 			}
-
+			parse_and_check(scope, buffer, NULL, NULL, conf);
 		} else {
 			printf("%s[WARNING]%s Scope parsing failed for %s%s\n", COLOR_RED, COLOR_YELLOW, FORMAT_RESET, file);
 		}

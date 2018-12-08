@@ -1,9 +1,15 @@
 =extends
 
 =rules
-- rule1 = on
-- rule2 = off
-- rule3 = 4
+- no-prototype = on
+- no-multi-declaration = on
+- undeclared-function = on
+- undeclared-variable = on
+- arguments-count = on
+- function-parameters-type = on
+- variable-assignment-type = on
+- return-type = on
+- ternary-types = on
 
 =excludedFiles
 

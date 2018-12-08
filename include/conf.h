@@ -41,4 +41,6 @@ void exclude_filepath(arraylist_t *conf, char *filepath);
 
 void free_conf(arraylist_t *conf);
 
+unsigned char check_rule(arraylist_t *conf, char *rule_name);
+
 #endif //ESGILINTER_C_CONF_H
