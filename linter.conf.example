@@ -10,6 +10,10 @@
 - variable-assignment-type = on
 - return-type = on
 - ternary-types = on
+- unused-variable = on
+- unused-function = on
+- max-file-line-numbers = 5
+- max-line-numbers = 20
 
 =excludedFiles
 
