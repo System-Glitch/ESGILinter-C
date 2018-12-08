@@ -1,6 +1,6 @@
-#include <string.h>
 #include "rules/max_line_numbers.h"
 #include "arraylist.h"
+#include "stringutils.h"
 #include "display.h"
 
 unsigned int max_file_line_numbers(arraylist_t *file, unsigned int n){
@@ -8,7 +8,7 @@ unsigned int max_file_line_numbers(arraylist_t *file, unsigned int n){
   if(file->size > n){
     char size_string[12];
     char n_string[12];
-    sprintf(size_string, "%d", file->size);
+    sprintf(size_string, "%ld", file->size);
     sprintf(n_string, "%d", n);
 
     char *tmp0 = strconcat("Too many lines, actual: ", size_string);
