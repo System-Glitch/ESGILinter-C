@@ -122,9 +122,10 @@ void load_rules(FILE *src, arraylist_t *conf){
                 if(i != strlen(tmp) -2){
                     sum *= 10;
                 }
+                enable = 1;
             }
             if(sum == 0 && tmp[i] == 'o'){
-                if(strstr(tmp, "on")) {
+                if(strstr(tmp, " on")) {
                     enable = 1;
                     break;
                 }else{
