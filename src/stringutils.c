@@ -221,6 +221,20 @@ char *substr_match(char *source, match_t match) {
 	return substr;
 }
 
+//Returns the first occurrence of non whitespace char in string
+char *trim_heading_whitespaces(char *line) {
+	size_t index = 0;
+	size_t length = strlen(line);
+	char *trimmed = line;
+
+	while(is_whitespace(*trimmed) && index < length) {
+		trimmed++;
+		index++;
+	}
+
+	return trimmed;
+}
+
 char is_whitespace(char c) {
 	return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\v' || c == '\f';
 }

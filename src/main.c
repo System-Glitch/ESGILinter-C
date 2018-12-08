@@ -6,12 +6,33 @@
 #include "fileloader.h"
 #include "test.h"
 
+#include "scopetree.h"
+#include "rules/no_prototype.h"
+
+static unsigned char check_rule(arraylist_t *conf, char *rule_name) {
+	rule_t *rule = get_rule(conf, rule_name);
+	return rule != NULL && rule->enable;
+}
+
+static arraylist_t *get_lines_list(arraylist_t *buffer) {
+	arraylist_t *lines = arraylist_init(buffer->size);
+
+	for(size_t i = 0 ; i < buffer->size ; i++) {
+		arraylist_add(lines, strduplicate(((line_t*)arraylist_get(buffer, i))->line));
+	}
+
+	return lines;
+}
+
 int main(int argc, char **argv) {
-	char *path;
+	char *path = NULL;
+	char *file = NULL;
 	arraylist_t *conf = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 	arraylist_t *files = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 	arraylist_t *buffer = NULL;
 	arraylist_t *real_file = NULL;
+	arraylist_t *lines = NULL;
+	scope_t *scope = NULL;
 
 	if(conf == NULL || files == NULL) {
 		printf("%s[ERROR]%s %s%s\n", COLOR_RED, COLOR_YELLOW, strerror(errno), FORMAT_RESET);
@@ -40,6 +61,21 @@ int main(int argc, char **argv) {
 
 		file_loader(buffer, files, real_file, arraylist_get(files, i));
 
+		file = arraylist_get(files, i);
+		printf("Checking file: %s\n", file);
+		file_loader(buffer, files, real_file, file);
+		lines = get_lines_list(buffer);
+		scope = parse_root_scope(lines);
+
+		if(scope != NULL) {
+			if(check_rule(conf, "no-prototype")) {
+				check_no_prototype(scope, buffer);
+			}
+
+		} else {
+			printf("%s[WARNING]%s Scope parsing failed for %s%s\n", COLOR_RED, COLOR_YELLOW, FORMAT_RESET, file);
+		}
+
 		/*
 		 *
 		 * TREAT DATA FROM HERE
@@ -49,7 +85,7 @@ int main(int argc, char **argv) {
 		 */
 		arraylist_free(real_file, 1);
 		free_buffer(buffer);
-		break;
+		arraylist_free(lines, 1);
 	}
 	arraylist_free(files, 1);
 
