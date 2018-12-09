@@ -17,6 +17,7 @@
 - no-trailing-space = on
 - comma-spacing = on
 - operators-spacing = on
+- comments-header = on
 
 =excludedFiles
 
