@@ -227,7 +227,6 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
      * Free the memory
      */
     fclose(src);
-    free(for_loop);
     free(res);
     free(line);
     free(tmp);
