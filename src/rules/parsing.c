@@ -135,7 +135,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				for(size_t j = 0 ; j < messages->undeclared_functions->size ; j++) {
 					function = arraylist_get(messages->undeclared_functions, j);
 					message = strconcat("Undeclared function: ", function->name);
-					print_error(line_info->source, line_info->real_line, trim_heading_whitespaces(line_info->line), message);
+					print_error(line_info->source, line_info->start_real_line, trim_heading_whitespaces(line_info->line), message);
 					free(message);
 					result++;
 				}
@@ -144,7 +144,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 			if(conf == NULL || check_rule(conf, "undeclared-variable")) {
 				for(size_t j = 0 ; j < messages->undeclared_variables->size ; j++) {
 					message = strconcat("Undeclared variable: ", arraylist_get(messages->undeclared_variables, j));
-					print_error(line_info->source, line_info->real_line, trim_heading_whitespaces(line_info->line), message);
+					print_error(line_info->source, line_info->start_real_line, trim_heading_whitespaces(line_info->line), message);
 					free(message);
 					result++;
 				}
@@ -154,7 +154,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				for(size_t j = 0 ; j < messages->invalid_calls->size ; j++) {
 					call = arraylist_get(messages->invalid_calls, j);
 					message = strconcat(call->more > 0 ? "Too many arguments for function: " : "Too few arguments for function: ", call->name);
-					print_error(line_info->source, line_info->real_line, trim_heading_whitespaces(line_info->line), message);
+					print_error(line_info->source, line_info->start_real_line, trim_heading_whitespaces(line_info->line), message);
 					free(message);
 					free(call->name);
 					result++;
@@ -165,7 +165,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				for(size_t j = 0 ; j < messages->invalid_params->size ; j++) {
 					field = arraylist_get(messages->invalid_params, j);
 					message = strconcat("Invalid parameter type: ", field->name);
-					print_error(line_info->source, line_info->real_line, trim_heading_whitespaces(line_info->line), message);
+					print_error(line_info->source, line_info->start_real_line, trim_heading_whitespaces(line_info->line), message);
 					free(message);
 					result++;
 				}
@@ -175,7 +175,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				for(size_t j = 0 ; j < messages->wrong_assignment->size ; j++) {
 					wrong_type = arraylist_get(messages->wrong_assignment, j);
 					message = build_wrong_type_message(wrong_type, WRONG_TYPE_ASSIGNMENT);
-					print_error(line_info->source, line_info->real_line, trim_heading_whitespaces(line_info->line), message);
+					print_error(line_info->source, line_info->start_real_line, trim_heading_whitespaces(line_info->line), message);
 					free(message);
 					result++;
 				}
@@ -185,7 +185,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				for(size_t j = 0 ; j < messages->wrong_return->size ; j++) {
 					wrong_type = arraylist_get(messages->wrong_return, j);
 					message = build_wrong_type_message(wrong_type, WRONG_TYPE_RETURN);
-					print_error(line_info->source, line_info->real_line, trim_heading_whitespaces(line_info->line), message);
+					print_error(line_info->source, line_info->start_real_line, trim_heading_whitespaces(line_info->line), message);
 					free(message);
 					result++;
 				}
@@ -195,7 +195,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				for(size_t j = 0 ; j < messages->ternary_types->size ; j++) {
 					wrong_type = arraylist_get(messages->ternary_types, j);
 					message = build_wrong_type_message(wrong_type, WRONG_TYPE_TERNARY);
-					print_error(line_info->source, line_info->real_line, trim_heading_whitespaces(line_info->line), message);
+					print_error(line_info->source, line_info->start_real_line, trim_heading_whitespaces(line_info->line), message);
 					free(message);
 					result++;
 				}
@@ -220,7 +220,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				field = arraylist_get(messages->variables_list, j);
 				line_info = get_line(file, field->line);
 				message = field->is_param ? strconcat("Unused parameter: ", field->name) : strconcat("Unused variable: ", field->name);
-				print_warning(line_info->source, line_info->real_line, trim_heading_whitespaces(line_info->line), message);
+				print_warning(line_info->source, line_info->start_real_line, trim_heading_whitespaces(line_info->line), message);
 				free(message);
 				result++;
 			}
@@ -231,7 +231,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				function = arraylist_get(messages->functions_list, j);
 				line_info = get_line(file, function->line);
 				message = strconcat("Unused function: ", function->name);
-				print_warning(line_info->source, line_info->real_line, trim_heading_whitespaces(line_info->line), message);
+				print_warning(line_info->source, line_info->start_real_line, trim_heading_whitespaces(line_info->line), message);
 				free(message);
 				result++;
 			}
