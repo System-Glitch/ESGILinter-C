@@ -40,7 +40,7 @@ unsigned int check_no_prototype(scope_t *root_scope, arraylist_t *file, arraylis
 				}
 			} else {
 				line = get_line(file, function->line);
-				breaks = strcount(line->line, '\n');
+				breaks = strcount(line->line, '\n'); //TODO count until not whitespace instead of all breaks
 				display = trim(arraylist_get(real_file, line->start_real_line + breaks - 1));
 				print_warning(line->source, line->start_real_line + strcount(line->line, '\n'), display, "Missing prototype");
 				free(display);

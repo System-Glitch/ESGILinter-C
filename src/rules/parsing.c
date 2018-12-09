@@ -83,13 +83,15 @@ static void free_wrong_type_list(arraylist_t *list) {
 	arraylist_free(list, 1);
 }
 
-unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t *functions, arraylist_t *variables, arraylist_t *conf) {
+unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t *functions, arraylist_t *variables, arraylist_t *conf, arraylist_t *real_file) {
 
 	type_t type;
 	unsigned int result        = 0;
+	unsigned int breaks        = 0;
 	scope_t *scope             = NULL;
 	char *line                 = NULL;
 	char *message              = NULL;
+	char *display              = NULL;
 	function_t     *function   = NULL;
 	field_t        *field      = NULL;
 	invalid_call_t *call       = NULL;
@@ -113,7 +115,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 		scope = get_child_scope(root_scope, i);
 		if(scope != root_scope) {
 			if(i == scope->from_line) {
-				result += parse_and_check(scope, file, messages->functions_list, messages->variables_list, conf);
+				result += parse_and_check(scope, file, messages->functions_list, messages->variables_list, conf, real_file);
 			}
 		} else {
 			messages->undeclared_functions = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
@@ -125,6 +127,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 			messages->ternary_types        = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 
 			line_info = get_line(file, i);
+			breaks = strcount(line_info->line, '\n');
 			line = line_info->line;
 			type = parse_expression(line, i, scope, messages);
 			if(!strcmp(type.name, "NULL")) {
@@ -135,7 +138,9 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				for(size_t j = 0 ; j < messages->undeclared_functions->size ; j++) {
 					function = arraylist_get(messages->undeclared_functions, j);
 					message = strconcat("Undeclared function: ", function->name);
-					print_error(line_info->source, line_info->start_real_line, trim_heading_whitespaces(line_info->line), message);
+					display = trim(arraylist_get(real_file, line_info->start_real_line + breaks - 1));
+					print_error(line_info->source, line_info->start_real_line + breaks, display, message);
+					free(display);
 					free(message);
 					result++;
 				}
@@ -144,7 +149,9 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 			if(conf == NULL || check_rule(conf, "undeclared-variable")) {
 				for(size_t j = 0 ; j < messages->undeclared_variables->size ; j++) {
 					message = strconcat("Undeclared variable: ", arraylist_get(messages->undeclared_variables, j));
-					print_error(line_info->source, line_info->start_real_line, trim_heading_whitespaces(line_info->line), message);
+					display = trim(arraylist_get(real_file, line_info->start_real_line + breaks - 1));
+					print_error(line_info->source, line_info->start_real_line + breaks, display, message);
+					free(display);
 					free(message);
 					result++;
 				}
@@ -154,7 +161,9 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				for(size_t j = 0 ; j < messages->invalid_calls->size ; j++) {
 					call = arraylist_get(messages->invalid_calls, j);
 					message = strconcat(call->more > 0 ? "Too many arguments for function: " : "Too few arguments for function: ", call->name);
-					print_error(line_info->source, line_info->start_real_line, trim_heading_whitespaces(line_info->line), message);
+					display = trim(arraylist_get(real_file, line_info->start_real_line + breaks - 1));
+					print_error(line_info->source, line_info->start_real_line + breaks, display, message);
+					free(display);
 					free(message);
 					free(call->name);
 					result++;
@@ -165,7 +174,9 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				for(size_t j = 0 ; j < messages->invalid_params->size ; j++) {
 					field = arraylist_get(messages->invalid_params, j);
 					message = strconcat("Invalid parameter type: ", field->name);
-					print_error(line_info->source, line_info->start_real_line, trim_heading_whitespaces(line_info->line), message);
+					display = trim(arraylist_get(real_file, line_info->start_real_line + breaks - 1));
+					print_error(line_info->source, line_info->start_real_line + breaks, display, message);
+					free(display);
 					free(message);
 					result++;
 				}
@@ -175,7 +186,9 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				for(size_t j = 0 ; j < messages->wrong_assignment->size ; j++) {
 					wrong_type = arraylist_get(messages->wrong_assignment, j);
 					message = build_wrong_type_message(wrong_type, WRONG_TYPE_ASSIGNMENT);
-					print_error(line_info->source, line_info->start_real_line, trim_heading_whitespaces(line_info->line), message);
+					display = trim(arraylist_get(real_file, line_info->start_real_line + breaks - 1));
+					print_error(line_info->source, line_info->start_real_line + breaks, display, message);
+					free(display);
 					free(message);
 					result++;
 				}
@@ -185,7 +198,9 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				for(size_t j = 0 ; j < messages->wrong_return->size ; j++) {
 					wrong_type = arraylist_get(messages->wrong_return, j);
 					message = build_wrong_type_message(wrong_type, WRONG_TYPE_RETURN);
-					print_error(line_info->source, line_info->start_real_line, trim_heading_whitespaces(line_info->line), message);
+					display = trim(arraylist_get(real_file, line_info->start_real_line + breaks - 1));
+					print_error(line_info->source, line_info->start_real_line + breaks, display, message);
+					free(display);
 					free(message);
 					result++;
 				}
@@ -195,7 +210,9 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				for(size_t j = 0 ; j < messages->ternary_types->size ; j++) {
 					wrong_type = arraylist_get(messages->ternary_types, j);
 					message = build_wrong_type_message(wrong_type, WRONG_TYPE_TERNARY);
-					print_error(line_info->source, line_info->start_real_line, trim_heading_whitespaces(line_info->line), message);
+					display = trim(arraylist_get(real_file, line_info->start_real_line + breaks - 1));
+					print_error(line_info->source, line_info->start_real_line + breaks, display, message);
+					free(display);
 					free(message);
 					result++;
 				}
@@ -220,7 +237,10 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				field = arraylist_get(messages->variables_list, j);
 				line_info = get_line(file, field->line);
 				message = field->is_param ? strconcat("Unused parameter: ", field->name) : strconcat("Unused variable: ", field->name);
-				print_warning(line_info->source, line_info->start_real_line, trim_heading_whitespaces(line_info->line), message);
+				breaks = strcount(line_info->line, '\n');
+				display = trim(arraylist_get(real_file, line_info->start_real_line + breaks - 1));
+				print_warning(line_info->source, line_info->start_real_line + breaks, display, message);
+				free(display);
 				free(message);
 				result++;
 			}
@@ -231,7 +251,10 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				function = arraylist_get(messages->functions_list, j);
 				line_info = get_line(file, function->line);
 				message = strconcat("Unused function: ", function->name);
-				print_warning(line_info->source, line_info->start_real_line, trim_heading_whitespaces(line_info->line), message);
+				breaks = strcount(line_info->line, '\n');
+				display = trim(arraylist_get(real_file, line_info->start_real_line + breaks - 1));
+				print_warning(line_info->source, line_info->start_real_line + breaks, display, message);
+				free(display);
 				free(message);
 				result++;
 			}
