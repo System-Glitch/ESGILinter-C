@@ -363,7 +363,7 @@ int is_excluded(arraylist_t *conf, char *path){
 
 void free_conf(arraylist_t *conf){
     if(!conf) return;
-    for(int i = 0; i < conf->size; i++){
+    for(size_t i = 0; i < conf->size; i++){
         free(((rule_t*)(arraylist_get(conf,i)))->name);
         free(conf->array[i]);
     }
