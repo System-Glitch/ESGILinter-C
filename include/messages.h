@@ -12,6 +12,7 @@ typedef struct messages {
 	arraylist_t *wrong_assignment;
 	arraylist_t *wrong_return;
 	arraylist_t *ternary_types;
+	arraylist_t *operator_spacing;
 	arraylist_t *variables_list; //Variable is removed when used
 	arraylist_t *functions_list; //Function is removed when used
 } messages_t;

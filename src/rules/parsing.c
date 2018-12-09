@@ -125,6 +125,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 			messages->wrong_assignment     = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 			messages->wrong_return         = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 			messages->ternary_types        = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
+			messages->operator_spacing     = arraylist_init(ARRAYLIST_DEFAULT_CAPACITY);
 
 			line_info = get_line(file, i);
 			line = line_info->line;
@@ -218,11 +219,23 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				}
 			}
 
+			if(conf == NULL || check_rule(conf, "operators-spacing")) {
+				for(size_t j = 0 ; j < messages->operator_spacing->size ; j++) {
+					message = strconcat("Missing operator spacing: ", arraylist_get(messages->operator_spacing, j));
+					display = trim(arraylist_get(real_file, line_info->start_real_line + breaks - 1));
+					print_warning(line_info->source, line_info->start_real_line + breaks, display, message);
+					free(display);
+					free(message);
+					result++;
+				}
+			}
+
 			function_list_free(messages->undeclared_functions);
 			field_list_free(messages->invalid_params);
 			arraylist_free(messages->undeclared_variables, 1);
 			arraylist_free(messages->invalid_calls, 1);
-			arraylist_free(messages->wrong_assignment, 1);
+			arraylist_free(messages->operator_spacing, 1);
+			free_wrong_type_list(messages->wrong_assignment);
 			free_wrong_type_list(messages->wrong_return);
 			free_wrong_type_list(messages->ternary_types);
 			free(type.name);

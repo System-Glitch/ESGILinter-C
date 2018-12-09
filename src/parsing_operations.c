@@ -338,6 +338,13 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 
 			if(occurrence == NULL) continue;
 
+			//Check operator spacing
+			if(messages->operator_spacing != NULL) {
+				if(*(occurrence - 1) != ' ' || *(occurrence + operator_length) != ' ') {
+					arraylist_add(messages->operator_spacing, strduplicate((char*)operator));
+				}
+			}
+
 			//Split
 			left_operand_length = occurrence - line_wo_comment;
 			right_operand_index = left_operand_length + strlen(operator);
