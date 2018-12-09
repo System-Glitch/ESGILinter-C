@@ -380,6 +380,8 @@ static void check_return_type(type_t type, scope_t *scope, messages_t *messages)
 	scope_t *root_scope = function_scope->parent;
 	function_t *function = NULL;
 
+	if(root_scope == NULL) return;
+
 	for(size_t i = 0 ; i < root_scope->functions->size ; i++) {
 		function = arraylist_get(root_scope->functions, i);
 		if(function->line == function_scope->from_line) {
@@ -471,6 +473,7 @@ type_t parse_expression(char *line, int line_index, scope_t *scope, messages_t *
 		line   = tmp;
 		length = strlen(tmp);
 	}
+
 
 	SKIP_WHITESPACES
 

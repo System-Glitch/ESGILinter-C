@@ -82,6 +82,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
     int start_for;
     int literal;
     int include_fold;
+    unsigned int realloc_count = 1;
     size_t start_buffer;
     size_t file_length;
     size_t for_loop_length;
@@ -127,7 +128,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
             exit(EXIT_FAILURE);
         }
 
-        if(strstr(line, "#include \"") == line){
+        /*if(strstr(line, "#include \"") == line){
             int first_index = strindexof(line, '"');
             int last_index = strlastindexof(line, '"');
             tmp2 = strsubstr(line, first_index+1, last_index-first_index-1);
@@ -159,7 +160,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
                 tmp2 = NULL;
             }
             continue;
-        }
+        }*/
 
         real = malloc(sizeof(char) * 1048);
         strcpy(real, line);
@@ -201,38 +202,43 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
             }
 
             if(((line[j] == ';' && start_for == 0) || (line[j] == '{' && start_array == 0) || (line[j] == '}' && start_array == 0)) && literal != 1 ){
-                l = malloc(sizeof(line_t));
-                l->source = strduplicate(filename);
-                l->start_line_in_buffer = start_buffer+real_line;
-                l->start_real_line = real_line;
-                if(line[j+1] == '\n'){
-                    real_line = i + 1;
-                }
-                if(strlen(tmp_line) != 0){
-                    l->line = strduplicate(tmp_line);
-                    tmp = strsubstr(line, tempo, j+1);
-                    tmp2 = strconcat(l->line, tmp);
-                    free(l->line);
-                    free(tmp);
-                    l->line = tmp2;
-                    strcpy(tmp_line,"");
-                }else{
-                    if(!init){
-                        l->line = strsubstr(line, tempo, j+1);
-                    }else{
-                        l->line = strsubstr(line, tempo, j-init);
+                if(!check_quotes(line, line + j, file_length)) {
+                    l = malloc(sizeof(line_t));
+                    l->source = strduplicate(filename);
+                    l->start_line_in_buffer = start_buffer+real_line;
+                    l->start_real_line = real_line;
+                    if(line[j+1] == '\n'){
+                        real_line = i + 1;
                     }
+                    if(strlen(tmp_line) != 0){
+                        l->line = strduplicate(tmp_line);
+                        tmp = strsubstr(line, tempo, j+1);
+                        tmp2 = strconcat(l->line, tmp);
+                        free(l->line);
+                        free(tmp);
+                        l->line = tmp2;
+                        tmp_line[0] = '\0';
+                    }else{
+                        if(!init){
+                            l->line = strsubstr(line, tempo, j+1);
+                        }else{
+                            l->line = strsubstr(line, tempo, j-init);
+                        }
+                    }
+                    arraylist_add(e, l);
+                    tempo = j+1;
+                    counter++;
+                    init = j;
+                    if(start_for == 1 && line[j] == '{')
+                        start_for = 0;
                 }
-                arraylist_add(e, l);
-                tempo = j+1;
-                counter++;
-                init = j;
-                if(start_for == 1 && line[j] == '{')
-                    start_for = 0;
             }
         }
+
         if(!counter){
-            strcat(tmp_line,line);
+            if(strlen(tmp_line) + strlen(line) >= 1048)
+                tmp_line = realloc(tmp_line, sizeof(char) * 1048 * ++realloc_count);
+            strcat(tmp_line, line);
         }else if(counter && tempo){
             res = strsubstr(line, tempo, strlen(line));
             strcat(tmp_line, res);

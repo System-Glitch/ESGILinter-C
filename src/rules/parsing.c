@@ -239,6 +239,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 			free_wrong_type_list(messages->wrong_return);
 			free_wrong_type_list(messages->ternary_types);
 			free(type.name);
+
 		}
 		
 	}
