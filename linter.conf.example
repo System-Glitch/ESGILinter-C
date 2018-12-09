@@ -13,9 +13,11 @@
 - unused-variable = on
 - unused-function = on
 - max-file-line-numbers = 5
-- max-line-numbers = 20
+- max-line-numbers = 30
+- no-trailing-space = on
+- comma-spacing = on
 
 =excludedFiles
 
 =recursive
-true
+false
