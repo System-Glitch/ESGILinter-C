@@ -61,13 +61,14 @@ int main(int argc, char **argv) {
 			return EXIT_FAILURE;
 		}
 
-		file_loader(buffer, files, real_file, arraylist_get(files, i));
-
 		file = arraylist_get(files, i);
+		file_loader(buffer, files, real_file, file);
+
 		printf("Checking file: %s\n", file);
 		file_loader(buffer, files, real_file, file);
 		lines = get_lines_list(buffer);
 		scope = parse_root_scope(lines);
+		arraylist_free(lines, 1);
 
 		if(scope != NULL) {
 			if(check_rule(conf, "max-file-line-numbers")) {
@@ -90,7 +91,7 @@ int main(int argc, char **argv) {
 			if(check_rule(conf, "no-multi-declaration")) {
 				check_no_multi_declaration(scope, buffer, real_file);
 			}
-			parse_and_check(scope, buffer, NULL, NULL, conf);
+			parse_and_check(scope, buffer, NULL, NULL, conf, real_file);
 		} else {
 			printf("%s[WARNING]%s Scope parsing failed for %s%s\n", COLOR_RED, COLOR_YELLOW, FORMAT_RESET, file);
 		}
@@ -104,7 +105,6 @@ int main(int argc, char **argv) {
 		 */
 		arraylist_free(real_file, 1);
 		free_buffer(buffer);
-		arraylist_free(lines, 1);
 	}
 	arraylist_free(files, 1);
 

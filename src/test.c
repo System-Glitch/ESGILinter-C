@@ -694,7 +694,7 @@ static void test_rule_parsing() {
 	scope_t *scope = parse_root_scope(file);
 	if(scope != NULL) {
 		print_scope(scope, 0);
-		printf("Return: %d\n", parse_and_check(scope, file, NULL, NULL, NULL));
+		printf("Return: %d\n", parse_and_check(scope, file, NULL, NULL, NULL, file));
 		scope_free(scope);
 	} else {
 		printf("%sScope %sNULL\n%s", COLOR_YELLOW, COLOR_RED, FORMAT_RESET);
