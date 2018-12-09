@@ -81,7 +81,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
     int counter;
     int start_for;
     int literal;
-    int include_fold;
+    //int include_fold;
     unsigned int realloc_count = 1;
     size_t start_buffer;
     size_t file_length;
@@ -116,7 +116,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
     start_array = 0;
     array_length = 0;
     start_buffer = 0;
-    include_fold = 0;
+    //include_fold = 0;
 
     for(i = 0; i < length; i++){
         tempo = 0;
@@ -207,7 +207,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
                     l->source = strduplicate(filename);
                     l->start_line_in_buffer = start_buffer+real_line;
                     l->start_real_line = real_line;
-                    if(line[j+1] == '\n'){
+                    if(line[j+1] == '\n' || (line[j+1] == '\r' && line[j+2] == '\n')){
                         real_line = i + 1;
                     }
                     if(strlen(tmp_line) != 0){
