@@ -491,6 +491,7 @@ static void test_expression(char *line, unsigned int line_index, scope_t *scope)
 	messages->wrong_assignment     = NULL;
 	messages->wrong_return         = NULL;
 	messages->ternary_types        = NULL;
+	messages->operator_spacing     = NULL;
 	type_t type = parse_expression(line, line_index, scope, messages);
 	printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
 	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);
@@ -717,6 +718,7 @@ static void test_operation(char* line, unsigned int line_index, scope_t *scope) 
 	messages->wrong_assignment     = NULL;
 	messages->wrong_return         = NULL;
 	messages->ternary_types        = NULL;
+	messages->operator_spacing     = NULL;
 	type_t type = parse_operation(line, line_index, scope, messages);
 	printf("%sOutput: %s\n", COLOR_BLUE, FORMAT_RESET);
 	printf("\t%sType:       %s%s\n", COLOR_CYAN, FORMAT_RESET, type.name);

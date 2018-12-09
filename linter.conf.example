@@ -16,6 +16,7 @@
 - max-line-numbers = 30
 - no-trailing-space = on
 - comma-spacing = on
+- operators-spacing = on
 
 =excludedFiles
 
