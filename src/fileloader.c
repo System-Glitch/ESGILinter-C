@@ -260,15 +260,13 @@ void search_files(arraylist_t *conf, arraylist_t *files, char *path){
 
     struct dirent *read;
     DIR *rep;
-    char *ext;
+    char *ext = NULL;
     char *name;
-
-    ext = malloc(sizeof(char) * 255);
 
     rep = opendir(path);
     while ((read = readdir(rep))) {
         if(read->d_type == 8){
-            strcpy(ext, strsubstr(read->d_name, strlen(read->d_name)-2,2));
+            ext = strsubstr(read->d_name, strlen(read->d_name)-2,2);
             if((strcmp(ext,".c") == 0 || strcmp(ext,".h") == 0) && is_excluded(conf, read->d_name) == 0){
                 name = malloc(sizeof(char) * 1048);
                 if(strcmp(path, ".") == 0){
@@ -280,6 +278,8 @@ void search_files(arraylist_t *conf, arraylist_t *files, char *path){
                 }
                 arraylist_add(files, name);
             }
+            free(ext);
+            ext = NULL;
         }else if(read->d_type == 4 && strcmp(read->d_name,".") != 0 && strcmp(read->d_name,"..") != 0 && is_recursive(conf) != 0){
 
             if(strcmp(path, ".") == 0){
@@ -292,13 +292,14 @@ void search_files(arraylist_t *conf, arraylist_t *files, char *path){
         }
     }
     if(strindexof(path, '/') != -1){
-        strcpy(path, strsubstr(path, 0, strlastindexof(path, '/')));
+        ext = strsubstr(path, 0, strlastindexof(path, '/'));
+        strcpy(path, ext);
+        free(ext);
+
     }else{
         strcpy(path,".");
     }
-
     closedir(rep);
-    free(ext);
 }
 
 /**

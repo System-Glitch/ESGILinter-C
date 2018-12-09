@@ -47,15 +47,13 @@ int main(int argc, char **argv) {
 		 * APPLY RULES
 		 *
 		 */
-
 		arraylist_free(real_file, 1);
 		free_buffer(buffer);
+		break;
 	}
-
 	arraylist_free(files, 1);
 
 	free_conf(conf);
-
-	//test();
+    free(path);
 	return EXIT_SUCCESS;
 }
