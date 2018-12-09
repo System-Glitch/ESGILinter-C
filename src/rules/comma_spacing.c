@@ -16,7 +16,7 @@ unsigned int comma_spacing(arraylist_t *buffer, arraylist_t *real_file){
         for(size_t j = 0; j < length; j++){
             if(line[j] == ',' && !check_quotes(line, line+j, (int)length) && line[j+1] != ' '){
                 counter++;
-                breaks = strcount(e->line, '\n') + (e->start_real_line == 0 ? 1 : 0);
+                breaks = strcount_heading_line_breaks(e->line) + (e->start_real_line == 0 ? 1 : 0);
                 display = trim(arraylist_get(real_file, e->start_real_line + breaks - 1));
                 print_warning(e->source, e->start_real_line + breaks, display, "No space after a comma");
                 free(display);

@@ -30,7 +30,7 @@ unsigned int check_no_multi_declaration(scope_t *root_scope, arraylist_t *file, 
 				arraylist_add(lines, tmp);
 			} else {
 				line = get_line(file, variable->line);
-				breaks = strcount(line->line, '\n') + (line->start_real_line == 0 ? 1 : 0);
+				breaks = strcount_heading_line_breaks(line->line) + (line->start_real_line == 0 ? 1 : 0);
 				display = trim(arraylist_get(real_file, line->start_real_line + breaks - 1));
 				print_warning(line->source, line->start_real_line + breaks, display, "Variable multiple declaration");
 				free(display);
