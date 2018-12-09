@@ -4,9 +4,12 @@
 
 static int no_trailing_spaces_check(char *line, int line_index, char *filename) {
 	int index;
+	char *trimmed = NULL;
 	index = strlastindexof(line, '\n');
-	if((index >= 1 && line[index-1] == ' ') || (index >= 2 && line[index - 1] == '\r' && line[index - 2] == ' ')){
-		print_warning(filename, line_index + 1, line, "Trailing space(s) before EOL"); //TODO trim
+	if((index >= 1 && line[index-1] == ' ') || (index >= 2 && line[index - 1] == '\r' && line[index - 2] == ' ')) {
+		trimmed = trim(line);
+		print_warning(filename, line_index + 1, trimmed, "Trailing space(s) before EOL");
+		free(trimmed);
 		return 1;
 	}
 	return 0;
