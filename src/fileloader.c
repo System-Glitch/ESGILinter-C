@@ -201,15 +201,14 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
                 continue;
             }
 
+
             if(((line[j] == ';' && start_for == 0) || (line[j] == '{' && start_array == 0) || (line[j] == '}' && start_array == 0)) && literal != 1 ){
                 if(!check_quotes(line, line + j, file_length)) {
                     l = malloc(sizeof(line_t));
                     l->source = strduplicate(filename);
                     l->start_line_in_buffer = start_buffer+real_line;
                     l->start_real_line = real_line;
-                    if(line[j+1] == '\n' || (line[j+1] == '\r' && line[j+2] == '\n')){
-                        real_line = i + 1;
-                    }
+
                     if(strlen(tmp_line) != 0){
                         l->line = strduplicate(tmp_line);
                         tmp = strsubstr(line, tempo, j+1);
@@ -232,6 +231,9 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
                     if(start_for == 1 && line[j] == '{')
                         start_for = 0;
                 }
+            }
+            if(line[j+1] == '\n' || (line[j+1] == '\r' && line[j+2] == '\n')){
+                real_line = i + 1;
             }
         }
 
