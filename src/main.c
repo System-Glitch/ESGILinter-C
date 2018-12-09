@@ -62,10 +62,9 @@ int main(int argc, char **argv) {
 		}
 
 		file = arraylist_get(files, i);
-		file_loader(buffer, files, real_file, file);
-
 		printf("Checking file: %s\n", file);
 		file_loader(buffer, files, real_file, file);
+
 		lines = get_lines_list(buffer);
 		scope = parse_root_scope(lines);
 		arraylist_free(lines, 1);
