@@ -70,6 +70,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
     char *line;
     char *tmp = NULL;
     char *tmp2 = NULL;
+    char *tmp_line;
     char *res;
     char *for_loop = NULL;
     char *real;
@@ -80,6 +81,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
     int counter;
     int start_for;
     int literal;
+    int include_fold;
     size_t start_buffer;
     size_t file_length;
     size_t for_loop_length;
@@ -99,6 +101,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
      */
 
     line = malloc(sizeof(char) * 1048);
+    tmp_line = malloc(sizeof(char) * 1048);
 
     /*
      * Load the array
@@ -111,6 +114,8 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
     start_array = 0;
     array_length = 0;
     start_buffer = 0;
+    include_fold = 0;
+
     for(i = 0; i < length; i++){
         tempo = 0;
         counter = 0;
@@ -129,18 +134,29 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
             last_index = strlastindexof(tmp2, '/');
             if(last_index != -1){
                 tmp = strsubstr(tmp2, last_index+1, strlen(tmp2) - last_index);
+                include_fold = 1;
                 free(tmp2);
                 tmp2 = NULL;
             }
             for(size_t k = 0; k < files->size; k++){
-                if(strstr(files->array[k], tmp) != NULL){
-                    file_loader(e, files, real_file, files->array[k]);
-                    start_buffer = real_file->size;
+                if(include_fold){
+                    if(strstr(files->array[k], tmp) != NULL){
+                        file_loader(e, files, real_file, files->array[k]);
+                        start_buffer = real_file->size;
+                    }
+                }else{
+                    if(strstr(files->array[k], tmp2) != NULL){
+                        file_loader(e, files, real_file, files->array[k]);
+                        start_buffer = real_file->size;
+                    }
                 }
             }
             if(tmp != NULL) {
                 free(tmp);
                 tmp = NULL;
+            }else{
+                free(tmp2);
+                tmp2 = NULL;
             }
             continue;
         }
@@ -153,6 +169,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
         if(for_loop != NULL){
             for_loop += 3;
             index = 0;
+            start_for = 1;
             for_loop_length = strlen(for_loop);
             while(is_whitespace(c = for_loop[index]) && index < for_loop_length) { index++; };
             if(for_loop[index] == '(') start_for = 1;
@@ -191,14 +208,14 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
                 if(line[j+1] == '\n'){
                     real_line = i + 1;
                 }
-                real_line = i+1;
-                if(tmp != NULL && strlen(tmp) != 0){
-                    l->line = strduplicate(tmp);
-                    free(tmp);
+                if(tmp_line != NULL && strlen(tmp_line) != 0){
+                    l->line = strduplicate(tmp_line);
                     tmp = strsubstr(line, tempo, j+1);
                     tmp2 = strconcat(l->line, tmp);
                     free(l->line);
+                    free(tmp);
                     l->line = tmp2;
+                    strcpy(tmp_line,"");
                 }else{
                     if(!init){
                         l->line = strsubstr(line, tempo, j+1);
@@ -214,16 +231,12 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
                     start_for = 0;
             }
         }
-
-        if(tmp != NULL) {
-
-            if(!counter){
-                strcat(tmp,line);
-            }else if(counter && tempo){
-                res = strsubstr(line, tempo, strlen(line));
-                strcat(tmp, res);
-                free(res);
-            }
+        if(!counter){
+            strcat(tmp_line,line);
+        }else if(counter && tempo){
+            res = strsubstr(line, tempo, strlen(line));
+            strcat(tmp_line, res);
+            free(res);
         }
     }
 
@@ -233,6 +246,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
      */
     fclose(src);
     free(line);
+    free(tmp_line);
 }
 
 
