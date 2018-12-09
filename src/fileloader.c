@@ -304,7 +304,7 @@ line_t *get_line(arraylist_t *file, int index){
 
 void free_buffer(arraylist_t *buffer){
     if(!buffer) return;
-    for(int i = 0; i < buffer->size; i++){
+    for(size_t i = 0; i < buffer->size; i++){
         free(get_line(buffer, i)->line);
         free(get_line(buffer, i)->source);
         free(buffer->array[i]);
