@@ -125,6 +125,20 @@ unsigned int strcountuntil(char *str, char chr, char reverse, char ignore_whites
 	return count;
 }
 
+unsigned int strcount_heading_line_breaks(char *str) {
+
+	unsigned int length = strlen(str);
+	unsigned int count = 0;
+
+	for(unsigned int i = 0 ; i < length ; i++) {
+		if(str[i] == '\n')
+			count++;
+		else if(!is_whitespace(str[i]))
+			break;
+	}
+	return count;
+}
+
 int strindexof(char *str, char chr) {
 
 	size_t length = strlen(str);

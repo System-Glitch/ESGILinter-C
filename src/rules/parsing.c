@@ -128,7 +128,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 
 			line_info = get_line(file, i);
 			line = line_info->line;
-			breaks = strcount(line, '\n') + (line_info->start_real_line == 0 ? 1 : 0);
+			breaks = strcount_heading_line_breaks(line) + (line_info->start_real_line == 0 ? 1 : 0);
 			type = parse_expression(line, i, scope, messages);
 			if(!strcmp(type.name, "NULL")) {
 				type = parse_operation(line, i, scope, messages);
@@ -237,7 +237,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				field = arraylist_get(messages->variables_list, j);
 				line_info = get_line(file, field->line);
 				message = field->is_param ? strconcat("Unused parameter: ", field->name) : strconcat("Unused variable: ", field->name);
-				breaks = strcount(line_info->line, '\n') + (line_info->start_real_line == 0 ? 1 : 0);
+				breaks = strcount_heading_line_breaks(line_info->line) + (line_info->start_real_line == 0 ? 1 : 0);
 				display = trim(arraylist_get(real_file, line_info->start_real_line + breaks - 1));
 				print_warning(line_info->source, line_info->start_real_line + breaks, display, message);
 				free(display);
@@ -251,7 +251,7 @@ unsigned int parse_and_check(scope_t *root_scope, arraylist_t *file, arraylist_t
 				function = arraylist_get(messages->functions_list, j);
 				line_info = get_line(file, function->line);
 				message = strconcat("Unused function: ", function->name);
-				breaks = strcount(line_info->line, '\n') + (line_info->start_real_line == 0 ? 1 : 0);
+				breaks = strcount_heading_line_breaks(line_info->line) + (line_info->start_real_line == 0 ? 1 : 0);
 				display = trim(arraylist_get(real_file, line_info->start_real_line + breaks - 1));
 				print_warning(line_info->source, line_info->start_real_line + breaks, display, message);
 				free(display);
