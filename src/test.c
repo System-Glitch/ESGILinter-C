@@ -376,7 +376,7 @@ static void test_rule_no_prototype() {
 
 	scope_t *scope = parse_root_scope(file);
 	if(scope != NULL) {
-		printf("Return: %d\n", check_no_prototype(scope, file));
+		printf("Return: %d\n", check_no_prototype(scope, file, file));
 		scope_free(scope);
 	} else {
 		printf("%sScope %sNULL\n%s", COLOR_YELLOW, COLOR_RED, FORMAT_RESET);
@@ -862,7 +862,7 @@ static void test_rule_no_multi_declaration() {
 	scope_t *scope = parse_root_scope(file);
 
 	if(scope != NULL) {
-		printf("Return: %d\n", check_no_multi_declaration(scope, file));
+		printf("Return: %d\n", check_no_multi_declaration(scope, file, file));
 		scope_free(scope);
 	} else {
 		printf("%sScope %sNULL\n%s", COLOR_YELLOW, COLOR_RED, FORMAT_RESET);

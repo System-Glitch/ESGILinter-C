@@ -13,15 +13,18 @@ static char check_params(function_t *function, function_t *prototype) {
 	return 1;
 }
 
-unsigned int check_no_prototype(scope_t *root_scope, arraylist_t *file) {
+unsigned int check_no_prototype(scope_t *root_scope, arraylist_t *file, arraylist_t *real_file) {
 
 	arraylist_t *functions = root_scope->functions;
-	function_t *function   = NULL;
-	function_t *prototype  = NULL;
-	line_t     *line       = NULL;
+	function_t  *function  = NULL;
+	function_t  *prototype = NULL;
+	line_t      *line      = NULL;
+	char        *display   = NULL;
+	unsigned int breaks    = 0;
 	unsigned int count     = 0; //Counts warnings and errors
 
 	for(size_t i = 0 ; i < functions->size ; i++) {
+		breaks = 0;
 		function = arraylist_get(functions, i);
 		if(!function->is_prototype && strcmp(function->name, "main")) {
 
@@ -29,12 +32,18 @@ unsigned int check_no_prototype(scope_t *root_scope, arraylist_t *file) {
 			if(prototype != NULL) {
 				if(strcmp(function->return_type.name, prototype->return_type.name) || !check_params(function, prototype)) {
 					line = get_line(file, prototype->line);
-					print_error(line->source, line->start_real_line, trim_heading_whitespaces(line->line), "Conflicting types");
+					breaks = strcount(line->line, '\n');
+					display = trim(arraylist_get(real_file, line->start_real_line + breaks - 1));
+					print_error(line->source, line->start_real_line + breaks, display, "Conflicting types");
+					free(display);
 					count++;
 				}
 			} else {
 				line = get_line(file, function->line);
-				print_warning(line->source, line->start_real_line, trim_heading_whitespaces(line->line), "Missing prototype");
+				breaks = strcount(line->line, '\n');
+				display = trim(arraylist_get(real_file, line->start_real_line + breaks - 1));
+				print_warning(line->source, line->start_real_line + strcount(line->line, '\n'), display, "Missing prototype");
+				free(display);
 				count++;
 			}
 		}
