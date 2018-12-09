@@ -42,7 +42,11 @@ int main(int argc, char **argv) {
 	}
 
 	path = malloc(sizeof(char) * 255);
-	strcpy(path, "."); // replace with an argument
+	if(argc >= 2) {
+		strcpy(path, argv[1]);
+	} else {
+		strcpy(path, ".");
+	}
 
 	if(load_configuration("linter.conf", conf)) { //replace with argument
 		printf("%s[ERROR]%s Failed to load config: %s%s\n", COLOR_RED, COLOR_YELLOW, strerror(errno), FORMAT_RESET);
