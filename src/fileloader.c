@@ -102,6 +102,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
 
     line = malloc(sizeof(char) * 1048);
     tmp_line = malloc(sizeof(char) * 1048);
+    tmp_line[0] = '\0';
 
     /*
      * Load the array
@@ -125,7 +126,6 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
             printf("%s[ERROR]%s %s%s\n", COLOR_RED, COLOR_YELLOW, strerror(errno), FORMAT_RESET);
             exit(EXIT_FAILURE);
         }
-
 
         if(strstr(line, "#include \"") == line){
             int first_index = strindexof(line, '"');
@@ -208,7 +208,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
                 if(line[j+1] == '\n'){
                     real_line = i + 1;
                 }
-                if(tmp_line != NULL && strlen(tmp_line) != 0){
+                if(strlen(tmp_line) != 0){
                     l->line = strduplicate(tmp_line);
                     tmp = strsubstr(line, tempo, j+1);
                     tmp2 = strconcat(l->line, tmp);

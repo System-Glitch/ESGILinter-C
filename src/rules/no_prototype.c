@@ -32,7 +32,7 @@ unsigned int check_no_prototype(scope_t *root_scope, arraylist_t *file, arraylis
 			if(prototype != NULL) {
 				if(strcmp(function->return_type.name, prototype->return_type.name) || !check_params(function, prototype)) {
 					line = get_line(file, prototype->line);
-					breaks = strcount(line->line, '\n');
+					breaks = strcount(line->line, '\n') + (line->start_real_line == 0 ? 1 : 0);
 					display = trim(arraylist_get(real_file, line->start_real_line + breaks - 1));
 					print_error(line->source, line->start_real_line + breaks, display, "Conflicting types");
 					free(display);
@@ -40,9 +40,9 @@ unsigned int check_no_prototype(scope_t *root_scope, arraylist_t *file, arraylis
 				}
 			} else {
 				line = get_line(file, function->line);
-				breaks = strcount(line->line, '\n'); //TODO count until not whitespace instead of all breaks
+				breaks = strcount(line->line, '\n') + (line->start_real_line == 0 ? 1 : 0); //TODO count until not whitespace instead of all breaks
 				display = trim(arraylist_get(real_file, line->start_real_line + breaks - 1));
-				print_warning(line->source, line->start_real_line + strcount(line->line, '\n'), display, "Missing prototype");
+				print_warning(line->source, line->start_real_line + breaks, display, "Missing prototype");
 				free(display);
 				count++;
 			}
