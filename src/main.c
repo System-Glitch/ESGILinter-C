@@ -75,16 +75,16 @@ int main(int argc, char **argv) {
 			}
 			if(check_rule(conf, "max-line-numbers")) {
 				rule = get_rule(conf, "max-line-numbers");
-				check_max_line_length(real_file, rule->value, file);
+				check_max_line_length(real_file, rule->value, file); //TODO handle includes
 			}
 			if(check_rule(conf, "no-trailing-space")) {
-				no_trailing_spaces(real_file, file);
+				no_trailing_spaces(real_file, file); //TODO handle includes
 			}
 			if(check_rule(conf, "no-prototype")) {
-				check_no_prototype(scope, buffer);
+				check_no_prototype(scope, buffer, real_file);
 			}
 			if(check_rule(conf, "no-multi-declaration")) {
-				check_no_multi_declaration(scope, buffer);
+				check_no_multi_declaration(scope, buffer, real_file);
 			}
 			parse_and_check(scope, buffer, NULL, NULL, conf);
 		} else {

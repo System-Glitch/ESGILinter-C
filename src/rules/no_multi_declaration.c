@@ -10,11 +10,13 @@ static unsigned char list_contains(arraylist_t *list, int value) {
 	return 0;
 }
 
-unsigned int check_no_multi_declaration(scope_t *root_scope, arraylist_t *file) {
-	node_t  *current     = NULL;
-	line_t  *line        = NULL;
-	field_t *variable    = NULL;
-	int *tmp             = NULL;
+unsigned int check_no_multi_declaration(scope_t *root_scope, arraylist_t *file, arraylist_t *real_file) {
+	node_t  *current  = NULL;
+	line_t  *line     = NULL;
+	field_t *variable = NULL;
+	int     *tmp      = NULL;
+	char    *display  = NULL;
+	unsigned int breaks  = 0;
 	arraylist_t *lines   = arraylist_init(root_scope->variables->size);
 	arraylist_t *ignores = arraylist_init(root_scope->variables->size);
 	unsigned int count   = 0; //Counts warnings and errors
@@ -28,7 +30,10 @@ unsigned int check_no_multi_declaration(scope_t *root_scope, arraylist_t *file) 
 				arraylist_add(lines, tmp);
 			} else {
 				line = get_line(file, variable->line);
-				print_warning(line->source, line->start_real_line, trim_heading_whitespaces(line->line), "Variable multiple declaration");
+				breaks = strcount(line->line, '\n');
+				display = trim(arraylist_get(real_file, line->start_real_line + breaks - 1));
+				print_warning(line->source, line->start_real_line + breaks, display, "Variable multiple declaration");
+				free(display);
 				tmp = malloc(sizeof(int));
 				*tmp = variable->line;
 				arraylist_add(ignores, tmp);
@@ -42,7 +47,7 @@ unsigned int check_no_multi_declaration(scope_t *root_scope, arraylist_t *file) 
 
 	current = root_scope->children->head;
 	while (current != NULL) {
-		count += check_no_multi_declaration((scope_t*)current->val, file);
+		count += check_no_multi_declaration((scope_t*)current->val, file, real_file);
 		current = current->next;
 	}
 
