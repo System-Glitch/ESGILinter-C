@@ -99,7 +99,6 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
 
     line = malloc(sizeof(char) * 1048);
     tmp = malloc(sizeof(char) * 1048);
-    res = malloc(sizeof(char) * 1048);
 
     strcpy(tmp, "");
     /*
@@ -219,6 +218,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
         }else if(counter && tempo){
             res = strsubstr(line, tempo, strlen(line));
             strcat(tmp, res);
+            free(res);
         }
     }
 
@@ -227,7 +227,6 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
      * Free the memory
      */
     fclose(src);
-    free(res);
     free(line);
     free(tmp);
 }
