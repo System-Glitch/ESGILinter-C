@@ -29,12 +29,12 @@ unsigned int check_no_prototype(scope_t *root_scope, arraylist_t *file) {
 			if(prototype != NULL) {
 				if(strcmp(function->return_type.name, prototype->return_type.name) || !check_params(function, prototype)) {
 					line = get_line(file, prototype->line);
-					print_error(line->source, line->real_line, trim_heading_whitespaces(line->line), "Conflicting types");
+					print_error(line->source, line->start_real_line, trim_heading_whitespaces(line->line), "Conflicting types");
 					count++;
 				}
 			} else {
 				line = get_line(file, function->line);
-				print_warning(line->source, line->real_line, trim_heading_whitespaces(line->line), "Missing prototype");
+				print_warning(line->source, line->start_real_line, trim_heading_whitespaces(line->line), "Missing prototype");
 				count++;
 			}
 		}

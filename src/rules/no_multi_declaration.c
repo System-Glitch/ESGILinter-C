@@ -28,7 +28,7 @@ unsigned int check_no_multi_declaration(scope_t *root_scope, arraylist_t *file) 
 				arraylist_add(lines, tmp);
 			} else {
 				line = get_line(file, variable->line);
-				print_warning(line->source, line->real_line, trim_heading_whitespaces(line->line), "Variable multiple declaration");
+				print_warning(line->source, line->start_real_line, trim_heading_whitespaces(line->line), "Variable multiple declaration");
 				tmp = malloc(sizeof(int));
 				*tmp = variable->line;
 				arraylist_add(ignores, tmp);
