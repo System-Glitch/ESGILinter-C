@@ -134,9 +134,9 @@ static void parse_declarations(arraylist_t *declarations, scope_t *scope, int li
 		declaration = arraylist_get(declarations, i);
 		if(declaration->value != NULL) {
 			//TODO parse inline array ("int test[] = {length, 4};")
-			declaration_type = parse_expression(declaration->value, line_index, scope, messages);
+			declaration_type = parse_operation(declaration->value, line_index, scope, messages);
 			if(!strcmp(declaration_type.name, "NULL")) {
-				declaration_type = parse_operation(declaration->value, line_index, scope, messages);
+				declaration_type = parse_expression(declaration->value, line_index, scope, messages);
 			}
 			if(messages->wrong_assignment != NULL && strcmp(declaration_type.name,"NULL") && !type_equals(&declaration->type, &declaration_type)) {
 				add_wrong_type_message(messages->wrong_assignment, &declaration->type, &declaration_type);
@@ -338,17 +338,18 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 
 			if(occurrence == NULL) continue;
 
-			//Check operator spacing
-			if(messages->operator_spacing != NULL) {
-				if(*(occurrence - 1) != ' ' || *(occurrence + operator_length) != ' ') {
-					arraylist_add(messages->operator_spacing, strduplicate((char*)operator));
-				}
-			}
-
 			//Split
 			left_operand_length = occurrence - line_wo_comment;
 			right_operand_index = left_operand_length + strlen(operator);
 			left_operand        = strsubstr(line_wo_comment, 0, left_operand_length);
+			right_operand       = strsubstr(line_wo_comment, right_operand_index, length - right_operand_index);
+
+			//Check operator spacing
+			if(messages->operator_spacing != NULL) {
+				if((*(occurrence - 1) != ' ' || *(occurrence + operator_length) != ' ') && strcmp(right_operand, operator)) {
+					arraylist_add(messages->operator_spacing, strduplicate((char*)operator));
+				}
+			}
 
 			//If left operation is variable declaration
 			declarations = get_variables_from_declaration(line_index, line);
@@ -364,7 +365,7 @@ type_t parse_operation(char *line, int line_index, scope_t *scope, messages_t *m
 				left_operand_type = find_variable_type_from_line(scope, line_index);
 
 			} else {
-				right_operand      = strsubstr(line_wo_comment, right_operand_index, length - right_operand_index);
+				
 				left_operand_type  = parse_operand(left_operand, line_index, scope, messages);
 				right_operand_type = parse_operand(right_operand, line_index, scope, messages);
 
