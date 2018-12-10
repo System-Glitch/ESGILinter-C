@@ -18,6 +18,7 @@
 - comma-spacing = on
 - operators-spacing = on
 - comments-header = on
+- array-bracket-eol = on
 
 =excludedFiles
 
