@@ -1,23 +1,24 @@
 #include "rules/indent.h"
 
-unsigned int indent(arraylist_t *file, int indent, char *filename){
+unsigned int check_indent(arraylist_t *file, int indent, char *filename){
     if(!file) return 0;
     unsigned int counter = 0;
     int level = 0;
     int count = 0;
-    int j;
     int adding = 0;
     int special = 0;
     int line_counter = 0;
-    int index;
     int start_switch;
     int mem;
     int brackets;
+    size_t j;
+    size_t index;
     size_t length;
     size_t tmp_length;
     char c;
     char *tmp;
     char *line = NULL;
+    char *trimmed = NULL;
 
     start_switch = 0;
     brackets = 0;
@@ -26,8 +27,8 @@ unsigned int indent(arraylist_t *file, int indent, char *filename){
     for(size_t h = 0; h < file->size; h++){
         line = arraylist_get(file, h);
         line_counter++;
-        if(line[0] == '\n') continue;
         length = strlen(line);
+        if(line[0] == '\n' || (length >= 2 && line[0] == '\r' && line[1] == '\n')) continue;
         level += adding;
         adding = 0;
         j = 0;
@@ -58,7 +59,9 @@ unsigned int indent(arraylist_t *file, int indent, char *filename){
             level = mem;
         }
         if(count != (indent*level)){
-            print_warning(filename, line_counter, line, "Wrong indentation");
+            trimmed = trim(line);
+            print_warning(filename, line_counter, trimmed, "Wrong indentation");
+            free(trimmed);
             counter++;
         }
         if(special){

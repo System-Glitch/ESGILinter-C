@@ -19,6 +19,7 @@
 - operators-spacing = on
 - comments-header = on
 - array-bracket-eol = on
+- indent = 4
 
 =excludedFiles
 

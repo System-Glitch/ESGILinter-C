@@ -16,6 +16,7 @@
 #include "rules/comma_spacing.h"
 #include "rules/comments_header.h"
 #include "rules/array_bracket_eol.h"
+#include "rules/indent.h"
 
 static arraylist_t *get_lines_list(arraylist_t *buffer) {
 	arraylist_t *lines = arraylist_init(buffer->size);
@@ -86,6 +87,10 @@ int main(int argc, char **argv) {
 			}
 			if(check_rule(conf, "comments-header")) {
 				check_comments_header(real_file, file);
+			}
+			if(check_rule(conf, "indent")) {
+				rule = get_rule(conf, "indent");
+				check_indent(real_file, rule->value, file);
 			}
 			if(check_rule(conf, "no-trailing-space")) {
 				no_trailing_spaces(real_file, file);
