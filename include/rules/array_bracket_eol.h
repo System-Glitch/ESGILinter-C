@@ -11,4 +11,6 @@ unsigned int array_bracket_eol(arraylist_t *file);
 
 unsigned int array_bracket_eol_check(line_t *line);
 
+unsigned int check_do(char *line, int index_bracket);
+
 #endif
