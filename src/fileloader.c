@@ -232,7 +232,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
                         start_for = 0;
                 }
             }
-            if(line[j+1] == '\n' || (line[j+1] == '\r' && line[j+2] == '\n')){
+            if((j < file_length - 1 && line[j+1] == '\n') || (j < file_length - 2 && line[j+1] == '\r' && line[j+2] == '\n')){
                 real_line = i + 1;
             }
         }
