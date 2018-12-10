@@ -21,7 +21,7 @@ typedef struct line {
 
 unsigned int file_row_number(FILE *src);
 
-void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, char *filename);
+void file_loader(arraylist_t *e/*, arraylist_t *files*/, arraylist_t *real_file, char *filename);
 
 char* file_to_buffer(FILE *src);
 
