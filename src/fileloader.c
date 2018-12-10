@@ -58,7 +58,7 @@ unsigned int file_row_number(FILE *src)
  * @return arrayList*
  */
 
-void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, char *filename){
+void file_loader(arraylist_t *e/*, arraylist_t *files*/, arraylist_t *real_file, char *filename){
 
     if(strlen(filename) <= 0) return;
     unsigned int length;
@@ -76,6 +76,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
     char *real;
     char c;
     int real_line;
+    int last_real_line;
     line_t *l;
     int line_counter;
     int counter;
@@ -111,6 +112,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
 
     line_counter = 0;
     real_line = 0;
+    last_real_line = 0;
     start_for = 0;
     literal = 0;
     start_array = 0;
@@ -206,8 +208,9 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
                 if(!check_quotes(line, line + j, file_length)) {
                     l = malloc(sizeof(line_t));
                     l->source = strduplicate(filename);
-                    l->start_line_in_buffer = start_buffer+real_line;
-                    l->start_real_line = real_line;
+                    l->start_line_in_buffer = start_buffer+last_real_line;
+                    l->start_real_line = last_real_line;
+                    last_real_line = real_line + 1;
 
                     if(strlen(tmp_line) != 0){
                         l->line = strduplicate(tmp_line);
@@ -232,7 +235,7 @@ void file_loader(arraylist_t *e, arraylist_t *files, arraylist_t *real_file, cha
                         start_for = 0;
                 }
             }
-            if((j < file_length - 1 && line[j+1] == '\n') || (j < file_length - 2 && line[j+1] == '\r' && line[j+2] == '\n')){
+            if(line[j] == '\n' || (j < file_length && line[j] == '\r' && line[j+1] == '\n')){
                 real_line = i + 1;
             }
         }

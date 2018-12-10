@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
 
 		file = arraylist_get(files, i);
 		printf("Checking file: %s\n", file);
-		file_loader(buffer, files, real_file, file);
+		file_loader(buffer/*, files*/, real_file, file);
 
 		lines = get_lines_list(buffer);
 		scope = parse_root_scope(lines);
@@ -77,17 +77,17 @@ int main(int argc, char **argv) {
 		if(scope != NULL) {
 			if(check_rule(conf, "max-file-line-numbers")) {
 				rule = get_rule(conf, "max-file-line-numbers");
-				max_file_line_numbers(real_file, rule->value, file); //TODO handle includes
+				max_file_line_numbers(real_file, rule->value, file);
 			}
 			if(check_rule(conf, "max-line-numbers")) {
 				rule = get_rule(conf, "max-line-numbers");
-				check_max_line_length(real_file, rule->value, file); //TODO handle includes
+				check_max_line_length(real_file, rule->value, file);
 			}
 			if(check_rule(conf, "comments-header")) {
 				check_comments_header(real_file, file);
 			}
 			if(check_rule(conf, "no-trailing-space")) {
-				no_trailing_spaces(real_file, file); //TODO handle includes
+				no_trailing_spaces(real_file, file);
 			}
 			if(check_rule(conf, "comma-spacing")) {
 				comma_spacing(buffer, real_file);

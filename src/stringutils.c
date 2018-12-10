@@ -127,15 +127,17 @@ unsigned int strcountuntil(char *str, char chr, char reverse, char ignore_whites
 
 unsigned int strcount_heading_line_breaks(char *str) {
 
-	unsigned int length = strlen(str);
+	char *tmp = str_remove_comments(str);
+	unsigned int length = strlen(tmp);
 	unsigned int count = 0;
 
 	for(unsigned int i = 0 ; i < length ; i++) {
-		if(str[i] == '\n')
+		if(tmp[i] == '\n')
 			count++;
-		else if(!is_whitespace(str[i]))
+		else if(!is_whitespace(tmp[i]))
 			break;
 	}
+	free(tmp);
 	return count;
 }
 
