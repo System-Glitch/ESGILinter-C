@@ -15,6 +15,7 @@
 #include "rules/no_trailing_spaces.h"
 #include "rules/comma_spacing.h"
 #include "rules/comments_header.h"
+#include "rules/array_bracket_eol.h"
 
 static arraylist_t *get_lines_list(arraylist_t *buffer) {
 	arraylist_t *lines = arraylist_init(buffer->size);
@@ -88,6 +89,9 @@ int main(int argc, char **argv) {
 			}
 			if(check_rule(conf, "no-trailing-space")) {
 				no_trailing_spaces(real_file, file);
+			}
+			if(check_rule(conf, "array-bracket-eol")) {
+				array_bracket_eol(buffer, real_file);
 			}
 			if(check_rule(conf, "comma-spacing")) {
 				comma_spacing(buffer, real_file);
