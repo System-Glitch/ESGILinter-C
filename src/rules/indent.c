@@ -60,8 +60,6 @@ unsigned int indent(arraylist_t *file, int indent, char *filename){
         if(count != (indent*level)){
             print_warning(filename, line_counter, line, "Wrong indentation");
             counter++;
-        }else{
-            printf("Line ok : %s\n",line);
         }
         if(special){
             level--;
